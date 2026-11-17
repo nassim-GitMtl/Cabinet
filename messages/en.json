@@ -24,6 +24,7 @@
     "loading": "Loading…"
   },
   "nav": {
+    "workspace": "Workspace",
     "dashboard": "Dashboard",
     "agenda": "Schedule",
     "reception": "Reception",
@@ -44,6 +45,21 @@
     "dashboardShort": "Home",
     "cash": "Cash drawer",
     "expenses": "Expenses"
+  },
+  "toothGuide": {
+    "open": "Tooth numbering",
+    "title": "FDI tooth numbering",
+    "description": "Permanent dentition reference. The first digit identifies the quadrant; the second identifies the tooth from the midline.",
+    "upperArch": "Upper arch",
+    "lowerArch": "Lower arch",
+    "upperRight": "Upper right · quadrant 1",
+    "upperLeft": "Upper left · quadrant 2",
+    "lowerLeft": "Lower left · quadrant 3",
+    "lowerRight": "Lower right · quadrant 4",
+    "firstDigit": "First digit:",
+    "firstDigitHint": "quadrant (1 upper right, 2 upper left, 3 lower left, 4 lower right).",
+    "secondDigit": "Second digit:",
+    "secondDigitHint": "tooth position from the midline, 1 through 8."
   },
   "auth": {
     "loginTitle": "Sign in",

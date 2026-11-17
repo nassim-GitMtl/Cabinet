@@ -24,6 +24,7 @@
     "loading": "Chargement…"
   },
   "nav": {
+    "workspace": "Espace de travail",
     "dashboard": "Tableau de bord",
     "agenda": "Agenda",
     "reception": "Réception",
@@ -44,6 +45,21 @@
     "dashboardShort": "Accueil",
     "cash": "Caisse",
     "expenses": "Dépenses"
+  },
+  "toothGuide": {
+    "open": "Numérotation dentaire",
+    "title": "Numérotation dentaire FDI",
+    "description": "Repère de la dentition permanente. Le premier chiffre indique le quadrant et le second la dent depuis la ligne médiane.",
+    "upperArch": "Arcade supérieure",
+    "lowerArch": "Arcade inférieure",
+    "upperRight": "Supérieur droit · quadrant 1",
+    "upperLeft": "Supérieur gauche · quadrant 2",
+    "lowerLeft": "Inférieur gauche · quadrant 3",
+    "lowerRight": "Inférieur droit · quadrant 4",
+    "firstDigit": "Premier chiffre :",
+    "firstDigitHint": "quadrant (1 supérieur droit, 2 supérieur gauche, 3 inférieur gauche, 4 inférieur droit).",
+    "secondDigit": "Second chiffre :",
+    "secondDigitHint": "position de la dent depuis la ligne médiane, de 1 à 8."
   },
   "auth": {
     "loginTitle": "Connexion",

@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Claude (session 6 — agenda settings and week view).
+Last updated: 2026-11-17 by Codex (session 7 — modern responsive shell and FDI tooth guide).
 
 ## How to verify the current state
 
@@ -58,6 +58,13 @@ page shows real free times (weekend and booked slots excluded, 12 h notice) → 
 Session 6 (Claude): agenda settings + week view. 78/78 tests (5 new), typecheck, lint, build green. Browser-checked
 `/settings/agenda` (chairs, types, weekly hours editor, time off) and the Sunday-start week view.
 
+Session 7 (Codex): modernized the shared app shell, page headers, cards and dialogs without changing workflow
+behavior. Added an always-available FDI permanent-tooth numbering guide to desktop and mobile chrome with complete
+FR/EN/AR copy. 78/78 tests, typecheck and lint green. The standard Turbopack build still fails on the known local
+helper-port restriction; Next's supported `npx next build --webpack` fallback is green. Browser-checked the Arabic
+desktop dashboard, mobile agenda, responsive navigation and tooth-guide dialog; RTL ordering and FDI quadrants are
+correct.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -78,7 +85,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; PDFs in Arabic ⏳ |
-| Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Bottom nav, FAB, sticky form actions. Service worker/offline policy ⏳ (no patient data offline by design) |
+| Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, and an always-available FR/EN/AR FDI tooth-number guide. Service worker/offline policy ⏳ (no patient data offline by design) |
 | Scheduler & booking (§9, §9A) | ✅ | Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |

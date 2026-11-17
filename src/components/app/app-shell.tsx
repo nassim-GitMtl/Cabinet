@@ -26,6 +26,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { logoutAction } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
+import { ToothIcon, ToothNumberGuide } from "./tooth-number-guide";
 
 export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "invoices" | "reports" | "cash" | "expenses" | "catalog" | "settings";
 
@@ -57,13 +58,14 @@ type Props = {
 
 function Brand() {
   return (
-    <span className="flex items-center gap-2 font-semibold tracking-tight">
-      <span aria-hidden className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
-        <svg viewBox="0 0 64 64" className="size-5" fill="currentColor">
-          <path d="M22 14c-6 0-10 5-10 11 0 5 2 9 4 13 2 5 2 12 6 12 3 0 3-6 5-10 1-2 2-3 5-3s4 1 5 3c2 4 2 10 5 10 4 0 4-7 6-12 2-4 4-8 4-13 0-6-4-11-10-11-4 0-6 2-10 2s-6-2-10-2z" />
-        </svg>
+    <span className="flex items-center gap-3 font-semibold tracking-tight">
+      <span aria-hidden className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-primary to-teal-700 text-primary-foreground shadow-lg shadow-primary/20">
+        <ToothIcon className="size-6" />
       </span>
-      <span>Cabinet Dentaire Pro</span>
+      <span className="leading-tight">
+        <span className="block text-[15px]">Cabinet Dentaire</span>
+        <span className="block text-xs font-medium uppercase tracking-[0.22em] text-primary">Pro</span>
+      </span>
     </span>
   );
 }
@@ -74,7 +76,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
-    <div className="flex min-h-dvh">
+    <div className="flex min-h-dvh bg-background">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:start-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"
@@ -83,15 +85,15 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
       </a>
 
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col border-e bg-sidebar lg:flex no-print">
-        <div className="px-4 pt-5 pb-4">
+      <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-e border-sidebar-border/70 bg-sidebar/95 shadow-[8px_0_30px_-24px_rgba(15,23,42,.32)] backdrop-blur-xl lg:flex no-print">
+        <div className="px-5 pt-5 pb-4">
           <Brand />
         </div>
-        <div className="mx-3 mb-3 rounded-lg border bg-background px-3 py-2.5">
-          <p className="truncate text-sm font-medium" title={clinicName} dir="auto">
+        <div className="mx-4 mb-5 rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/10 via-background to-background p-3.5 shadow-sm">
+          <p className="truncate text-sm font-semibold" title={clinicName} dir="auto">
             {clinicName}
           </p>
-          <p className="truncate text-xs text-muted-foreground">{roleName}</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{roleName}</p>
           {hasMultipleClinics ? (
             <Link href="/select-clinic" className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
               <ArrowLeftRightIcon className="size-3" aria-hidden />
@@ -99,7 +101,8 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
             </Link>
           ) : null}
         </div>
-        <nav aria-label={t("mainNavigation")} className="flex-1 space-y-0.5 px-3">
+        <p className="px-6 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t("workspace")}</p>
+        <nav aria-label={t("mainNavigation")} className="flex-1 space-y-1 overflow-y-auto px-3">
           {nav.map((key) => {
             const item = NAV[key];
             const active = isActive(item.href);
@@ -109,20 +112,29 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                   active
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-muted",
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/15"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
-                <item.icon className="size-4.5" aria-hidden />
+                <item.icon className={cn("size-4.5 transition-transform group-hover:scale-105", active && "text-primary-foreground")} aria-hidden />
                 {t(item.label as never)}
               </Link>
             );
           })}
         </nav>
-        <div className="space-y-3 border-t p-3">
-          <p className="truncate px-1 text-sm">{userName}</p>
+        <div className="mx-3 mb-2"><ToothNumberGuide /></div>
+        <div className="space-y-3 border-t border-sidebar-border/70 p-4">
+          <div className="flex items-center gap-3 rounded-xl bg-muted/55 p-2.5">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary" aria-hidden>
+              {userName.trim().charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium" dir="auto">{userName}</p>
+              <p className="truncate text-xs text-muted-foreground">{roleName}</p>
+            </div>
+          </div>
           <LanguageSwitcher className="block" />
           <form action={logoutAction}>
             <Button type="submit" variant="ghost" className="w-full justify-start gap-2">
@@ -133,14 +145,20 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
         </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col bg-[radial-gradient(circle_at_top_right,color-mix(in_oklch,var(--primary)_8%,transparent),transparent_34rem)]">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b bg-background/95 px-4 py-2.5 backdrop-blur lg:hidden no-print">
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold" dir="auto">{clinicName}</p>
-            <p className="truncate text-xs text-muted-foreground">{userName}</p>
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border/60 bg-background/85 px-4 py-2.5 shadow-sm backdrop-blur-xl lg:hidden no-print">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-teal-700 text-primary-foreground shadow-md shadow-primary/20">
+              <ToothIcon className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold" dir="auto">{clinicName}</p>
+              <p className="truncate text-[11px] text-muted-foreground">{userName}</p>
+            </div>
           </div>
           <div className="flex items-center gap-1">
+            <ToothNumberGuide compact />
             <LanguageSwitcher compact />
             <form action={logoutAction}>
               <Button type="submit" variant="ghost" size="icon" aria-label={t("logout")}>
@@ -150,14 +168,14 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
           </div>
         </header>
 
-        <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 pt-4 pb-28 sm:px-6 lg:px-8 lg:pt-8 lg:pb-10">
+        <main id="main" className="mx-auto w-full max-w-[90rem] flex-1 px-4 pt-5 pb-32 sm:px-6 lg:px-8 lg:pt-8 lg:pb-12 xl:px-10">
           {children}
         </main>
 
         {/* Mobile bottom navigation */}
         <nav
           aria-label={t("mainNavigation")}
-          className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden no-print"
+          className="fixed inset-x-3 bottom-3 z-30 overflow-hidden rounded-2xl border border-border/70 bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_12px_40px_-12px_rgba(15,23,42,.35)] backdrop-blur-xl lg:hidden no-print"
         >
           <ul className="mx-auto flex max-w-lg items-stretch justify-around">
             {nav.filter((key) => MOBILE_PRIMARY.includes(key)).map((key) => {
@@ -169,11 +187,11 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cn(
-                      "flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
+                      "relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors",
                       active ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    <item.icon className="size-5" aria-hidden />
+                    <item.icon className={cn("size-5", active && "drop-shadow-sm")} aria-hidden />
                     {t((item.short ?? item.label) as never)}
                   </Link>
                 </li>
@@ -184,7 +202,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
                 <Sheet>
                   <SheetTrigger
                     className={cn(
-                      "flex min-h-14 w-full flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
+                      "flex min-h-14 w-full flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors",
                       nav.some((key) => !MOBILE_PRIMARY.includes(key) && isActive(NAV[key].href)) ? "text-primary" : "text-muted-foreground",
                     )}
                   >
@@ -218,7 +236,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
           <Link
             href="/patients/new"
             aria-label={t("quickActions")}
-            className="fixed end-4 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-30 grid size-14 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg lg:hidden no-print"
+            className="fixed end-5 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-30 grid size-14 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-xl shadow-primary/25 transition-transform active:scale-95 lg:hidden no-print"
           >
             <UserPlusIcon className="size-6" aria-hidden />
           </Link>
