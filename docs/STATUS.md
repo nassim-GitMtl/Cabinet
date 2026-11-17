@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Codex (session 9 — consent flows and patient portal accounts).
+Last updated: 2026-11-17 by Codex (session 10 — staff access security).
 
 ## How to verify the current state
 
@@ -81,6 +81,14 @@ event atomically. 84/84 tests (3 new integration tests), typecheck and lint gree
 `npx next build --webpack` is green after the unchanged Turbopack helper-port restriction. Browser-checked the
 Arabic portal login at a 390 px mobile viewport; RTL layout and responsive form are correct.
 
+Session 10 (Codex): staff access security end to end. Added single-use seven-day staff invitations for new or
+existing global accounts, exact clinic role assignment, custom role creation/editing, owner/self lockout guards,
+immediate session revocation on deactivation, encrypted TOTP enrollment, password-first MFA challenges, eight
+single-use hashed recovery codes, and active-session review/revocation. All mutations are audited and invitation
+data remains tenant-isolated. 88/88 tests (3 new integration tests + TOTP unit coverage), typecheck and lint green;
+supported `npx next build --webpack` is green after the unchanged Turbopack helper-port restriction. Browser-checked
+Arabic RTL team and account-security screens on desktop and mobile without changing demo data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -89,8 +97,8 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | --- | --- | --- |
 | Multi-tenant orgs, legal entity, branch (§2, §25) | ✅ | Created at registration. Branch/legal-entity management UI ⏳ |
 | Postgres RLS tenant isolation (§4A, §27) | ✅ | Integration tests: cross-tenant read/write denied, no-context = 0 rows |
-| Roles & permission templates (§4) | ✅ | Keys in `permissions.ts`; role editing UI ⏳; staff invitations ⏳ |
-| Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | MFA ⏳, account recovery ⏳, session list/revocation UI ⏳ |
+| Roles & permission templates (§4) | ✅ | Permission-key templates, tenant custom role editor, owner-role protection and exact membership assignment |
+| Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | Invite activation, password lockout, encrypted TOTP + recovery codes, MFA challenge, active session list/revocation. Account recovery ⏳ |
 | Clinic onboarding (§25) | 🟡 | Self-service register creates clinic + catalog. Wizard steps (hours, chairs, branding, numbering) ⏳. Verification workflow ⏳ |
 | Active clinic switching for multi-org staff (§4A) | ✅ | `/select-clinic`, membership re-checked per request |
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
@@ -120,9 +128,9 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-1. **Staff invitations, role editor, MFA (TOTP), session management UI.**
-2. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
-3. Portal expansion: appointments, accepted estimates, invoices/payments and account recovery.
+1. **Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.**
+2. Portal expansion: appointments, accepted estimates, invoices/payments and account recovery.
+3. Odontogram foundation: FDI chart state, findings and treatment linkage.
 
 ## Known gaps / decisions to revisit
 

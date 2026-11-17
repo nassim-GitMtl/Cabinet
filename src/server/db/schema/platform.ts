@@ -34,6 +34,11 @@ export const users = pgTable(
     /** Platform operators administer tenants; this grants NO patient-data access. */
     platformRole: platformRole("platform_role").notNull().default("none"),
     mfaEnabled: boolean("mfa_enabled").notNull().default(false),
+    /** AES-GCM protected TOTP secret; never returned by account reads. */
+    mfaSecret: text("mfa_secret"),
+    /** SHA-256 hashes of single-use recovery codes. */
+    mfaRecoveryCodes: text("mfa_recovery_codes").array().notNull().default(sql`'{}'::text[]`),
+    mfaPendingSecret: text("mfa_pending_secret"),
     failedLoginCount: integer("failed_login_count").notNull().default(0),
     lockedUntil: timestamp("locked_until", { withTimezone: true }),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
@@ -193,6 +198,39 @@ export const memberships = pgTable(
     index("memberships_user_idx").on(t.userId),
   ],
 );
+
+/** Tenant-owned, single-use staff onboarding link. */
+export const staffInvitations = pgTable(
+  "staff_invitations",
+  {
+    id: id(),
+    organizationId: organizationId().references(() => organizations.id),
+    email: text("email").notNull(),
+    fullName: text("full_name").notNull(),
+    roleId: uuid("role_id").notNull().references(() => roles.id),
+    title: text("title"),
+    isProvider: boolean("is_provider").notNull().default(false),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdByUserId: uuid("created_by_user_id").notNull().references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("staff_invitations_token_uq").on(t.tokenHash),
+    index("staff_invitations_org_idx").on(t.organizationId, t.createdAt),
+  ],
+);
+
+/** Password-first, short-lived challenge used before a staff MFA session. */
+export const staffMfaChallenges = pgTable("staff_mfa_challenges", {
+  id: text("id").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  attemptsRemaining: integer("attempts_remaining").notNull().default(5),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [index("staff_mfa_challenges_user_idx").on(t.userId, t.expiresAt)]);
 
 /** Concurrency-safe per-tenant sequences (patient numbers, invoice numbers...). */
 export const counters = pgTable(

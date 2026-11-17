@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { ShieldCheckIcon, ShieldQuestionIcon } from "lucide-react";
+import { ShieldCheckIcon, ShieldQuestionIcon, UsersIcon, KeyRoundIcon, SmartphoneIcon } from "lucide-react";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
 import { Badge } from "@/components/ui/badge";
@@ -31,9 +31,7 @@ export default async function SettingsPage() {
       <PageHeader
         title={t("settings.title")}
         actions={
-          <ButtonLink href="/settings/agenda" variant="outline">
-            {t("agendaSettings.title")}
-          </ButtonLink>
+          <div className="flex flex-wrap gap-2"><ButtonLink href="/settings/security" variant="outline"><SmartphoneIcon />{t("access.securityTitle")}</ButtonLink>{can(ctx, "org.staff.manage") ? <ButtonLink href="/settings/team" variant="outline"><UsersIcon />{t("access.teamTitle")}</ButtonLink> : null}{can(ctx, "org.roles.manage") ? <ButtonLink href="/settings/roles" variant="outline"><KeyRoundIcon />{t("access.rolesTitle")}</ButtonLink> : null}<ButtonLink href="/settings/agenda" variant="outline">{t("agendaSettings.title")}</ButtonLink></div>
         }
       />
       <div className="grid gap-4 lg:grid-cols-2">

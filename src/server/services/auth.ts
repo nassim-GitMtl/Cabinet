@@ -15,7 +15,7 @@ let dummyHash: Promise<string> | null = null;
 const getDummyHash = () => (dummyHash ??= hashPassword("not-a-real-password-placeholder"));
 
 export type AuthResult =
-  | { ok: true; userId: string }
+  | { ok: true; userId: string; mfaRequired: boolean }
   | { ok: false; reason: "invalid" | "locked" | "disabled" };
 
 export async function authenticate(
@@ -63,7 +63,7 @@ export async function authenticate(
       ipAddress,
     });
   });
-  return valid ? { ok: true, userId: user.id } : { ok: false, reason: "invalid" };
+  return valid ? { ok: true, userId: user.id, mfaRequired: user.mfaEnabled } : { ok: false, reason: "invalid" };
 }
 
 export type MyClinic = { organizationId: string; name: string; displayName: string };

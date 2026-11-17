@@ -1,9 +1,12 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, desc, eq, gt, isNull } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import { db } from "../db/client";
 import { sessions, users } from "../db/schema";
+import { withDbContext } from "../db/tenant";
+import { audit } from "../audit";
+import type { ClinicContext } from "./context";
 
 export const SESSION_COOKIE = "cdp_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12h absolute idle window for shared workstations
@@ -118,4 +121,29 @@ export async function revokeAllSessions(userId: string) {
     .update(sessions)
     .set({ revokedAt: new Date() })
     .where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt)));
+}
+
+export async function listUserSessions(userId: string) {
+  return db.select({
+    id: sessions.id, ipAddress: sessions.ipAddress, userAgent: sessions.userAgent,
+    createdAt: sessions.createdAt, lastSeenAt: sessions.lastSeenAt, expiresAt: sessions.expiresAt,
+  }).from(sessions).where(and(eq(sessions.userId, userId), isNull(sessions.revokedAt), gt(sessions.expiresAt, new Date())))
+    .orderBy(desc(sessions.lastSeenAt));
+}
+
+export async function revokeUserSession(userId: string, sessionId: string) {
+  const [revoked] = await db.update(sessions).set({ revokedAt: new Date() })
+    .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId), isNull(sessions.revokedAt)))
+    .returning({ id: sessions.id });
+  return !!revoked;
+}
+
+export async function revokeOwnSession(ctx: ClinicContext, sessionId: string) {
+  return withDbContext({ organizationId: ctx.organizationId, userId: ctx.userId, actorType: "staff" }, async (tx) => {
+    const [revoked] = await tx.update(sessions).set({ revokedAt: new Date() })
+      .where(and(eq(sessions.id, sessionId), eq(sessions.userId, ctx.userId), isNull(sessions.revokedAt)))
+      .returning({ id: sessions.id });
+    if (revoked) await audit(tx, { organizationId: ctx.organizationId, actorType: "staff", actorUserId: ctx.userId, action: "auth.session.revoked", entityType: "session", entityId: sessionId });
+    return !!revoked;
+  });
 }

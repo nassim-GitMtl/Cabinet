@@ -8,6 +8,7 @@ import { LOCALE_COOKIE, isLocale } from "@/i18n/config";
 import { requireSession } from "@/server/auth/context";
 import { passwordPolicyError } from "@/server/auth/password";
 import { createSession, requestMeta, revokeCurrentSession, setActiveOrganization } from "@/server/auth/session";
+import { createMfaChallenge, verifyMfaChallenge } from "@/server/auth/mfa";
 import { authenticate, listMyClinics } from "@/server/services/auth";
 import { EmailTakenError, registerClinic } from "@/server/services/onboarding";
 
@@ -25,9 +26,23 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
   const { ipAddress } = await requestMeta();
   const result = await authenticate(parsed.data.email, parsed.data.password, ipAddress);
   if (!result.ok) return { error: `auth.${result.reason}`, values };
+  if (result.mfaRequired) return { ok: true, data: { mfaToken: await createMfaChallenge(result.userId) }, values };
 
   const clinics = await listMyClinics(result.userId);
   await createSession(result.userId, clinics.length === 1 ? clinics[0]!.organizationId : null);
+  redirect(clinics.length === 1 ? "/dashboard" : "/select-clinic");
+}
+
+const mfaSchema = z.object({ code: z.string().trim().min(6, "required").max(20) });
+
+export async function verifyLoginMfaAction(token: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
+  const parsed = mfaSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error) };
+  const { ipAddress } = await requestMeta();
+  const userId = await verifyMfaChallenge(token, parsed.data.code, ipAddress);
+  if (!userId) return { error: "auth.mfaInvalid" };
+  const clinics = await listMyClinics(userId);
+  await createSession(userId, clinics.length === 1 ? clinics[0]!.organizationId : null);
   redirect(clinics.length === 1 ? "/dashboard" : "/select-clinic");
 }
 

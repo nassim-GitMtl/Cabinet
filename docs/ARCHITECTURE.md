@@ -112,8 +112,17 @@ tests/                    integration tests + support (global setup resets cabin
 
 ## Security notes
 
-- Passwords: scrypt (N=2^15, r=8, p=3), NFKC-normalized, 10-char minimum. Uniform timing for unknown emails; lockout 15 min after 5 failures. MFA: schema flag only (planned TOTP).
+- Passwords: scrypt (N=2^15, r=8, p=3), NFKC-normalized, 10-char minimum. Uniform timing for unknown emails; lockout 15 min after 5 failures. TOTP MFA is available to every staff account.
 - Sessions: opaque 32-byte token in httpOnly SameSite=Lax cookie; DB stores SHA-256; 12 h sliding; revocable (`revokeAllSessions`).
+- Staff invitations are tenant-owned, single-use SHA-256 token links with a seven-day expiry. Acceptance creates one
+  membership for the invitation's exact role; existing global accounts prove their password and new accounts set one.
+  No session is issued by acceptance, so the normal password + MFA login path always runs afterward.
+- Staff TOTP secrets are AES-256-GCM protected at rest. Production requires a dedicated `MFA_ENCRYPTION_KEY`; local
+  development derives a stable key from its database URL. Login uses a five-minute, five-attempt password-first
+  challenge. Recovery codes are shown once, stored only as SHA-256 hashes, and consumed once.
+- Owners can create tenant custom roles from exact permission keys. The owner role is immutable, users cannot change
+  or deactivate themselves, and staff deactivation revokes every active session immediately. Session revocation is
+  user-scoped and audited in the active clinic.
 - Audit: `audit_events` is INSERT/SELECT-only for the app role. Never put clinical content or secrets in metadata.
 - Security headers in `next.config.ts`. Platform operator role grants no patient-data access.
 
