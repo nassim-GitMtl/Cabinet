@@ -5,6 +5,9 @@ import { ROLE_TEMPLATES, type RoleTemplateKey } from "../authz/permissions";
 import { STARTER_CATALOG } from "../catalog/starter-catalog";
 import { db, type Database, type Tx } from "../db/client";
 import {
+  appointmentTypes,
+  chairs,
+  workingHours,
   branches,
   legalEntities,
   memberships,
@@ -85,12 +88,10 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
       .values({ organizationId, legalName: input.clinicName.trim(), currency, isDefault: true })
       .returning({ id: legalEntities.id });
 
-    await tx.insert(branches).values({
-      organizationId,
-      legalEntityId: legalEntity!.id,
-      name: input.clinicName.trim(),
-      timezone,
-    });
+    const [branch] = await tx
+      .insert(branches)
+      .values({ organizationId, legalEntityId: legalEntity!.id, name: input.clinicName.trim(), timezone })
+      .returning({ id: branches.id });
 
     const roleRows = await tx
       .insert(roles)
@@ -106,14 +107,19 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
       .returning({ id: roles.id, key: roles.key });
     const ownerRole = roleRows.find((r) => r.key === "owner")!;
 
-    await tx.insert(memberships).values({
-      organizationId,
-      userId: user!.id,
-      roleId: ownerRole.id,
-      displayName: input.ownerFullName.trim(),
-      title: input.ownerIsDentist ? "Dr" : null,
-      isProvider: input.ownerIsDentist,
-    });
+    const [membership] = await tx
+      .insert(memberships)
+      .values({
+        organizationId,
+        userId: user!.id,
+        roleId: ownerRole.id,
+        displayName: input.ownerFullName.trim(),
+        title: input.ownerIsDentist ? "Dr" : null,
+        isProvider: input.ownerIsDentist,
+      })
+      .returning({ id: memberships.id });
+
+    await seedSchedulingDefaults(tx, organizationId, branch!.id, input.ownerIsDentist ? membership!.id : null);
 
     await seedStarterCatalog(tx, organizationId, user!.id, currency);
 
@@ -129,6 +135,35 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
     return { userId: user!.id, organizationId };
   });
 }
+
+/** Editable defaults: one chair, common appointment types, Sun–Thu working hours. */
+export async function seedSchedulingDefaults(tx: Tx, organizationId: string, branchId: string, providerId: string | null) {
+  await tx.insert(chairs).values({ organizationId, branchId, name: "Fauteuil 1" });
+  await tx.insert(appointmentTypes).values(
+    DEFAULT_APPOINTMENT_TYPES.map((a) => ({ organizationId, code: a.code, name: a.name, defaultDurationMin: a.duration, color: a.color })),
+  );
+  if (providerId) await tx.insert(workingHours).values(defaultWorkingHours(organizationId, providerId, branchId));
+}
+
+export function defaultWorkingHours(organizationId: string, providerId: string, branchId: string) {
+  // Algeria: weekend is Friday–Saturday. ISO weekday 7 = Sunday.
+  return [7, 1, 2, 3, 4].flatMap((weekday) =>
+    [
+      ["08:00", "12:00"],
+      ["13:00", "17:00"],
+    ].map(([startTime, endTime]) => ({ organizationId, providerId, branchId, weekday, startTime: startTime!, endTime: endTime! })),
+  );
+}
+
+const DEFAULT_APPOINTMENT_TYPES = [
+  { code: "CONSULT", name: { fr: "Consultation", en: "Consultation", ar: "استشارة" }, duration: 20, color: "teal" },
+  { code: "CARE", name: { fr: "Soins", en: "Treatment", ar: "علاج" }, duration: 30, color: "blue" },
+  { code: "HYGIENE", name: { fr: "Détartrage", en: "Hygiene", ar: "إزالة الجير" }, duration: 30, color: "green" },
+  { code: "SURGERY", name: { fr: "Chirurgie", en: "Surgery", ar: "جراحة" }, duration: 60, color: "red" },
+  { code: "PROSTH", name: { fr: "Prothèse", en: "Prosthetics", ar: "تركيبات" }, duration: 45, color: "violet" },
+  { code: "FOLLOWUP", name: { fr: "Contrôle", en: "Follow-up", ar: "متابعة" }, duration: 15, color: "gray" },
+  { code: "URGENT", name: { fr: "Urgence", en: "Emergency", ar: "استعجال" }, duration: 20, color: "orange" },
+];
 
 export async function seedStarterCatalog(tx: Tx, organizationId: string, userId: string, currency: string) {
   const factor = 10 ** currencyExponent(currency);

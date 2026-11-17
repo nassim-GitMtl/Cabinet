@@ -6,6 +6,19 @@ alternate on this repo; this file is the shared memory between them.
 
 Last updated: 2026-11-17 by Claude (session 3 — invoicing, payments, reports).
 
+> **In progress (Claude, session 3, stopped at usage limit): Agenda (§9).**
+> Done and tested (5 integration tests, all green): schema + migrations 0009/0010 (chairs, appointment_types,
+> working_hours, time_off, appointments with 3 independent status dimensions; PostgreSQL EXCLUDE constraints
+> block overlapping booked appointments per provider/chair/patient, even concurrently), defaults seeded for new
+> and existing clinics (1 chair, 7 types, Sun–Thu 08–12/13–17), service `src/features/agenda/server.ts`
+> (create/reschedule with version check/cancel/no-show/confirmation/visit flow, working-hours + time-off checks
+> with explicit override, patient appointment list), timezone helpers `zonedToUtc`/`timeInZone` in `src/lib/dates.ts`.
+> **Left to do:** `agenda` translations (fr/en/ar), actions file, `/agenda` page (day view: columns per provider
+> on desktop, list on phone; prev/next day; new-appointment dialog with patient search via `searchPatients`),
+> appointment detail with status buttons, `/reception` (today's arrivals → waiting → in treatment → completed),
+> nav entries (`agenda`, `reception`; permission `appointment.read`), and the patient overview "next appointment"
+> card using `listPatientAppointments`. Then browser-check on 375 px and in Arabic, and move this to ✅.
+
 ## How to verify the current state
 
 ```bash

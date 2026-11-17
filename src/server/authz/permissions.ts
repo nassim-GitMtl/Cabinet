@@ -145,6 +145,7 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
     name: "Comptable",
     permissions: [
       "patient.read",
+      "appointment.read",
       "catalog.read",
       "invoice.read",
       "payment.read",

@@ -51,3 +51,49 @@ export function parseDateOnly(input: string): string | null {
   if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
+
+/** Offset (ms) of `timeZone` from UTC at the given instant. */
+function zoneOffsetMs(instant: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(instant));
+  const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
+  const asUtc = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  return asUtc - Math.floor(instant / 1000) * 1000;
+}
+
+/** Converts a clinic wall-clock date ("YYYY-MM-DD") + time ("HH:MM") to a UTC Date. */
+export function zonedToUtc(date: string, timeHHMM: string, timeZone: string): Date {
+  const [y, mo, d] = date.split("-").map(Number);
+  const [h, mi] = timeHHMM.split(":").map(Number);
+  const guess = Date.UTC(y!, mo! - 1, d!, h!, mi!);
+  let utc = guess - zoneOffsetMs(guess, timeZone);
+  // Second pass handles DST transitions.
+  utc = guess - zoneOffsetMs(utc, timeZone);
+  return new Date(utc);
+}
+
+/** Wall-clock "HH:MM" of an instant in the clinic timezone. */
+export function timeInZone(value: Date | string, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(value));
+}
+
+/** ISO weekday (1 = Monday … 7 = Sunday) of a date-only string. */
+export function isoWeekday(date: string): number {
+  const d = new Date(`${date}T12:00:00Z`).getUTCDay();
+  return d === 0 ? 7 : d;
+}
+
+/** Adds days to a date-only string. */
+export function addDays(date: string, days: number): string {
+  const d = new Date(`${date}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}

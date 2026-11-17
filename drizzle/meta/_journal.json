@@ -64,6 +64,20 @@
       "when": 1794945236156,
       "tag": "0008_cash_security",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794945553446,
+      "tag": "0009_scheduling",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794945554064,
+      "tag": "0010_scheduling_security",
+      "breakpoints": true
     }
   ]
 }
