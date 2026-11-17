@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Codex (session 10 — staff access security).
+Last updated: 2026-11-18 by Claude (session 11 — clinic server, works without internet).
 
 ## How to verify the current state
 
@@ -89,6 +89,17 @@ data remains tenant-isolated. 88/88 tests (3 new integration tests + TOTP unit c
 supported `npx next build --webpack` is green after the unchanged Turbopack helper-port restriction. Browser-checked
 Arabic RTL team and account-security screens on desktop and mobile without changing demo data.
 
+Session 11 (Claude): **clinic server — runs on the clinic network with no internet** (user decision 2026-11-18:
+"Clinic server (no internet)"; per-device offline data was explicitly not chosen). Also committed Codex session 10
+after verifying it (88/88). Results: 89/89 tests, typecheck, lint, `next build` green; Docker images built
+(app 305 MB, migrate 1.55 GB); full stack verified on test ports: migrations, HTTPS via Caddy local CA
+(`/ca.crt` download validates the certificate), HTTP→HTTPS redirect, `/api/health`, first-only registration,
+`cabinet_app` role non-superuser/NOBYPASSRLS. **Backup/restore exercise (scenario 32), measured:** dev demo DB
+(302 KB dump) restored into the stack in 18 s; then backup (296 KB, sha256 verified) → modification → restore in
+19 s (includes safety backup + app restart); clinic name and 196 audit events identical after restore; health OK.
+Connection banner verified (appears within ~30 s when the server stops answering, clears on recovery).
+Browser pane cannot open the stack's HTTPS (local CA not trusted on this machine — expected; devices install `ca.crt`).
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -127,6 +138,10 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Platform operations console (§25) | ⏳ | |
 
 ## Next steps (in order)
+
+0. Clinic server follow-ups: slim the migrate image (production deps + tsx only); optional internet sync to a cloud
+   copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
+   file storage exists.
 
 1. **Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.**
 2. Portal expansion: appointments, accepted estimates, invoices/payments and account recovery.

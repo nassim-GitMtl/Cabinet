@@ -7,6 +7,8 @@ import createNextIntlPlugin from "next-intl/plugin";
 const nextConfig: NextConfig = {
   cacheComponents: false,
   poweredByHeader: false,
+  // Self-contained server bundle for the clinic Docker image (no node_modules at runtime).
+  output: "standalone",
   turbopack: {
     rules: {
       "*.css": {

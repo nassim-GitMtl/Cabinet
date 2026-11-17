@@ -96,7 +96,8 @@
     "mfaPrompt": "Enter the six-digit code from your authenticator app, or a recovery code.",
     "mfaCode": "Authenticator code",
     "mfaInvalid": "The code is invalid or the challenge expired.",
-    "verify": "Verify"
+    "verify": "Verify",
+    "registrationClosed": "This clinic server is already set up. Ask the clinic manager for an invitation."
   },
   "errors": {
     "required": "Required",
@@ -393,7 +394,10 @@
     "revise": "Create revision",
     "saveRevision": "Save new version",
     "revisionCreatesVersion": "The accepted estimate remains unchanged; this saves a complete new version.",
-    "fields": { "title": "Plan title", "notes": "Notes shown with the estimate" },
+    "fields": {
+      "title": "Plan title",
+      "notes": "Notes shown with the estimate"
+    },
     "items": "Estimate items",
     "itemsHint": "Prices are snapshotted from the current catalog. Add the same service more than once for different teeth.",
     "addItem": "Add service",
@@ -406,7 +410,14 @@
     "emptyHint": "Create an estimate to discuss treatment options with this patient.",
     "version": "Version {version}",
     "activeCount": "{count, plural, =0 {No active plans} one {# active plan} other {# active plans}}",
-    "status": { "draft": "Draft", "proposed": "Proposed", "accepted": "Accepted", "declined": "Declined", "completed": "Completed", "cancelled": "Cancelled" },
+    "status": {
+      "draft": "Draft",
+      "proposed": "Proposed",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
     "propose": "Propose to patient",
     "readyToPropose": "Ready to share?",
     "proposeHint": "Proposing locks this version for the patient's decision. Revisions create a new version.",
@@ -418,7 +429,11 @@
     "decisionMethod": "Decision method",
     "decisionDate": "Recorded on",
     "decisionNote": "Decision note",
-    "methods": { "signed_in_clinic": "Signed in clinic", "verbal": "Verbal confirmation", "other": "Other documented method" },
+    "methods": {
+      "signed_in_clinic": "Signed in clinic",
+      "verbal": "Verbal confirmation",
+      "other": "Other documented method"
+    },
     "history": "Version history",
     "tooth": "Tooth {tooth}",
     "converted": "Recorded as completed procedure",
@@ -1022,31 +1037,86 @@
     "sendRequest": "Send to patient portal",
     "requestSent": "Request sent. The patient must decide in their portal.",
     "noRequests": "No consent request yet.",
-    "status": { "requested": "Requested", "awaiting_patient": "Awaiting patient", "approved": "Approved", "declined": "Declined", "expired": "Expired", "withdrawn": "Withdrawn" },
-    "category": { "summary": "Health summary", "alerts": "Clinical alerts", "clinical_notes": "Clinical notes", "chart": "Dental chart", "treatments": "Treatments", "images": "Images", "documents": "Documents", "financial": "Financial records" }
+    "status": {
+      "requested": "Requested",
+      "awaiting_patient": "Awaiting patient",
+      "approved": "Approved",
+      "declined": "Declined",
+      "expired": "Expired",
+      "withdrawn": "Withdrawn"
+    },
+    "category": {
+      "summary": "Health summary",
+      "alerts": "Clinical alerts",
+      "clinical_notes": "Clinical notes",
+      "chart": "Dental chart",
+      "treatments": "Treatments",
+      "images": "Images",
+      "documents": "Documents",
+      "financial": "Financial records"
+    }
   },
   "access": {
-    "teamTitle": "Team access", "teamSubtitle": "Invite staff and control each person's clinic role.",
-    "rolesTitle": "Roles & permissions", "rolesSubtitle": "Create clinic-specific roles and assign only the permissions each job needs.",
-    "securityTitle": "Account security", "securitySubtitle": "Protect your sign-in and review active sessions.",
-    "inviteTitle": "Invite a team member", "inviteHint": "The link is single-use and expires after seven days.",
-    "fullName": "Full name", "email": "Email", "role": "Role", "titleField": "Professional title",
-    "isProvider": "This person provides clinical care", "createInvitation": "Create invitation", "invitationLink": "Secure invitation link",
-    "copy": "Copy", "copied": "Copied", "team": "Current team", "provider": "Clinician", "statusLabel": "Access status",
-    "status": { "invited": "Invited", "active": "Active", "deactivated": "Deactivated" },
-    "save": "Save access", "invitations": "Invitation history", "accepted": "Accepted", "pending": "Pending", "expired": "Expired",
-    "newRole": "New custom role", "roleName": "Role name", "permissions": "Permission keys",
-    "ownerLocked": "The owner role always retains every permission.", "saveRole": "Save role", "saved": "Saved",
-    "joinTitle": "Join the clinic team", "joinSubtitle": "Accept your invitation to {clinic}.",
+    "teamTitle": "Team access",
+    "teamSubtitle": "Invite staff and control each person's clinic role.",
+    "rolesTitle": "Roles & permissions",
+    "rolesSubtitle": "Create clinic-specific roles and assign only the permissions each job needs.",
+    "securityTitle": "Account security",
+    "securitySubtitle": "Protect your sign-in and review active sessions.",
+    "inviteTitle": "Invite a team member",
+    "inviteHint": "The link is single-use and expires after seven days.",
+    "fullName": "Full name",
+    "email": "Email",
+    "role": "Role",
+    "titleField": "Professional title",
+    "isProvider": "This person provides clinical care",
+    "createInvitation": "Create invitation",
+    "invitationLink": "Secure invitation link",
+    "copy": "Copy",
+    "copied": "Copied",
+    "team": "Current team",
+    "provider": "Clinician",
+    "statusLabel": "Access status",
+    "status": {
+      "invited": "Invited",
+      "active": "Active",
+      "deactivated": "Deactivated"
+    },
+    "save": "Save access",
+    "invitations": "Invitation history",
+    "accepted": "Accepted",
+    "pending": "Pending",
+    "expired": "Expired",
+    "newRole": "New custom role",
+    "roleName": "Role name",
+    "permissions": "Permission keys",
+    "ownerLocked": "The owner role always retains every permission.",
+    "saveRole": "Save role",
+    "saved": "Saved",
+    "joinTitle": "Join the clinic team",
+    "joinSubtitle": "Accept your invitation to {clinic}.",
     "invitationUnavailable": "This invitation is invalid, expired, or already used.",
-    "existingPassword": "Your existing account password", "newPassword": "Create a password", "confirmPassword": "Confirm password", "acceptInvitation": "Accept invitation",
-    "mfaTitle": "Two-step verification", "mfaHint": "Use a TOTP authenticator app. A code is required after your password on every new sign-in.",
-    "startMfa": "Set up authenticator", "addAuthenticator": "Add this secret to your authenticator app, then enter its current code.",
-    "manualUri": "Show the manual setup URI", "mfaCode": "Six-digit code", "mfaOrRecoveryCode": "Authenticator or recovery code",
-    "enableMfa": "Enable two-step verification", "disableMfa": "Disable two-step verification",
-    "recoveryTitle": "Save your recovery codes now", "recoveryHint": "Each code works once. They will not be shown again.",
-    "sessionsTitle": "Active sessions", "sessionsHint": "Revoke any device you do not recognize.",
-    "unknownDevice": "Unknown device", "unknownAddress": "Unknown address", "revokeSession": "Revoke", "signOutHere": "Sign out here"
+    "existingPassword": "Your existing account password",
+    "newPassword": "Create a password",
+    "confirmPassword": "Confirm password",
+    "acceptInvitation": "Accept invitation",
+    "mfaTitle": "Two-step verification",
+    "mfaHint": "Use a TOTP authenticator app. A code is required after your password on every new sign-in.",
+    "startMfa": "Set up authenticator",
+    "addAuthenticator": "Add this secret to your authenticator app, then enter its current code.",
+    "manualUri": "Show the manual setup URI",
+    "mfaCode": "Six-digit code",
+    "mfaOrRecoveryCode": "Authenticator or recovery code",
+    "enableMfa": "Enable two-step verification",
+    "disableMfa": "Disable two-step verification",
+    "recoveryTitle": "Save your recovery codes now",
+    "recoveryHint": "Each code works once. They will not be shown again.",
+    "sessionsTitle": "Active sessions",
+    "sessionsHint": "Revoke any device you do not recognize.",
+    "unknownDevice": "Unknown device",
+    "unknownAddress": "Unknown address",
+    "revokeSession": "Revoke",
+    "signOutHere": "Sign out here"
   },
   "portal": {
     "title": "Patient portal",
@@ -1080,7 +1150,24 @@
     "noGrants": "You have not approved access yet.",
     "revoke": "Revoke access",
     "revokeReason": "Reason",
-    "status": { "active": "Active", "expired": "Expired", "revoked": "Revoked", "superseded": "Replaced" },
-    "category": { "summary": "Health summary", "alerts": "Clinical alerts", "clinical_notes": "Clinical notes", "chart": "Dental chart", "treatments": "Treatments", "images": "Images", "documents": "Documents", "financial": "Financial records" }
+    "status": {
+      "active": "Active",
+      "expired": "Expired",
+      "revoked": "Revoked",
+      "superseded": "Replaced"
+    },
+    "category": {
+      "summary": "Health summary",
+      "alerts": "Clinical alerts",
+      "clinical_notes": "Clinical notes",
+      "chart": "Dental chart",
+      "treatments": "Treatments",
+      "images": "Images",
+      "documents": "Documents",
+      "financial": "Financial records"
+    }
+  },
+  "offline": {
+    "banner": "Clinic server unreachable — changes are not being saved. Check the clinic Wi-Fi."
   }
 }

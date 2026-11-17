@@ -1,0 +1,94 @@
+# Cabinet Dentaire Pro — clinic server (works without internet on the clinic network).
+# Usage: see docs/INSTALLATION-CABINET.md. Settings come from ./.env (created by install.sh).
+name: cabinet
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cabinet_owner
+      POSTGRES_PASSWORD: ${DB_OWNER_PASSWORD:?run install.sh first}
+      POSTGRES_DB: cabinet
+      APP_DB_PASSWORD: ${DB_APP_PASSWORD:?run install.sh first}
+      TZ: ${TZ:-Africa/Algiers}
+    volumes:
+      - db-data:/var/lib/postgresql
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cabinet_owner -d cabinet"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    networks: [internal]
+
+  migrate:
+    image: cabinet-dentaire-pro-migrate:${APP_VERSION:-local}
+    build:
+      context: ../..
+      target: migrate
+    environment:
+      DATABASE_URL_ADMIN: postgres://cabinet_owner:${DB_OWNER_PASSWORD}@db:5432/cabinet
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks: [internal]
+
+  app:
+    image: cabinet-dentaire-pro:${APP_VERSION:-local}
+    build:
+      context: ../..
+      target: runtime
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://cabinet_app:${DB_APP_PASSWORD}@db:5432/cabinet
+      APP_URL: https://${CLINIC_HOST}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?run install.sh first}
+      # Only the first clinic can self-register; staff join through invitations.
+      REGISTRATION_MODE: ${REGISTRATION_MODE:-first-only}
+      TZ: ${TZ:-Africa/Algiers}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks: [internal]
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTP_PORT:-80}:80"
+    environment:
+      CLINIC_HOST: ${CLINIC_HOST:?run install.sh first}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [app]
+    networks: [internal]
+
+  backup:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      PGPASSWORD: ${DB_OWNER_PASSWORD}
+      BACKUP_HOUR: ${BACKUP_HOUR:-21}
+      BACKUP_KEEP_DAYS: ${BACKUP_KEEP_DAYS:-30}
+      TZ: ${TZ:-Africa/Algiers}
+    volumes:
+      - ${BACKUP_DIR:-./backups}:/backups
+      - ./backup.sh:/backup.sh:ro
+    entrypoint: ["/bin/sh", "/backup.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [internal]
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  internal:

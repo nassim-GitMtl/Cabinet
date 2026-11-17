@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { ConnectionBanner } from "@/components/app/connection-banner";
 import { AppShell, type NavKey } from "@/components/app/app-shell";
 import { can, requireClinicContext } from "@/server/auth/context";
 import { listMyClinics } from "@/server/services/auth";
@@ -28,6 +29,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       canCreatePatient={can(ctx, "patient.create")}
       hasMultipleClinics={clinics.length > 1}
     >
+      <ConnectionBanner />
       {children}
     </AppShell>
   );

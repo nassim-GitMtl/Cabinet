@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSession } from "@/server/auth/context";
+import { isRegistrationAllowed } from "@/server/deployment/registration";
 import { RegisterForm } from "./register-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -13,6 +14,19 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RegisterPage() {
   if (await getSession()) redirect("/dashboard");
   const t = await getTranslations("auth");
+  if (!(await isRegistrationAllowed())) {
+    return (
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-xl">{t("registerTitle")}</CardTitle>
+          <CardDescription>{t("registrationClosed")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Link href="/login" className="font-medium text-primary hover:underline">{t("signIn")}</Link>
+        </CardContent>
+      </Card>
+    );
+  }
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>

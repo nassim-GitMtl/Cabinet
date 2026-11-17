@@ -41,3 +41,8 @@ yarn-error.log*
 next-env.d.ts
 
 !.env.example
+
+# Clinic server local files
+deploy/clinic/.env
+deploy/clinic/backups/
+deploy/clinic/*.tar.gz

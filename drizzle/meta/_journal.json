@@ -113,6 +113,13 @@
       "when": 1794957255654,
       "tag": "0015_staff_access_security",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1794958538563,
+      "tag": "0016_registration_mode",
+      "breakpoints": true
     }
   ]
 }

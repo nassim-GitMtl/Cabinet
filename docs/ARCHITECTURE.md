@@ -149,3 +149,18 @@ subquery binds to the subquery's own `id`. Write correlated subqueries with expl
 Metric bases follow §18 and are printed under each KPI. Production by service date; invoiced sales by document date
 less credit notes; gross receipts by receipt date (deposits included); net = gross − refunds. Other currencies are listed,
 never summed. "Paid to date" is as of generation time.
+
+## Deployment: clinic server without internet (`deploy/clinic`, guide `docs/INSTALLATION-CABINET.md`)
+
+- One machine on the clinic LAN runs Docker Compose: `db` (PostgreSQL 18), `migrate` (one-shot, drizzle migrations),
+  `app` (Next.js `output: "standalone"`, non-root, healthcheck), `proxy` (Caddy, HTTPS with its local CA for the LAN IP
+  and `cabinet.local`; `http://<host>/ca.crt` serves the root to install on devices), `backup` (daily `pg_dump -Fc`
+  + sha256, retention). HTTPS is mandatory: secure cookies, service worker and `crypto.randomUUID` need a secure context.
+- No runtime internet dependency: fonts are vendored in `src/app/fonts` (OFL) and loaded with `next/font/local`;
+  no external scripts/APIs. Fully offline installs load images from `cabinet-images.tar.gz` (`export-images.sh`).
+- `REGISTRATION_MODE=first-only` (clinic server default): `/register` works only until the first organization
+  exists (`app_private.organization_count()` SECURITY DEFINER); then staff join via invitations. Cloud default `open`.
+- Offline policy (§27): `public/sw.js` caches only static build assets, icons, manifest and `/offline.html`;
+  pages and API responses are never cached; navigations fall back to `/offline.html` when the server is
+  unreachable. `ConnectionBanner` polls `/api/health` and warns that nothing is saved while disconnected.
+  No patient, clinical or financial data is stored on devices; there is no offline write queue (deliberate).

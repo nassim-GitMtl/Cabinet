@@ -96,7 +96,8 @@
     "mfaPrompt": "أدخل الرمز المكون من ستة أرقام من تطبيق المصادقة أو رمز استرداد.",
     "mfaCode": "رمز المصادقة",
     "mfaInvalid": "الرمز غير صالح أو انتهت صلاحية الطلب.",
-    "verify": "تحقق"
+    "verify": "تحقق",
+    "registrationClosed": "خادم العيادة هذا مُهيّأ بالفعل. اطلب دعوة من مسؤول العيادة."
   },
   "errors": {
     "required": "حقل إلزامي",
@@ -393,7 +394,10 @@
     "revise": "إنشاء مراجعة",
     "saveRevision": "حفظ الإصدار الجديد",
     "revisionCreatesVersion": "يبقى التقدير المقبول دون تغيير؛ يؤدي هذا إلى حفظ إصدار كامل جديد.",
-    "fields": { "title": "عنوان الخطة", "notes": "ملاحظات تظهر مع التقدير" },
+    "fields": {
+      "title": "عنوان الخطة",
+      "notes": "ملاحظات تظهر مع التقدير"
+    },
     "items": "بنود التقدير",
     "itemsHint": "تُحفظ الأسعار الحالية من الدليل. أضف الخدمة نفسها أكثر من مرة لأسنان مختلفة.",
     "addItem": "إضافة الخدمة",
@@ -406,7 +410,14 @@
     "emptyHint": "أنشئ تقديرًا لمناقشة خيارات العلاج مع هذا المريض.",
     "version": "الإصدار {version}",
     "activeCount": "{count, plural, =0 {لا توجد خطط نشطة} one {خطة نشطة واحدة} two {خطتان نشطتان} few {# خطط نشطة} many {# خطة نشطة} other {# خطة نشطة}}",
-    "status": { "draft": "مسودة", "proposed": "مقترحة", "accepted": "مقبولة", "declined": "مرفوضة", "completed": "مكتملة", "cancelled": "ملغاة" },
+    "status": {
+      "draft": "مسودة",
+      "proposed": "مقترحة",
+      "accepted": "مقبولة",
+      "declined": "مرفوضة",
+      "completed": "مكتملة",
+      "cancelled": "ملغاة"
+    },
     "propose": "اقتراحها على المريض",
     "readyToPropose": "جاهزة للعرض؟",
     "proposeHint": "يؤدي الاقتراح إلى تثبيت هذا الإصدار لقرار المريض. تنشئ التعديلات إصدارًا جديدًا.",
@@ -418,7 +429,11 @@
     "decisionMethod": "طريقة القرار",
     "decisionDate": "تاريخ التسجيل",
     "decisionNote": "ملاحظة القرار",
-    "methods": { "signed_in_clinic": "موقّع في العيادة", "verbal": "تأكيد شفهي", "other": "طريقة موثقة أخرى" },
+    "methods": {
+      "signed_in_clinic": "موقّع في العيادة",
+      "verbal": "تأكيد شفهي",
+      "other": "طريقة موثقة أخرى"
+    },
     "history": "سجل الإصدارات",
     "tooth": "السن {tooth}",
     "converted": "سُجّل كعلاج منجز",
@@ -1022,31 +1037,86 @@
     "sendRequest": "إرسال إلى بوابة المريض",
     "requestSent": "أُرسل الطلب. يجب أن يقرر المريض من بوابته.",
     "noRequests": "لا يوجد طلب موافقة بعد.",
-    "status": { "requested": "مطلوب", "awaiting_patient": "بانتظار المريض", "approved": "مقبول", "declined": "مرفوض", "expired": "منتهي", "withdrawn": "مسحوب" },
-    "category": { "summary": "ملخص صحي", "alerts": "تنبيهات سريرية", "clinical_notes": "ملاحظات سريرية", "chart": "مخطط الأسنان", "treatments": "العلاجات", "images": "الصور", "documents": "المستندات", "financial": "السجلات المالية" }
+    "status": {
+      "requested": "مطلوب",
+      "awaiting_patient": "بانتظار المريض",
+      "approved": "مقبول",
+      "declined": "مرفوض",
+      "expired": "منتهي",
+      "withdrawn": "مسحوب"
+    },
+    "category": {
+      "summary": "ملخص صحي",
+      "alerts": "تنبيهات سريرية",
+      "clinical_notes": "ملاحظات سريرية",
+      "chart": "مخطط الأسنان",
+      "treatments": "العلاجات",
+      "images": "الصور",
+      "documents": "المستندات",
+      "financial": "السجلات المالية"
+    }
   },
   "access": {
-    "teamTitle": "وصول الفريق", "teamSubtitle": "ادعُ الموظفين وتحكم في دور كل شخص في العيادة.",
-    "rolesTitle": "الأدوار والصلاحيات", "rolesSubtitle": "أنشئ أدوارًا خاصة بالعيادة وحدد الصلاحيات اللازمة فقط.",
-    "securityTitle": "أمان الحساب", "securitySubtitle": "احمِ تسجيل دخولك وراجع الجلسات النشطة.",
-    "inviteTitle": "دعوة عضو للفريق", "inviteHint": "الرابط للاستخدام مرة واحدة وينتهي بعد سبعة أيام.",
-    "fullName": "الاسم الكامل", "email": "البريد الإلكتروني", "role": "الدور", "titleField": "اللقب المهني",
-    "isProvider": "هذا الشخص يقدم رعاية سريرية", "createInvitation": "إنشاء الدعوة", "invitationLink": "رابط دعوة آمن",
-    "copy": "نسخ", "copied": "تم النسخ", "team": "الفريق الحالي", "provider": "ممارس", "statusLabel": "حالة الوصول",
-    "status": { "invited": "مدعو", "active": "نشط", "deactivated": "معطل" },
-    "save": "حفظ الوصول", "invitations": "سجل الدعوات", "accepted": "مقبولة", "pending": "قيد الانتظار", "expired": "منتهية",
-    "newRole": "دور مخصص جديد", "roleName": "اسم الدور", "permissions": "مفاتيح الصلاحيات",
-    "ownerLocked": "يحتفظ دور المالك دائمًا بجميع الصلاحيات.", "saveRole": "حفظ الدور", "saved": "تم الحفظ",
-    "joinTitle": "الانضمام إلى فريق العيادة", "joinSubtitle": "اقبل دعوتك إلى {clinic}.",
+    "teamTitle": "وصول الفريق",
+    "teamSubtitle": "ادعُ الموظفين وتحكم في دور كل شخص في العيادة.",
+    "rolesTitle": "الأدوار والصلاحيات",
+    "rolesSubtitle": "أنشئ أدوارًا خاصة بالعيادة وحدد الصلاحيات اللازمة فقط.",
+    "securityTitle": "أمان الحساب",
+    "securitySubtitle": "احمِ تسجيل دخولك وراجع الجلسات النشطة.",
+    "inviteTitle": "دعوة عضو للفريق",
+    "inviteHint": "الرابط للاستخدام مرة واحدة وينتهي بعد سبعة أيام.",
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "role": "الدور",
+    "titleField": "اللقب المهني",
+    "isProvider": "هذا الشخص يقدم رعاية سريرية",
+    "createInvitation": "إنشاء الدعوة",
+    "invitationLink": "رابط دعوة آمن",
+    "copy": "نسخ",
+    "copied": "تم النسخ",
+    "team": "الفريق الحالي",
+    "provider": "ممارس",
+    "statusLabel": "حالة الوصول",
+    "status": {
+      "invited": "مدعو",
+      "active": "نشط",
+      "deactivated": "معطل"
+    },
+    "save": "حفظ الوصول",
+    "invitations": "سجل الدعوات",
+    "accepted": "مقبولة",
+    "pending": "قيد الانتظار",
+    "expired": "منتهية",
+    "newRole": "دور مخصص جديد",
+    "roleName": "اسم الدور",
+    "permissions": "مفاتيح الصلاحيات",
+    "ownerLocked": "يحتفظ دور المالك دائمًا بجميع الصلاحيات.",
+    "saveRole": "حفظ الدور",
+    "saved": "تم الحفظ",
+    "joinTitle": "الانضمام إلى فريق العيادة",
+    "joinSubtitle": "اقبل دعوتك إلى {clinic}.",
     "invitationUnavailable": "هذه الدعوة غير صالحة أو منتهية أو مستخدمة.",
-    "existingPassword": "كلمة مرور حسابك الحالي", "newPassword": "إنشاء كلمة مرور", "confirmPassword": "تأكيد كلمة المرور", "acceptInvitation": "قبول الدعوة",
-    "mfaTitle": "التحقق بخطوتين", "mfaHint": "استخدم تطبيق مصادقة TOTP. سيُطلب رمز بعد كلمة المرور عند كل تسجيل دخول جديد.",
-    "startMfa": "إعداد تطبيق المصادقة", "addAuthenticator": "أضف هذا السر إلى تطبيق المصادقة ثم أدخل رمزه الحالي.",
-    "manualUri": "إظهار رابط الإعداد اليدوي", "mfaCode": "رمز من ستة أرقام", "mfaOrRecoveryCode": "رمز المصادقة أو الاسترداد",
-    "enableMfa": "تفعيل التحقق بخطوتين", "disableMfa": "تعطيل التحقق بخطوتين",
-    "recoveryTitle": "احفظ رموز الاسترداد الآن", "recoveryHint": "يعمل كل رمز مرة واحدة ولن تظهر هذه الرموز مجددًا.",
-    "sessionsTitle": "الجلسات النشطة", "sessionsHint": "ألغِ أي جهاز لا تعرفه.",
-    "unknownDevice": "جهاز غير معروف", "unknownAddress": "عنوان غير معروف", "revokeSession": "إلغاء", "signOutHere": "تسجيل الخروج هنا"
+    "existingPassword": "كلمة مرور حسابك الحالي",
+    "newPassword": "إنشاء كلمة مرور",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "acceptInvitation": "قبول الدعوة",
+    "mfaTitle": "التحقق بخطوتين",
+    "mfaHint": "استخدم تطبيق مصادقة TOTP. سيُطلب رمز بعد كلمة المرور عند كل تسجيل دخول جديد.",
+    "startMfa": "إعداد تطبيق المصادقة",
+    "addAuthenticator": "أضف هذا السر إلى تطبيق المصادقة ثم أدخل رمزه الحالي.",
+    "manualUri": "إظهار رابط الإعداد اليدوي",
+    "mfaCode": "رمز من ستة أرقام",
+    "mfaOrRecoveryCode": "رمز المصادقة أو الاسترداد",
+    "enableMfa": "تفعيل التحقق بخطوتين",
+    "disableMfa": "تعطيل التحقق بخطوتين",
+    "recoveryTitle": "احفظ رموز الاسترداد الآن",
+    "recoveryHint": "يعمل كل رمز مرة واحدة ولن تظهر هذه الرموز مجددًا.",
+    "sessionsTitle": "الجلسات النشطة",
+    "sessionsHint": "ألغِ أي جهاز لا تعرفه.",
+    "unknownDevice": "جهاز غير معروف",
+    "unknownAddress": "عنوان غير معروف",
+    "revokeSession": "إلغاء",
+    "signOutHere": "تسجيل الخروج هنا"
   },
   "portal": {
     "title": "بوابة المريض",
@@ -1080,7 +1150,24 @@
     "noGrants": "لم توافق على أي وصول بعد.",
     "revoke": "إلغاء الوصول",
     "revokeReason": "السبب",
-    "status": { "active": "نشط", "expired": "منتهي", "revoked": "ملغى", "superseded": "مستبدل" },
-    "category": { "summary": "ملخص صحي", "alerts": "تنبيهات سريرية", "clinical_notes": "ملاحظات سريرية", "chart": "مخطط الأسنان", "treatments": "العلاجات", "images": "الصور", "documents": "المستندات", "financial": "السجلات المالية" }
+    "status": {
+      "active": "نشط",
+      "expired": "منتهي",
+      "revoked": "ملغى",
+      "superseded": "مستبدل"
+    },
+    "category": {
+      "summary": "ملخص صحي",
+      "alerts": "تنبيهات سريرية",
+      "clinical_notes": "ملاحظات سريرية",
+      "chart": "مخطط الأسنان",
+      "treatments": "العلاجات",
+      "images": "الصور",
+      "documents": "المستندات",
+      "financial": "السجلات المالية"
+    }
+  },
+  "offline": {
+    "banner": "تعذّر الاتصال بخادم العيادة — لا تُحفظ التعديلات. تحقق من شبكة Wi-Fi الخاصة بالعيادة."
   }
 }

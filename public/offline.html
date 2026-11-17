@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Serveur du cabinet injoignable</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f6f9fa; --fg: #1f2a37; --muted: #5b6573; --accent: #0f7f86; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #11181f; --fg: #e8eef2; --muted: #9aa6b2; } }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--fg);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", sans-serif; }
+  main { max-width: 32rem; padding: 2rem 1.25rem; text-align: center; }
+  h1 { font-size: 1.25rem; margin: .75rem 0 .25rem; }
+  p { color: var(--muted); margin: .25rem 0 1rem; }
+  button { font: inherit; border: 0; border-radius: .6rem; background: var(--accent); color: #fff; padding: .7rem 1.2rem; min-height: 44px; }
+  hr { border: 0; border-top: 1px solid #8883; margin: 1.5rem 0; }
+</style>
+</head>
+<body>
+<main>
+  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0f7f86" stroke-width="2" aria-hidden="true"><path d="M12 20h.01M8.5 16.4a5 5 0 0 1 7 0M2 8.8a15 15 0 0 1 4.2-2.7M22 8.8a15 15 0 0 0-11.3-3.7M5 12.9a10 10 0 0 1 5.2-2.8M19 12.9a10 10 0 0 0-1.7-1.3M2 2l20 20"/></svg>
+  <h1>Serveur du cabinet injoignable</h1>
+  <p>Vérifiez que l'appareil est connecté au Wi-Fi du cabinet et que le serveur est allumé. Rien n'est enregistré tant que la connexion n'est pas rétablie.</p>
+  <hr>
+  <h1 lang="ar" dir="rtl">تعذّر الاتصال بخادم العيادة</h1>
+  <p lang="ar" dir="rtl">تأكد من اتصال الجهاز بشبكة Wi-Fi الخاصة بالعيادة ومن تشغيل الخادم. لا يُحفظ أي شيء قبل عودة الاتصال.</p>
+  <h1 lang="en">Clinic server unreachable</h1>
+  <p lang="en">Check the device is on the clinic Wi-Fi and the server is on. Nothing is saved until the connection is back.</p>
+  <button type="button" onclick="location.reload()">Réessayer · إعادة المحاولة · Retry</button>
+</main>
+</body>
+</html>

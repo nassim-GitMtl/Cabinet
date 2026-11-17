@@ -11,6 +11,7 @@ import { createSession, requestMeta, revokeCurrentSession, setActiveOrganization
 import { createMfaChallenge, verifyMfaChallenge } from "@/server/auth/mfa";
 import { authenticate, listMyClinics } from "@/server/services/auth";
 import { EmailTakenError, registerClinic } from "@/server/services/onboarding";
+import { isRegistrationAllowed } from "@/server/deployment/registration";
 
 const loginSchema = z.object({
   email: z.email("invalidEmail").max(200),
@@ -56,6 +57,7 @@ const registerSchema = z.object({
 });
 
 export async function registerAction(_prev: ActionState, formData: FormData): Promise<ActionState> {
+  if (!(await isRegistrationAllowed())) return { error: "auth.registrationClosed" };
   const values = formValues(formData);
   delete values.password;
   const parsed = registerSchema.safeParse(Object.fromEntries(formData));

@@ -1,0 +1,27 @@
+# HTTPS on the clinic network with Caddy's own local certificate authority.
+# Phones/PCs trust it once by installing http://<server>/ca.crt (see the guide).
+# HTTPS is required: browsers only allow secure features (installable app,
+# secure cookies, crypto) on https.
+{
+	local_certs
+	skip_install_trust
+}
+
+https://{$CLINIC_HOST}, https://cabinet.local {
+	tls internal
+	encode zstd gzip
+	reverse_proxy app:3000
+}
+
+http://{$CLINIC_HOST}, http://cabinet.local {
+	handle /ca.crt {
+		root * /data/caddy/pki/authorities/local
+		rewrite * /root.crt
+		header Content-Type application/x-x509-ca-cert
+		header Content-Disposition "attachment; filename=cabinet-ca.crt"
+		file_server
+	}
+	handle {
+		redir https://{host}{uri} 308
+	}
+}
