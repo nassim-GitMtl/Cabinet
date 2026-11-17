@@ -39,7 +39,9 @@
     "skipToContent": "تخطَّ إلى المحتوى",
     "invoices": "الفواتير",
     "reports": "التقارير",
-    "dashboardShort": "الرئيسية"
+    "dashboardShort": "الرئيسية",
+    "cash": "الصندوق",
+    "expenses": "المصاريف"
   },
   "auth": {
     "loginTitle": "تسجيل الدخول",
@@ -592,5 +594,88 @@
     "financeHidden": "الأقسام المالية تتطلب صلاحية «التقارير المالية».",
     "paidToDateNote": "«المدفوع حتى الآن» يعكس الدفعات المسجلة إلى غاية إنشاء التقرير.",
     "draft": "مسودة"
+  },
+  "cash": {
+    "title": "صندوق اليوم",
+    "notOpened": "صندوق هذا اليوم غير مفتوح.",
+    "open": "فتح الصندوق",
+    "openingFloat": "رصيد الافتتاح",
+    "expected": "النقد المتوقع",
+    "cashReceipts": "التحصيلات النقدية ({count})",
+    "cashRefunds": "الاسترجاعات النقدية",
+    "cashExpenses": "مصاريف مدفوعة نقدًا",
+    "transfersIn": "إضافات (خارج المداخيل)",
+    "transfersOut": "سحوبات (إيداع بنكي…)",
+    "counted": "النقد المعدود",
+    "countedHint": "عُدّ الدرج فعليًا قبل الإغلاق.",
+    "discrepancy": "الفارق",
+    "discrepancyReason": "سبب الفارق",
+    "notes": "ملاحظات",
+    "close": "إغلاق الصندوق",
+    "approve": "المصادقة على الإغلاق",
+    "approveHint": "تحقق من العدّ والفارق قبل المصادقة.",
+    "addMovement": "إضافة / سحب نقد",
+    "movementHint": "حركة نقدية ليست مدخولًا (إيداع بنكي، تزويد بالفكة).",
+    "direction": "الاتجاه",
+    "in": "إضافة",
+    "out": "سحب",
+    "amount": "المبلغ",
+    "reason": "السبب",
+    "nonCash": "تحصيلات أخرى (لا تدخل الدرج)",
+    "history": "الإغلاقات الأخيرة",
+    "status": {
+      "open": "مفتوح",
+      "closed": "مغلق",
+      "approved": "مصادق عليه"
+    },
+    "openedBy": "فتحه {name} في {date}",
+    "closedBy": "أغلقه {name} في {date}",
+    "approvedBy": "صادق عليه {name} في {date}",
+    "changedSinceClose": "سُجلت عمليات بتاريخ هذا اليوم بعد إغلاقه: راجعها.",
+    "errors": {
+      "cashSessionClosed": "صندوق هذا اليوم مغلق: لا يمكن إضافة عملية نقدية إليه.",
+      "discrepancyReasonRequired": "اذكر سبب الفارق.",
+      "invalidAmount": "مبلغ غير صالح.",
+      "futureDate": "لا يمكن أن يكون التاريخ في المستقبل.",
+      "reasonRequired": "السبب إلزامي.",
+      "notFound": "العنصر غير موجود.",
+      "notClosed": "الصندوق غير مغلق.",
+      "notUnpaid": "هذا المصروف لم يعد مستحق الدفع.",
+      "paymentDetailsRequired": "اذكر تاريخ وطريقة الدفع."
+    }
+  },
+  "expenses": {
+    "title": "المصاريف",
+    "new": "مصروف جديد",
+    "total": "مجموع المصاريف",
+    "unpaid": "منها غير مدفوعة",
+    "byCategory": "حسب الفئة",
+    "empty": "لا توجد مصاريف في هذه الفترة.",
+    "category": "الفئة",
+    "description": "الوصف",
+    "supplier": "المورد",
+    "reference": "المرجع / رقم الفاتورة",
+    "date": "التاريخ",
+    "paidNow": "مدفوع بالفعل",
+    "markPaid": "مدفوع",
+    "void": "إلغاء",
+    "voidReason": "سبب الإلغاء",
+    "status": {
+      "unpaid": "للدفع",
+      "paid": "مدفوع",
+      "void": "ملغى"
+    },
+    "categories": {
+      "rent": "الإيجار",
+      "salaries": "الأجور",
+      "lab": "المخبر",
+      "supplies": "اللوازم",
+      "equipment": "التجهيزات",
+      "maintenance": "الصيانة",
+      "utilities": "الأعباء (ماء، كهرباء…)",
+      "taxes": "الضرائب والرسوم",
+      "bank_fees": "مصاريف بنكية",
+      "other": "أخرى"
+    }
   }
 }

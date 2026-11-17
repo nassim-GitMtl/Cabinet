@@ -39,7 +39,9 @@
     "skipToContent": "Skip to content",
     "invoices": "Invoices",
     "reports": "Reports",
-    "dashboardShort": "Home"
+    "dashboardShort": "Home",
+    "cash": "Cash drawer",
+    "expenses": "Expenses"
   },
   "auth": {
     "loginTitle": "Sign in",
@@ -592,5 +594,88 @@
     "financeHidden": "Financial sections require the “financial reports” permission.",
     "paidToDateNote": "“Paid to date” reflects payments recorded up to when the report was generated.",
     "draft": "draft"
+  },
+  "cash": {
+    "title": "Cash drawer",
+    "notOpened": "The cash drawer for this day is not open.",
+    "open": "Open cash drawer",
+    "openingFloat": "Opening float",
+    "expected": "Expected cash",
+    "cashReceipts": "Cash receipts ({count})",
+    "cashRefunds": "Cash refunds",
+    "cashExpenses": "Expenses paid in cash",
+    "transfersIn": "Cash added (non-revenue)",
+    "transfersOut": "Cash removed (bank deposit…)",
+    "counted": "Counted cash",
+    "countedHint": "Physically count the drawer before closing.",
+    "discrepancy": "Discrepancy",
+    "discrepancyReason": "Reason for discrepancy",
+    "notes": "Notes",
+    "close": "Close cash drawer",
+    "approve": "Approve close",
+    "approveHint": "Check the count and any discrepancy before approving.",
+    "addMovement": "Add / remove cash",
+    "movementHint": "Cash movement that is not revenue (bank deposit, change top-up).",
+    "direction": "Direction",
+    "in": "Added",
+    "out": "Removed",
+    "amount": "Amount",
+    "reason": "Reason",
+    "nonCash": "Other receipts (not in the drawer)",
+    "history": "Recent closes",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "approved": "Approved"
+    },
+    "openedBy": "Opened by {name} on {date}",
+    "closedBy": "closed by {name} on {date}",
+    "approvedBy": "approved by {name} on {date}",
+    "changedSinceClose": "Entries were dated on this day after it was closed: review them.",
+    "errors": {
+      "cashSessionClosed": "This day's cash drawer is closed: no cash entry can be added to it.",
+      "discrepancyReasonRequired": "Enter the reason for the discrepancy.",
+      "invalidAmount": "Invalid amount.",
+      "futureDate": "The date cannot be in the future.",
+      "reasonRequired": "A reason is required.",
+      "notFound": "Item not found.",
+      "notClosed": "The cash drawer is not closed.",
+      "notUnpaid": "This expense is no longer unpaid.",
+      "paymentDetailsRequired": "Enter the payment date and method."
+    }
+  },
+  "expenses": {
+    "title": "Expenses",
+    "new": "New expense",
+    "total": "Total expenses",
+    "unpaid": "Of which unpaid",
+    "byCategory": "By category",
+    "empty": "No expenses in this period.",
+    "category": "Category",
+    "description": "Description",
+    "supplier": "Supplier",
+    "reference": "Reference / invoice no.",
+    "date": "Date",
+    "paidNow": "Already paid",
+    "markPaid": "Paid",
+    "void": "Void",
+    "voidReason": "Reason for voiding",
+    "status": {
+      "unpaid": "Unpaid",
+      "paid": "Paid",
+      "void": "Void"
+    },
+    "categories": {
+      "rent": "Rent",
+      "salaries": "Salaries",
+      "lab": "Laboratory",
+      "supplies": "Supplies",
+      "equipment": "Equipment",
+      "maintenance": "Maintenance",
+      "utilities": "Utilities",
+      "taxes": "Taxes",
+      "bank_fees": "Bank fees",
+      "other": "Other"
+    }
   }
 }

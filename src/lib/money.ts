@@ -64,7 +64,8 @@ export function formatMoney(
   symbol?: string,
 ): string {
   const exp = currencyExponent(currency);
-  const major = amountMinor / 10 ** exp; // display only; exact for safe integers at these exponents
+  // `|| 0` turns -0 into 0 so zero never displays as "-0,00".
+  const major = (amountMinor || 0) / 10 ** exp; // display only; exact for safe integers at these exponents
   const number = new Intl.NumberFormat(locale, {
     minimumFractionDigits: exp,
     maximumFractionDigits: exp,

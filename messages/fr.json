@@ -39,7 +39,9 @@
     "skipToContent": "Aller au contenu",
     "invoices": "Factures",
     "reports": "Rapports",
-    "dashboardShort": "Accueil"
+    "dashboardShort": "Accueil",
+    "cash": "Caisse",
+    "expenses": "Dépenses"
   },
   "auth": {
     "loginTitle": "Connexion",
@@ -592,5 +594,88 @@
     "financeHidden": "Les sections financières nécessitent l'autorisation « rapports financiers ».",
     "paidToDateNote": "« Payé à date » reflète les paiements enregistrés jusqu'à la génération du rapport.",
     "draft": "brouillon"
+  },
+  "cash": {
+    "title": "Caisse du jour",
+    "notOpened": "La caisse de ce jour n'est pas ouverte.",
+    "open": "Ouvrir la caisse",
+    "openingFloat": "Fond de caisse",
+    "expected": "Espèces attendues",
+    "cashReceipts": "Encaissements en espèces ({count})",
+    "cashRefunds": "Remboursements en espèces",
+    "cashExpenses": "Dépenses payées en espèces",
+    "transfersIn": "Apports (hors recettes)",
+    "transfersOut": "Retraits (dépôt banque…)",
+    "counted": "Espèces comptées",
+    "countedHint": "Comptez physiquement le tiroir avant de clôturer.",
+    "discrepancy": "Écart",
+    "discrepancyReason": "Motif de l'écart",
+    "notes": "Notes",
+    "close": "Clôturer la caisse",
+    "approve": "Valider la clôture",
+    "approveHint": "Vérifiez le comptage et l'écart éventuel avant de valider.",
+    "addMovement": "Apport / retrait",
+    "movementHint": "Mouvement d'espèces qui n'est pas une recette (dépôt en banque, appoint de monnaie).",
+    "direction": "Sens",
+    "in": "Apport",
+    "out": "Retrait",
+    "amount": "Montant",
+    "reason": "Motif",
+    "nonCash": "Autres encaissements (n'entrent pas dans le tiroir)",
+    "history": "Clôtures récentes",
+    "status": {
+      "open": "Ouverte",
+      "closed": "Clôturée",
+      "approved": "Validée"
+    },
+    "openedBy": "Ouverte par {name} le {date}",
+    "closedBy": "clôturée par {name} le {date}",
+    "approvedBy": "validée par {name} le {date}",
+    "changedSinceClose": "Des opérations ont été datées sur ce jour après la clôture : vérifiez-les.",
+    "errors": {
+      "cashSessionClosed": "La caisse de ce jour est clôturée : aucune opération en espèces ne peut y être ajoutée.",
+      "discrepancyReasonRequired": "Indiquez le motif de l'écart.",
+      "invalidAmount": "Montant invalide.",
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "reasonRequired": "Le motif est obligatoire.",
+      "notFound": "Élément introuvable.",
+      "notClosed": "La caisse n'est pas clôturée.",
+      "notUnpaid": "Cette dépense n'est plus à payer.",
+      "paymentDetailsRequired": "Indiquez la date et le mode de paiement."
+    }
+  },
+  "expenses": {
+    "title": "Dépenses",
+    "new": "Nouvelle dépense",
+    "total": "Total des dépenses",
+    "unpaid": "Dont non payées",
+    "byCategory": "Par catégorie",
+    "empty": "Aucune dépense sur cette période.",
+    "category": "Catégorie",
+    "description": "Description",
+    "supplier": "Fournisseur",
+    "reference": "Référence / n° facture",
+    "date": "Date",
+    "paidNow": "Déjà payée",
+    "markPaid": "Payée",
+    "void": "Annuler",
+    "voidReason": "Motif de l'annulation",
+    "status": {
+      "unpaid": "À payer",
+      "paid": "Payée",
+      "void": "Annulée"
+    },
+    "categories": {
+      "rent": "Loyer",
+      "salaries": "Salaires",
+      "lab": "Laboratoire",
+      "supplies": "Fournitures",
+      "equipment": "Équipement",
+      "maintenance": "Maintenance",
+      "utilities": "Charges (eau, électricité…)",
+      "taxes": "Impôts et taxes",
+      "bank_fees": "Frais bancaires",
+      "other": "Autre"
+    }
   }
 }

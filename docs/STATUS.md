@@ -66,7 +66,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Odontogram, perio chart, notes, signing (§12) | ⏳ | |
 | Images/documents, object storage (§12A, §15) | ⏳ 🔌 | |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
-| Cash close, expenses (§17) | ⏳ | |
+| Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
 | Patient portal (§21) | ⏳ | |
@@ -77,14 +77,13 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-1. **Cash control & expenses** (§17): cash sessions (opening float, cash receipts/refunds/expenses from the ledger, counted amount, discrepancy reason, approval, printable close), expenses + suppliers (category, attachment later), card receipts never increase physical cash.
-2. **Agenda** (§9): providers/chairs/schedules, appointments with the three independent state dimensions, server-side conflict check (exclusion constraint), day/week views.
-3. **Booking links + staff approval inbox** (§9A).
-4. **Reception/queue** (§10): today's arrivals, check-in → waiting → in treatment → checkout linking to procedures/billing.
-5. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
-6. **Consent flows + patient portal accounts** (§4A, §21).
-7. Staff invitations, role editor, MFA (TOTP), session management UI.
-8. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
+1. **Agenda** (§9): providers/chairs/schedules, appointments with the three independent state dimensions, server-side conflict check (exclusion constraint), day/week views.
+2. **Booking links + staff approval inbox** (§9A).
+3. **Reception/queue** (§10): today's arrivals, check-in → waiting → in treatment → checkout linking to procedures/billing.
+4. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
+5. **Consent flows + patient portal accounts** (§4A, §21).
+6. Staff invitations, role editor, MFA (TOTP), session management UI.
+7. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
 
 ## Known gaps / decisions to revisit
 

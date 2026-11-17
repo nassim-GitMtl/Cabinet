@@ -50,6 +50,20 @@
       "when": 1794944267275,
       "tag": "0006_finance_security",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794945235455,
+      "tag": "0007_cash_expenses",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794945236156,
+      "tag": "0008_cash_security",
+      "breakpoints": true
     }
   ]
 }

@@ -15,6 +15,9 @@ describe("money", () => {
   it("formats with the configured symbol", () => {
     expect(formatMoney(150050, "DZD", "fr-DZ", "DA").replace(/\s/g, " ")).toBe("1 500,50 DA");
   });
+  it("never displays negative zero", () => {
+    expect(formatMoney(-0, "DZD", "fr-DZ", "DA").replace(/\s/g, " ")).toBe("0,00 DA");
+  });
   it("round-trips input values", () => {
     expect(minorToInput(150005, "DZD")).toBe("1500.05");
     expect(parseMoneyInput(minorToInput(-42, "DZD"), "DZD")).toBe(-42);

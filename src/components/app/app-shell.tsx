@@ -10,6 +10,8 @@ import {
   BookOpenIcon,
   FileTextIcon,
   MenuIcon,
+  ReceiptIcon,
+  WalletIcon,
   LayoutDashboardIcon,
   LogOutIcon,
   SettingsIcon,
@@ -23,7 +25,7 @@ import { logoutAction } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
 
-export type NavKey = "dashboard" | "patients" | "invoices" | "reports" | "catalog" | "settings";
+export type NavKey = "dashboard" | "patients" | "invoices" | "reports" | "cash" | "expenses" | "catalog" | "settings";
 
 /** Shown in the phone bottom bar; everything else goes in the "More" sheet. */
 const MOBILE_PRIMARY: NavKey[] = ["dashboard", "patients", "invoices", "reports"];
@@ -33,6 +35,8 @@ const NAV: Record<NavKey, { href: string; icon: LucideIcon; label: string; short
   patients: { href: "/patients", icon: UsersIcon, label: "patients" },
   invoices: { href: "/invoices", icon: FileTextIcon, label: "invoices" },
   reports: { href: "/reports", icon: BarChart3Icon, label: "reports" },
+  cash: { href: "/cash", icon: WalletIcon, label: "cash" },
+  expenses: { href: "/expenses", icon: ReceiptIcon, label: "expenses" },
   catalog: { href: "/catalog", icon: BookOpenIcon, label: "catalog", short: "catalogShort" },
   settings: { href: "/settings", icon: SettingsIcon, label: "settings" },
 };

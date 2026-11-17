@@ -7,6 +7,7 @@ import { formValues, type ActionState } from "@/lib/action-state";
 import { parseDateOnly, todayInZone } from "@/lib/dates";
 import { parseMoneyInput } from "@/lib/money";
 import { ForbiddenError, requireClinicContext } from "@/server/auth/context";
+import { CashError } from "@/features/cash/server";
 import {
   applyPaymentToInvoice,
   BillingError,
@@ -26,6 +27,7 @@ const uuid = z.uuid();
 function fail(err: unknown, values?: Record<string, string>): ActionState {
   if (err instanceof ForbiddenError) return { error: "forbidden", values };
   if (err instanceof BillingError) return { error: `billing.errors.${err.code}`, values };
+  if (err instanceof CashError) return { error: `cash.errors.${err.code}`, values };
   throw err;
 }
 

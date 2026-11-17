@@ -17,6 +17,7 @@ import {
 } from "@/server/db/schema";
 import { nextCounter } from "@/server/db/tenant";
 import { todayInZone } from "@/lib/dates";
+import { assertCashDayOpen } from "@/features/cash/server";
 import { applyBasisPoints } from "@/lib/money";
 import {
   invoiceBalanceSql,
@@ -267,6 +268,7 @@ export async function recordPayment(ctx: ClinicContext, input: PaymentInput) {
 
     const [patient] = await tx.select({ id: patients.id }).from(patients).where(eq(patients.id, input.patientId)).limit(1);
     if (!patient) throw new BillingError("notFound");
+    await assertCashDayOpen(tx, input.receivedOn, input.method);
     const targets = input.allocateTo ? await openInvoices(tx, input.patientId, input.allocateTo === "auto" ? undefined : input.allocateTo) : [];
     if (input.allocateTo && input.allocateTo !== "auto" && targets.length === 0) throw new BillingError("invoiceNotOpen");
 
@@ -401,6 +403,7 @@ export async function refundPayment(
     if (!pay) throw new BillingError("notFound");
     if (pay.status !== "posted") throw new BillingError("paymentReversed");
     if (input.amountMinor > Number(pay.unapplied)) throw new BillingError("refundTooLarge");
+    await assertCashDayOpen(tx, input.refundedOn, input.method);
     const [r] = await tx
       .insert(refunds)
       .values({ organizationId: ctx.organizationId, paymentId, amountMinor: input.amountMinor, method: input.method, refundedOn: input.refundedOn, reference: input.reference || null, reason: input.reason.trim(), createdByUserId: ctx.userId })
