@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, InfoIcon, Link2OffIcon, MailIcon, PencilIcon, PhoneIcon, PlusIcon, ShieldAlertIcon, TriangleAlertIcon, WalletIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, InfoIcon, MailIcon, PencilIcon, PhoneIcon, PlusIcon, ShieldAlertIcon, TriangleAlertIcon, WalletIcon } from "lucide-react";
 import { ForbiddenState } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,8 @@ import { listPerformedProcedures } from "@/features/procedures/server";
 import { listPatientAppointments } from "@/features/agenda/server";
 import { TreatmentPlansPanel } from "@/features/treatment-plans/components/treatment-plans-panel";
 import { listTreatmentPlans } from "@/features/treatment-plans/server";
+import { ConsentPanel } from "@/features/consent/components/consent-panel";
+import { getConsentOverview } from "@/features/consent/server";
 import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -60,6 +62,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   const account = tab === "overview" && can(ctx, "invoice.read") ? await getPatientAccount(ctx, p.id) : null;
   const patientAppointments = tab === "overview" && can(ctx, "appointment.read") ? await listPatientAppointments(ctx, p.id) : null;
   const treatmentPlans = (tab === "overview" || tab === "treatments") && can(ctx, "treatment_plan.read") ? await listTreatmentPlans(ctx, p.id) : [];
+  const consentOverview = can(ctx, "shared_profile.request") ? await getConsentOverview(ctx, p.id) : null;
   const nextAppointment = patientAppointments?.upcoming[0] ?? null;
   const fmt = account || treatmentPlans.length ? await pageFormat(ctx) : null;
 
@@ -285,13 +288,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
               canManage={can(ctx, "patient.alerts.manage")}
             />
           ) : null}
-          <section className="rounded-xl border bg-card p-4">
-            <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold">
-              <Link2OffIcon className="size-4 text-muted-foreground" aria-hidden />
-              {t("patients.sharedProfile")}
-            </h2>
-            <p className="text-xs text-muted-foreground">{t("patients.sharedProfileNone")}</p>
-          </section>
+          {consentOverview ? <ConsentPanel patientId={p.id} overview={consentOverview} timezone={ctx.organization.timezone} defaultEmail={p.email} /> : null}
         </aside>
       </div>
     </>

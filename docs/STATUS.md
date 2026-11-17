@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Codex (session 8 — treatment plans and versioned estimates).
+Last updated: 2026-11-17 by Codex (session 9 — consent flows and patient portal accounts).
 
 ## How to verify the current state
 
@@ -72,6 +72,15 @@ estimate builder/detail/history, FR/EN/AR and RTL are complete. 81/81 tests (3 n
 lint green; supported `npx next build --webpack` is green after the unchanged Turbopack helper-port restriction.
 Browser-checked the Arabic patient treatment tab and responsive estimate builder without creating product data.
 
+Session 9 (Codex): consent flows and patient portal accounts end to end. Staff can create a portal identity only
+after documenting an assisted in-person identity check, issue a single-use seven-day activation link, and request
+an exact category/date/future-update scope. Patients activate a separate locked-down account, sign in, approve or
+decline requests, and revoke active grants. Grant creation remains patient-context-only in PostgreSQL; approved
+grants are immutable except for revocation. The shared-read guard evaluates the grant and writes an allowed/denied
+event atomically. 84/84 tests (3 new integration tests), typecheck and lint green; supported
+`npx next build --webpack` is green after the unchanged Turbopack helper-port restriction. Browser-checked the
+Arabic portal login at a 390 px mobile viewport; RTL layout and responsive form are correct.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -85,7 +94,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Clinic onboarding (§25) | 🟡 | Self-service register creates clinic + catalog. Wizard steps (hours, chairs, branding, numbering) ⏳. Verification workflow ⏳ |
 | Active clinic switching for multi-org staff (§4A) | ✅ | `/select-clinic`, membership re-checked per request |
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
-| Network identity + consent schema (§4A) | 🟡 | Tables + RLS (staff cannot create grants — tested) + `evaluateSharedAccess` (unit-tested). Request/approval flows, portal ⏳ |
+| Network identity + consent schema (§4A) | ✅ | Assisted in-person verified linking, exact-scope requests, patient-only approval/revocation, immutable grants, guarded + logged shared reads and cross-tenant tests |
 | Patient registration & directory (§6) | ✅ | Numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
 | Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, treatment plans, finance tab (account, invoices, payments, deposit). Odontogram ⏳ |
 | Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; medical questionnaires ⏳ |
@@ -103,7 +112,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
-| Patient portal (§21) | ⏳ | |
+| Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history and revocation ✅. Health records, appointments, estimates, invoices/payments and account recovery ⏳ |
 | Lab, inventory, sterilization (§22, §23) | ⏳ | Release 3 |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
 | Backups/restore exercise (§27, scenario 32) | ⏳ | |
@@ -111,9 +120,9 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-1. **Consent flows + patient portal accounts** (§4A, §21).
-2. Staff invitations, role editor, MFA (TOTP), session management UI.
-3. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
+1. **Staff invitations, role editor, MFA (TOTP), session management UI.**
+2. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
+3. Portal expansion: appointments, accepted estimates, invoices/payments and account recovery.
 
 ## Known gaps / decisions to revisit
 

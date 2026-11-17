@@ -8,3 +8,4 @@ export * from "./cash";
 export * from "./scheduling";
 export * from "./booking";
 export * from "./treatment";
+export * from "./portal";

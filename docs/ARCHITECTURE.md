@@ -59,9 +59,12 @@ tests/                    integration tests + support (global setup resets cabin
 
 - `network_patients` = stable private identity, **not** tenant-scoped. `patients` = clinic-private registration; `network_patient_id` is set only through `patient_identity_links` (verified evidence: patient account claim, patient QR, documented assisted in-person flow). Never auto-matched on name/phone/birth date.
 - `consent_requests` (clinic → patient), `consent_grants` (patient decision), `shared_access_events` (every allowed/denied read, append-only).
-- **DB-enforced**: `consent_grants` INSERT/UPDATE require `app.actor_type = 'patient'` and the matching `app.network_patient_id`. Staff code paths physically cannot create or widen a grant (tested).
+- **DB-enforced**: `consent_grants` INSERT/UPDATE require `app.actor_type = 'patient'` and the matching `app.network_patient_id`. Staff code paths physically cannot create a grant; a trigger makes an approved grant immutable except for patient revocation, so neither staff nor patient code can widen it (tested).
 - `evaluateSharedAccess()` (pure, unit-tested) is the single decision function for all shared reads: permission `shared_profile.read`, verified organization, active non-expired non-revoked grant, category, date range, future-updates rule. Every shared path (pages, APIs, file URLs, thumbnails, exports, jobs) must call it and log to `shared_access_events`.
-- Not built yet: patient portal accounts, request/approval UI, revocation propagation to caches/exports.
+- Clinic staff may create a network identity link only through the documented assisted in-person flow: a non-clinical evidence reference is required and audited. Names, phone numbers and birth dates are never identity-matching inputs.
+- Patient portal accounts are global and separate from staff users. Activation requires a single-use seven-day invitation, passwords use the same scrypt policy, sessions are opaque hashed 12-hour tokens, and five failed logins lock the account for 15 minutes. Narrow `SECURITY DEFINER` functions expose only invitation resolution, activation, login lookup and active-session lookup; account/session tables otherwise have patient-self RLS.
+- Consent approval copies the exact requested purpose, categories, date range and future-update flag into a new grant. Decline and revocation are patient-authenticated portal actions. Approval, decline, revocation, activation and staff request/invite mutations are audited without clinical content.
+- Not built yet: shared-record pages themselves, portal health/appointment/financial views, and revocation propagation to future caches/exports. Until a cache/export exists, every read is evaluated live.
 
 ## Money and dates (§2, §16)
 
