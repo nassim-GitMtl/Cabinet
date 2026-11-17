@@ -78,6 +78,15 @@ tests/                    integration tests + support (global setup resets cabin
 - Completed procedures are never deleted in normal workflows. Corrections transition once to `reversed` or `entered_in_error`, retain a reason, and write an audit event without copying the clinical reason into audit metadata.
 - The reusable service picker groups active services by category and adds per-user tenant-scoped favorites plus recent completed-procedure choices. Favorites contain catalog references only, never patient data.
 
+## Scheduling and reception (§9, §10)
+
+- Appointments keep three independent states: scheduling (`booked/cancelled/no_show`), confirmation, and visit progress. UI labels never collapse them into one ambiguous status.
+- PostgreSQL exclusion constraints are the final concurrency guard against overlapping booked appointments for a provider, chair, or patient. Service checks improve messages but never replace the database constraint.
+- Clinic-local date/time input is converted once with `zonedToUtc`; agenda display converts timestamps with the organization timezone. Date-only navigation never passes through the browser timezone.
+- Working hours are provider-specific recurring intervals; time off can be provider-specific or clinic-wide. Outside-hours booking requires an explicit override stored on the appointment and in audit metadata.
+- Reception visit states are forward-only: `not_arrived → arrived → waiting → in_treatment → completed`. They do not imply that clinical procedures were recorded or the account was paid.
+- Appointment notes are administrative only. Clinical findings belong in signed clinical records.
+
 ## Financial invariants to implement (Release 1, next steps — §16, §18)
 
 - Invoices: draft → issued (immutable) → corrections only via credit note / void-reissue; per-legal-entity numbering via `counters` (`scope = invoice:<legalEntityId>:<year>`), allocated inside the issuing transaction.

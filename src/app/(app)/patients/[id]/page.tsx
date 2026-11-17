@@ -15,7 +15,8 @@ import { pageFormat } from "@/features/billing/page-format";
 import { getPatientAccount } from "@/features/billing/server";
 import { ClinicalProcedures } from "@/features/procedures/components/clinical-procedures";
 import { listPerformedProcedures } from "@/features/procedures/server";
-import { formatDateOnly, formatDateTime } from "@/lib/dates";
+import { listPatientAppointments } from "@/features/agenda/server";
+import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 import { can, requireClinicContext } from "@/server/auth/context";
@@ -55,6 +56,8 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   const criticalCount = alerts.filter((a) => a.severity === "critical").length;
   const procedures = tab === "clinical" ? await listPerformedProcedures(ctx, p.id) : [];
   const account = tab === "overview" && can(ctx, "invoice.read") ? await getPatientAccount(ctx, p.id) : null;
+  const patientAppointments = tab === "overview" && can(ctx, "appointment.read") ? await listPatientAppointments(ctx, p.id) : null;
+  const nextAppointment = patientAppointments?.upcoming[0] ?? null;
   const fmt = account ? await pageFormat(ctx) : null;
 
   return (
@@ -185,7 +188,19 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                 <div key={card.label} className="rounded-xl border bg-card p-4">
                   <card.icon className="mb-2 size-5 text-primary" aria-hidden />
                   <p className="text-sm font-medium">{t(card.label)}</p>
-                  {card.module === "billing" && account && fmt ? (
+                  {card.module === "agenda" && nextAppointment ? (
+                    <Link
+                      href={`/agenda?date=${todayInZone(ctx.organization.timezone, nextAppointment.startsAt)}`}
+                      className="mt-1 block hover:underline"
+                    >
+                      <span className="block font-semibold tabular">
+                        {formatDateTime(nextAppointment.startsAt, ctx.organization.timezone)}
+                      </span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        <bdi>{[nextAppointment.providerTitle, nextAppointment.providerName].filter(Boolean).join(" ")}</bdi>
+                      </span>
+                    </Link>
+                  ) : card.module === "billing" && account && fmt ? (
                     <Link href={`/patients/${p.id}?tab=finance`} className="mt-1 block hover:underline">
                       <span className="block text-lg font-semibold tabular">
                         {fmt.money(account.outstandingMinor, ctx.organization.defaultCurrency)}

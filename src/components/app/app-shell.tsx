@@ -8,6 +8,8 @@ import {
   ArrowLeftRightIcon,
   BarChart3Icon,
   BookOpenIcon,
+  CalendarDaysIcon,
+  ClipboardCheckIcon,
   FileTextIcon,
   MenuIcon,
   ReceiptIcon,
@@ -25,13 +27,15 @@ import { logoutAction } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
 
-export type NavKey = "dashboard" | "patients" | "invoices" | "reports" | "cash" | "expenses" | "catalog" | "settings";
+export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "invoices" | "reports" | "cash" | "expenses" | "catalog" | "settings";
 
 /** Shown in the phone bottom bar; everything else goes in the "More" sheet. */
-const MOBILE_PRIMARY: NavKey[] = ["dashboard", "patients", "invoices", "reports"];
+const MOBILE_PRIMARY: NavKey[] = ["dashboard", "agenda", "patients", "invoices"];
 
 const NAV: Record<NavKey, { href: string; icon: LucideIcon; label: string; short?: string }> = {
   dashboard: { href: "/dashboard", icon: LayoutDashboardIcon, label: "dashboard", short: "dashboardShort" },
+  agenda: { href: "/agenda", icon: CalendarDaysIcon, label: "agenda" },
+  reception: { href: "/reception", icon: ClipboardCheckIcon, label: "reception" },
   patients: { href: "/patients", icon: UsersIcon, label: "patients" },
   invoices: { href: "/invoices", icon: FileTextIcon, label: "invoices" },
   reports: { href: "/reports", icon: BarChart3Icon, label: "reports" },

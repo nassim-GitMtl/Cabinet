@@ -4,20 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Claude (session 3 — invoicing, payments, reports).
-
-> **In progress (Claude, session 3, stopped at usage limit): Agenda (§9).**
-> Done and tested (5 integration tests, all green): schema + migrations 0009/0010 (chairs, appointment_types,
-> working_hours, time_off, appointments with 3 independent status dimensions; PostgreSQL EXCLUDE constraints
-> block overlapping booked appointments per provider/chair/patient, even concurrently), defaults seeded for new
-> and existing clinics (1 chair, 7 types, Sun–Thu 08–12/13–17), service `src/features/agenda/server.ts`
-> (create/reschedule with version check/cancel/no-show/confirmation/visit flow, working-hours + time-off checks
-> with explicit override, patient appointment list), timezone helpers `zonedToUtc`/`timeInZone` in `src/lib/dates.ts`.
-> **Left to do:** `agenda` translations (fr/en/ar), actions file, `/agenda` page (day view: columns per provider
-> on desktop, list on phone; prev/next day; new-appointment dialog with patient search via `searchPatients`),
-> appointment detail with status buttons, `/reception` (today's arrivals → waiting → in treatment → completed),
-> nav entries (`agenda`, `reception`; permission `appointment.read`), and the patient overview "next appointment"
-> card using `listPatientAppointments`. Then browser-check on 375 px and in Arabic, and move this to ✅.
+Last updated: 2026-11-17 by Codex (session 4 — agenda and reception).
 
 ## How to verify the current state
 
@@ -51,6 +38,12 @@ invoice, invoice total once, unbilled group, payments by method) → monthly rep
 Bug found and fixed: Drizzle drops table qualifiers in single-table selects, so correlated subqueries must
 use explicit raw identifiers (see ARCHITECTURE.md "Correlated subqueries").
 
+Session 4 results (Codex): 65/65 tests, typecheck and lint green. Agenda WIP completed with `/agenda`
+provider day columns, patient search and booking dialog, conflict-aware errors, appointment details,
+confirmation/cancellation/no-show actions, `/reception` forward-only arrival → waiting → treatment → completed
+flow, navigation and patient next-appointment card. Browser-checked patient search/selection in English plus
+Agenda and Reception in Arabic RTL without creating product data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -72,8 +65,8 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; PDFs in Arabic ⏳ |
 | Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Bottom nav, FAB, sticky form actions. Service worker/offline policy ⏳ (no patient data offline by design) |
-| Scheduler, booking links, staff approval (§9, §9A) | ⏳ | |
-| Reception/queue (§10) | ⏳ | |
+| Scheduler, booking links, staff approval (§9, §9A) | 🟡 | Agenda ✅: provider day view, patient search, working-hours/time-off validation, DB-enforced provider/chair/patient conflict prevention, confirmation/cancel/no-show. Online booking links and approval inbox ⏳ |
+| Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
 | Treatment plans/estimates/consents (§12A, §13) | ⏳ | |
 | Odontogram, perio chart, notes, signing (§12) | ⏳ | |
@@ -90,13 +83,11 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-1. **Agenda** (§9): providers/chairs/schedules, appointments with the three independent state dimensions, server-side conflict check (exclusion constraint), day/week views.
-2. **Booking links + staff approval inbox** (§9A).
-3. **Reception/queue** (§10): today's arrivals, check-in → waiting → in treatment → checkout linking to procedures/billing.
-4. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
-5. **Consent flows + patient portal accounts** (§4A, §21).
-6. Staff invitations, role editor, MFA (TOTP), session management UI.
-7. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
+1. **Booking links + staff approval inbox** (§9A).
+2. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
+3. **Consent flows + patient portal accounts** (§4A, §21).
+4. Staff invitations, role editor, MFA (TOTP), session management UI.
+5. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
 
 ## Known gaps / decisions to revisit
 

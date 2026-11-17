@@ -98,7 +98,8 @@ describe("agenda", () => {
     await expect(setVisitStatus(f.ctx, id, "arrived")).rejects.toMatchObject({ code: "invalidState" });
     await setVisitStatus(f.ctx, id, "completed");
     const mine = await listPatientAppointments(f.ctx, p);
-    expect(mine.upcoming[0]?.visitStatus).toBe("completed");
+    expect(mine.upcoming).toHaveLength(0);
+    expect(mine.past[0]?.visitStatus).toBe("completed");
   });
 
   it("is tenant-isolated and permission-checked", async () => {

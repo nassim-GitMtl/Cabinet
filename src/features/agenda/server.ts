@@ -289,13 +289,25 @@ export async function listPatientAppointments(ctx: ClinicContext, patientId: str
       .leftJoin(chairs, eq(chairs.id, appointments.chairId))
       .leftJoin(appointmentTypes, eq(appointmentTypes.id, appointments.appointmentTypeId));
     const upcoming = await base
-      .where(and(eq(appointments.patientId, patientId), eq(appointments.schedulingStatus, "booked"), gte(appointments.endsAt, now)))
+      .where(and(
+        eq(appointments.patientId, patientId),
+        eq(appointments.schedulingStatus, "booked"),
+        ne(appointments.visitStatus, "completed"),
+        gte(appointments.endsAt, now),
+      ))
       .orderBy(asc(appointments.startsAt))
       .limit(5);
     const past = await tx
       .select({ id: appointments.id, startsAt: appointments.startsAt, schedulingStatus: appointments.schedulingStatus, visitStatus: appointments.visitStatus })
       .from(appointments)
-      .where(and(eq(appointments.patientId, patientId), or(lt(appointments.endsAt, now), ne(appointments.schedulingStatus, "booked"))))
+      .where(and(
+        eq(appointments.patientId, patientId),
+        or(
+          lt(appointments.endsAt, now),
+          ne(appointments.schedulingStatus, "booked"),
+          eq(appointments.visitStatus, "completed"),
+        ),
+      ))
       .orderBy(desc(appointments.startsAt))
       .limit(10);
     return { upcoming, past };
