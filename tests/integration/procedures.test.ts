@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { getServicePickerData, setServiceFavorite, updateService } from "@/features/catalog/server";
+import { getDashboardStats } from "@/features/dashboard/server";
 import { createPatient } from "@/features/patients/server";
 import {
   changePerformedProcedureStatus,
@@ -103,6 +104,16 @@ describe("visits and completed procedures", () => {
       status: "completed",
     });
     expect(procedures[0]!.serviceSnapshot.name.fr).toBe(fixture.service.name.fr);
+
+    const dashboard = await getDashboardStats(fixture.ctx);
+    expect(dashboard.clinicalStats).toEqual({ visits: 1, procedures: 1, patients: 1 });
+    expect(dashboard.recentProcedures?.[0]).toMatchObject({
+      id: created.id,
+      patientId: fixture.patientId,
+      patientFirstName: patientInput.firstName,
+      status: "completed",
+    });
+    expect(dashboard.recentPatients?.[0]).toMatchObject({ id: fixture.patientId });
 
     const rows = await withDbContext(
       { organizationId: fixture.ctx.organizationId, userId: fixture.ctx.userId, actorType: "staff" },
