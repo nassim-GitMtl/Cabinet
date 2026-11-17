@@ -6,7 +6,10 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import {
   ArrowLeftRightIcon,
+  BarChart3Icon,
   BookOpenIcon,
+  FileTextIcon,
+  MenuIcon,
   LayoutDashboardIcon,
   LogOutIcon,
   SettingsIcon,
@@ -15,15 +18,21 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { logoutAction } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
 
-export type NavKey = "dashboard" | "patients" | "catalog" | "settings";
+export type NavKey = "dashboard" | "patients" | "invoices" | "reports" | "catalog" | "settings";
+
+/** Shown in the phone bottom bar; everything else goes in the "More" sheet. */
+const MOBILE_PRIMARY: NavKey[] = ["dashboard", "patients", "invoices", "reports"];
 
 const NAV: Record<NavKey, { href: string; icon: LucideIcon; label: string; short?: string }> = {
-  dashboard: { href: "/dashboard", icon: LayoutDashboardIcon, label: "dashboard" },
+  dashboard: { href: "/dashboard", icon: LayoutDashboardIcon, label: "dashboard", short: "dashboardShort" },
   patients: { href: "/patients", icon: UsersIcon, label: "patients" },
+  invoices: { href: "/invoices", icon: FileTextIcon, label: "invoices" },
+  reports: { href: "/reports", icon: BarChart3Icon, label: "reports" },
   catalog: { href: "/catalog", icon: BookOpenIcon, label: "catalog", short: "catalogShort" },
   settings: { href: "/settings", icon: SettingsIcon, label: "settings" },
 };
@@ -143,7 +152,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
           className="fixed inset-x-0 bottom-0 z-30 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden no-print"
         >
           <ul className="mx-auto flex max-w-lg items-stretch justify-around">
-            {nav.map((key) => {
+            {nav.filter((key) => MOBILE_PRIMARY.includes(key)).map((key) => {
               const item = NAV[key];
               const active = isActive(item.href);
               return (
@@ -162,9 +171,42 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
                 </li>
               );
             })}
+            {nav.some((key) => !MOBILE_PRIMARY.includes(key)) ? (
+              <li className="flex-1">
+                <Sheet>
+                  <SheetTrigger
+                    className={cn(
+                      "flex min-h-14 w-full flex-col items-center justify-center gap-0.5 text-[11px] font-medium",
+                      nav.some((key) => !MOBILE_PRIMARY.includes(key) && isActive(NAV[key].href)) ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
+                    <MenuIcon className="size-5" aria-hidden />
+                    {t("more")}
+                  </SheetTrigger>
+                  <SheetContent side="bottom" className="pb-[calc(1rem+env(safe-area-inset-bottom))]">
+                    <SheetHeader>
+                      <SheetTitle>{t("menu")}</SheetTitle>
+                    </SheetHeader>
+                    <ul className="grid gap-1 px-4">
+                      {nav.filter((key) => !MOBILE_PRIMARY.includes(key)).map((key) => {
+                        const item = NAV[key];
+                        return (
+                          <li key={key}>
+                            <Link href={item.href} className="flex min-h-12 items-center gap-3 rounded-lg px-3 font-medium hover:bg-accent">
+                              <item.icon className="size-5 text-primary" aria-hidden />
+                              {t(item.label as never)}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </SheetContent>
+                </Sheet>
+              </li>
+            ) : null}
           </ul>
         </nav>
-        {canCreatePatient && !pathname.startsWith("/patients/new") && !pathname.endsWith("/procedures/new") ? (
+        {canCreatePatient && !pathname.startsWith("/patients/new") && !pathname.endsWith("/procedures/new") && !pathname.includes("/billing/") ? (
           <Link
             href="/patients/new"
             aria-label={t("quickActions")}

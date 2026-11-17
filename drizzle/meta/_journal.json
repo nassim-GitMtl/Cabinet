@@ -36,6 +36,20 @@
       "when": 1794940804907,
       "tag": "0004_clinical_security",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794944266662,
+      "tag": "0005_finance",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794944267275,
+      "tag": "0006_finance_security",
+      "breakpoints": true
     }
   ]
 }

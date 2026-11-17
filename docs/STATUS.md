@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Codex (session 2 — visits and completed procedures).
+Last updated: 2026-11-17 by Claude (session 3 — invoicing, payments, reports).
 
 ## How to verify the current state
 
@@ -31,6 +31,13 @@ clinical history empty state, and Arabic RTL. Integration
 coverage verifies completed encounters, immutable catalog/price snapshots, FDI anatomy, override permission +
 reason + approver, audited reversal, favorites/recents, and cross-tenant read/write denial.
 
+Session 3 results (Claude): 54/54 tests (10 new billing integration tests), typecheck, lint, production build
+green. Browser-checked on a 375 px phone: procedure → checkout → issue F-2026-00001 → partial cash payment
+(state "partiellement payée", balance correct, receipt print link) → daily report (procedures grouped by
+invoice, invoice total once, unbilled group, payments by method) → monthly report → A4 invoice print.
+Bug found and fixed: Drizzle drops table qualifiers in single-table selects, so correlated subqueries must
+use explicit raw identifiers (see ARCHITECTURE.md "Correlated subqueries").
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -46,7 +53,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
 | Network identity + consent schema (§4A) | 🟡 | Tables + RLS (staff cannot create grants — tested) + `evaluateSharedAccess` (unit-tested). Request/approval flows, portal ⏳ |
 | Patient registration & directory (§6) | ✅ | Numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
-| Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips), overview, details, alerts, and clinical procedure history. Odontogram/treatment/finance tabs ⏳ |
+| Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, finance tab (account, invoices, payments, deposit). Odontogram/treatment tabs ⏳ |
 | Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; medical questionnaires ⏳ |
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
@@ -58,9 +65,9 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Treatment plans/estimates/consents (§12A, §13) | ⏳ | |
 | Odontogram, perio chart, notes, signing (§12) | ⏳ | |
 | Images/documents, object storage (§12A, §15) | ⏳ 🔌 | |
-| Invoices, payments, deposits, refunds, ledger (§16) | ⏳ | **Top priority next** |
+| Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
 | Cash close, expenses (§17) | ⏳ | |
-| Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Operational dashboard has real daily visit/procedure/patient counts plus recent activity; financial/daily/monthly reports ⏳ |
+| Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
 | Patient portal (§21) | ⏳ | |
 | Lab, inventory, sterilization (§22, §23) | ⏳ | Release 3 |
@@ -70,12 +77,14 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-1. **Invoicing & payments** (§16): `invoices`, `invoice_lines` (snapshots, link to performed procedure, unique to prevent double billing), `payments`, `payment_allocations`, `refunds`, `credit_notes`; numbering via `counters`; idempotency keys; append-only ledger tables registered in `append_only_tables()`; checkout view on the patient; receipt.
-2. **Daily & monthly reports** (§18, §19): daily procedures, invoice list, procedures grouped by invoice (invoice totals once), monthly service vs invoiced totals, payments by method; A4 print CSS; metric definitions from §18 table.
-3. **Agenda** (§9): providers/chairs/schedules, appointments with the three independent state dimensions, server-side conflict check (exclusion constraint), day/week views.
-4. **Booking links + staff approval inbox** (§9A).
-5. **Consent flows + patient portal accounts** (§4A, §21).
-6. Staff invitations, role editor, MFA (TOTP), session management UI.
+1. **Cash control & expenses** (§17): cash sessions (opening float, cash receipts/refunds/expenses from the ledger, counted amount, discrepancy reason, approval, printable close), expenses + suppliers (category, attachment later), card receipts never increase physical cash.
+2. **Agenda** (§9): providers/chairs/schedules, appointments with the three independent state dimensions, server-side conflict check (exclusion constraint), day/week views.
+3. **Booking links + staff approval inbox** (§9A).
+4. **Reception/queue** (§10): today's arrivals, check-in → waiting → in treatment → checkout linking to procedures/billing.
+5. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
+6. **Consent flows + patient portal accounts** (§4A, §21).
+7. Staff invitations, role editor, MFA (TOTP), session management UI.
+8. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
 
 ## Known gaps / decisions to revisit
 

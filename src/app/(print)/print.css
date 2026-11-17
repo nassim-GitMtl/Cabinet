@@ -1,0 +1,47 @@
+@page {
+  size: A4;
+  margin: 14mm 12mm 16mm;
+  @bottom-right {
+    content: counter(page) " / " counter(pages);
+    font-size: 9px;
+    color: #555;
+  }
+}
+@media print {
+  body {
+    background: white !important;
+  }
+  .print-root table {
+    page-break-inside: auto;
+  }
+  .print-root tr {
+    break-inside: avoid;
+  }
+  .print-root thead {
+    display: table-header-group;
+  }
+  .print-root .avoid-break {
+    break-inside: avoid;
+  }
+}
+.print-root table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.print-root th,
+.print-root td {
+  border-bottom: 1px solid #ddd;
+  padding: 5px 6px;
+  text-align: start;
+  vertical-align: top;
+}
+.print-root th {
+  background: #f3f5f6;
+  font-weight: 600;
+  font-size: 11px;
+}
+.print-root .num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

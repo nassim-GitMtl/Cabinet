@@ -91,3 +91,27 @@ tests/                    integration tests + support (global setup resets cabin
 - Sessions: opaque 32-byte token in httpOnly SameSite=Lax cookie; DB stores SHA-256; 12 h sliding; revocable (`revokeAllSessions`).
 - Audit: `audit_events` is INSERT/SELECT-only for the app role. Never put clinical content or secrets in metadata.
 - Security headers in `next.config.ts`. Platform operator role grants no patient-data access.
+
+## Financial subledger (implemented — `src/features/billing`, migrations 0005/0006)
+
+- Tables: `invoices`, `invoice_lines`, `credit_notes`, `payments`, `payment_allocations`, `refunds`.
+- Balances are always derived (`src/features/billing/sql.ts`): invoice balance = total − Σ allocations − Σ credit notes;
+  payment unapplied = amount − Σ allocations − Σ refunds (0 when reversed).
+- Triggers (`0006_finance_security.sql`): issued invoices/lines immutable (only issued → void, with no payments/credits);
+  payments immutable except posted → reversed (nothing applied/refunded); credit notes, allocations, refunds append-only;
+  AFTER-INSERT checks reject over-allocation, over-refund, over-credit and cross-patient/entity/currency allocation.
+- Services lock the invoice row (`FOR UPDATE OF invoices`) before allocating; triggers are the backstop.
+- `invoice_lines.performed_procedure_id` is unique while `released = false` → a procedure is billed at most once; voiding releases it.
+- Payment forms send a client-generated `idempotencyKey` (unique per org) so retries never create a second receipt.
+- Numbering: `counters` scope `invoice|credit|receipt:<legalEntityId>:<year>` → `F-2026-00001`, `AV-…`, `R-…`. Numbers are never reused;
+  voided invoices keep theirs. No gapless guarantee is claimed.
+
+### Correlated subqueries (pitfall)
+Drizzle omits table qualifiers in single-table selects, so `sql\`… where x.invoice_id = ${invoices.id}\`` inside a
+subquery binds to the subquery's own `id`. Write correlated subqueries with explicit aliased identifiers
+(see `billing/sql.ts`) and select FROM the unaliased outer table.
+
+## Reports (`src/features/reports/server.ts`)
+Metric bases follow §18 and are printed under each KPI. Production by service date; invoiced sales by document date
+less credit notes; gross receipts by receipt date (deposits included); net = gross − refunds. Other currencies are listed,
+never summed. "Paid to date" is as of generation time.
