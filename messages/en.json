@@ -763,5 +763,107 @@
       "bank_fees": "Bank fees",
       "other": "Other"
     }
+  },
+  "booking": {
+    "title": "Book an appointment",
+    "poweredBy": "Cabinet Dentaire Pro",
+    "intro": "Choose a reason and a time. The clinic will confirm your request.",
+    "stepType": "Reason for visit",
+    "stepDay": "Day",
+    "stepTime": "Available times — {date}",
+    "stepContact": "Your details",
+    "minutes": "{n} min",
+    "noTypes": "Online booking is not available at the moment.",
+    "noAvailability": "No available times soon. Please call the clinic.",
+    "contactName": "Full name",
+    "contactPhone": "Phone",
+    "phoneHint": "The clinic will call this number to confirm.",
+    "contactEmail": "Email",
+    "existing": "Are you already a patient of this clinic?",
+    "existingNo": "No, first visit",
+    "existingYes": "Yes",
+    "message": "Message for the clinic",
+    "messageHint": "Please don't include detailed medical information here; you'll discuss it with the clinician.",
+    "consent": "I agree that the clinic may use these details to handle my appointment request.",
+    "submit": "Send request",
+    "pendingNote": "This is a request: the appointment is confirmed only after the clinic approves it.",
+    "privacyNote": "Your request gives no access to, and shares no, medical records.",
+    "statusTitle": "Request status",
+    "clinic": "Clinic",
+    "when": "Time",
+    "keepLink": "Keep this link to follow your request.",
+    "status": {
+      "pending": {
+        "title": "Appointment request sent — awaiting clinic approval",
+        "body": "The clinic will check the time and contact you. This appointment is not confirmed yet."
+      },
+      "approved": {
+        "title": "Appointment confirmed",
+        "body": "The clinic has approved your appointment."
+      },
+      "declined": {
+        "title": "Request not accepted",
+        "body": "The clinic could not accept this time. You can send a new request or call the clinic."
+      },
+      "expired": {
+        "title": "Request expired",
+        "body": "The time passed without approval. Send a new request or call the clinic."
+      },
+      "withdrawn": {
+        "title": "Request withdrawn",
+        "body": "This request was withdrawn."
+      }
+    },
+    "inboxTitle": "Appointment requests",
+    "inboxHint": "Every online request must be approved by an assistant or clinician. Availability is re-checked on approval.",
+    "pending": "To review",
+    "noPending": "No pending requests.",
+    "decided": "Handled requests",
+    "waitingFor": "waiting {time}",
+    "declaresExisting": "Says they are already a patient",
+    "createAndApprove": "Create record and approve",
+    "existingPatient": "Existing patient…",
+    "existingPatientHint": "Find the patient's record in this clinic, then approve.",
+    "searchPatient": "Name, phone or patient no.",
+    "possibleMatches": "Similar records in this clinic:",
+    "approveFor": "Approve for this patient",
+    "createAnyway": "New patient anyway",
+    "approved": "Appointment approved",
+    "decline": "Decline",
+    "declineHint": "The reason is shown to the patient: keep it neutral with no medical detail.",
+    "declineReason": "Reason (shown to the patient)",
+    "links": "Booking links",
+    "linksHint": "Share this link (website, QR code, message). Requests arrive here and are never confirmed automatically.",
+    "linkLabel": "Link name",
+    "linkLabelPlaceholder": "Website, Facebook, front desk…",
+    "createLink": "Create link",
+    "copy": "Copy",
+    "copied": "Link copied",
+    "deactivate": "Deactivate",
+    "activate": "Reactivate",
+    "requests": "Requests",
+    "requestStatus": {
+      "submitted": "Submitted",
+      "under_review": "Under review",
+      "awaiting_information": "Info requested",
+      "alternative_proposed": "Alternative proposed",
+      "approved": "Approved",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn",
+      "expired": "Expired"
+    },
+    "errors": {
+      "linkInvalid": "This booking link is no longer valid.",
+      "invalidPhone": "Invalid phone number.",
+      "nameRequired": "Enter your name.",
+      "slotUnavailable": "This time is no longer available. Choose another.",
+      "tooManyRequests": "Too many recent requests. Try later or call the clinic.",
+      "notFound": "Request not found.",
+      "alreadyDecided": "This request has already been handled.",
+      "slotTaken": "The time is no longer free: decline the request or contact the patient for another time.",
+      "requestExpired": "The requested time has passed.",
+      "reasonRequired": "A reason is required.",
+      "noBookableTypes": "No appointment type is open for online booking."
+    }
   }
 }

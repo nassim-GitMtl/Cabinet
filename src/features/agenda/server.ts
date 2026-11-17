@@ -15,7 +15,7 @@ export class AgendaError extends Error {
 const staff = (ctx: ClinicContext) => ({ organizationId: ctx.organizationId, actorType: "staff" as const, actorUserId: ctx.userId });
 
 /** Maps PostgreSQL exclusion violations (23P01) to a specific conflict code. */
-function conflictFrom(err: unknown): AgendaError | null {
+export function conflictFrom(err: unknown): AgendaError | null {
   const cause = (err as { cause?: { code?: string; constraint_name?: string } }).cause ?? (err as { code?: string; constraint_name?: string });
   if (cause?.code !== "23P01") return null;
   const name = cause.constraint_name ?? "";
@@ -81,34 +81,38 @@ function slot(ctx: ClinicContext, input: AppointmentInput) {
   return { startsAt, endsAt };
 }
 
+/** Books inside an existing transaction (used by staff booking and request approval). */
+export async function bookInTx(tx: Tx, ctx: ClinicContext, input: AppointmentInput) {
+  const { startsAt, endsAt } = slot(ctx, input);
+  const [patient] = await tx.select({ id: patients.id, status: patients.status }).from(patients).where(eq(patients.id, input.patientId));
+  if (!patient || patient.status === "archived" || patient.status === "deceased") throw new AgendaError("patientUnavailable");
+  await validateSlot(tx, ctx, input, startsAt, endsAt);
+  const [branch] = await tx.select({ id: branches.id }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)).limit(1);
+  const [a] = await tx
+    .insert(appointments)
+    .values({
+      organizationId: ctx.organizationId,
+      branchId: branch!.id,
+      patientId: input.patientId,
+      providerId: input.providerId,
+      chairId: input.chairId,
+      appointmentTypeId: input.appointmentTypeId,
+      startsAt,
+      endsAt,
+      notes: input.notes,
+      outsideHoursOverride: input.outsideHoursOverride,
+      createdByUserId: ctx.userId,
+    })
+    .returning({ id: appointments.id });
+  await audit(tx, { ...staff(ctx), action: "appointment.booked", entityType: "appointment", entityId: a!.id, patientId: input.patientId, metadata: { startsAt: startsAt.toISOString(), override: input.outsideHoursOverride } });
+  return a!.id;
+}
+
 export async function createAppointment(ctx: ClinicContext, input: AppointmentInput) {
   requirePermission(ctx, "appointment.manage");
-  const { startsAt, endsAt } = slot(ctx, input);
+  slot(ctx, input);
   try {
-    return await tenantTx(ctx, async (tx) => {
-      const [patient] = await tx.select({ id: patients.id, status: patients.status }).from(patients).where(eq(patients.id, input.patientId));
-      if (!patient || patient.status === "archived" || patient.status === "deceased") throw new AgendaError("patientUnavailable");
-      await validateSlot(tx, ctx, input, startsAt, endsAt);
-      const [branch] = await tx.select({ id: branches.id }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)).limit(1);
-      const [a] = await tx
-        .insert(appointments)
-        .values({
-          organizationId: ctx.organizationId,
-          branchId: branch!.id,
-          patientId: input.patientId,
-          providerId: input.providerId,
-          chairId: input.chairId,
-          appointmentTypeId: input.appointmentTypeId,
-          startsAt,
-          endsAt,
-          notes: input.notes,
-          outsideHoursOverride: input.outsideHoursOverride,
-          createdByUserId: ctx.userId,
-        })
-        .returning({ id: appointments.id });
-      await audit(tx, { ...staff(ctx), action: "appointment.booked", entityType: "appointment", entityId: a!.id, patientId: input.patientId, metadata: { startsAt: startsAt.toISOString(), override: input.outsideHoursOverride } });
-      return a!.id;
-    });
+    return await tenantTx(ctx, (tx) => bookInTx(tx, ctx, input));
   } catch (err) {
     throw conflictFrom(err) ?? err;
   }

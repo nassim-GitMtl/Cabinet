@@ -763,5 +763,107 @@
       "bank_fees": "Frais bancaires",
       "other": "Autre"
     }
+  },
+  "booking": {
+    "title": "Prendre rendez-vous",
+    "poweredBy": "Cabinet Dentaire Pro",
+    "intro": "Choisissez un motif et un créneau. Votre demande sera confirmée par le cabinet.",
+    "stepType": "Motif de la visite",
+    "stepDay": "Jour",
+    "stepTime": "Heures disponibles — {date}",
+    "stepContact": "Vos coordonnées",
+    "minutes": "{n} min",
+    "noTypes": "La prise de rendez-vous en ligne n'est pas disponible pour le moment.",
+    "noAvailability": "Aucun créneau disponible prochainement. Appelez le cabinet.",
+    "contactName": "Nom et prénom",
+    "contactPhone": "Téléphone",
+    "phoneHint": "Le cabinet vous appellera à ce numéro pour confirmer.",
+    "contactEmail": "E-mail",
+    "existing": "Êtes-vous déjà patient(e) du cabinet ?",
+    "existingNo": "Non, première visite",
+    "existingYes": "Oui",
+    "message": "Message pour le cabinet",
+    "messageHint": "Pas d'informations médicales détaillées ici : vous en parlerez avec le praticien.",
+    "consent": "J'accepte que le cabinet utilise ces coordonnées pour traiter ma demande de rendez-vous.",
+    "submit": "Envoyer la demande",
+    "pendingNote": "Ceci est une demande : le rendez-vous n'est confirmé qu'après validation par le cabinet.",
+    "privacyNote": "Votre demande ne donne accès à aucun dossier médical et n'en partage aucun.",
+    "statusTitle": "Suivi de la demande",
+    "clinic": "Cabinet",
+    "when": "Créneau",
+    "keepLink": "Conservez ce lien pour suivre votre demande.",
+    "status": {
+      "pending": {
+        "title": "Demande de rendez-vous envoyée — en attente de validation du cabinet",
+        "body": "Le cabinet va vérifier le créneau et vous contacter. Ce rendez-vous n'est pas encore confirmé."
+      },
+      "approved": {
+        "title": "Rendez-vous confirmé",
+        "body": "Le cabinet a validé votre rendez-vous."
+      },
+      "declined": {
+        "title": "Demande non retenue",
+        "body": "Le cabinet n'a pas pu retenir ce créneau. Vous pouvez faire une nouvelle demande ou appeler le cabinet."
+      },
+      "expired": {
+        "title": "Demande expirée",
+        "body": "Le créneau est passé sans validation. Faites une nouvelle demande ou appelez le cabinet."
+      },
+      "withdrawn": {
+        "title": "Demande retirée",
+        "body": "Cette demande a été retirée."
+      }
+    },
+    "inboxTitle": "Demandes de rendez-vous",
+    "inboxHint": "Chaque demande en ligne doit être validée par un(e) assistant(e) ou un praticien. La disponibilité est revérifiée à la validation.",
+    "pending": "À traiter",
+    "noPending": "Aucune demande en attente.",
+    "decided": "Demandes traitées",
+    "waitingFor": "attend depuis {time}",
+    "declaresExisting": "Se déclare déjà patient",
+    "createAndApprove": "Créer la fiche et valider",
+    "existingPatient": "Patient existant…",
+    "existingPatientHint": "Recherchez le dossier du patient dans ce cabinet, puis validez.",
+    "searchPatient": "Nom, téléphone ou n° patient",
+    "possibleMatches": "Dossiers similaires dans ce cabinet :",
+    "approveFor": "Valider pour ce patient",
+    "createAnyway": "Nouveau patient quand même",
+    "approved": "Rendez-vous validé",
+    "decline": "Refuser",
+    "declineHint": "Le motif est visible par le patient : restez neutre et sans détail médical.",
+    "declineReason": "Motif (visible par le patient)",
+    "links": "Liens de réservation",
+    "linksHint": "Partagez ce lien (site web, QR code, message). Les demandes arrivent ici et ne sont jamais confirmées automatiquement.",
+    "linkLabel": "Nom du lien",
+    "linkLabelPlaceholder": "Site web, Facebook, accueil…",
+    "createLink": "Créer un lien",
+    "copy": "Copier",
+    "copied": "Lien copié",
+    "deactivate": "Désactiver",
+    "activate": "Réactiver",
+    "requests": "Demandes",
+    "requestStatus": {
+      "submitted": "Envoyée",
+      "under_review": "En cours",
+      "awaiting_information": "Infos demandées",
+      "alternative_proposed": "Autre créneau proposé",
+      "approved": "Validée",
+      "declined": "Refusée",
+      "withdrawn": "Retirée",
+      "expired": "Expirée"
+    },
+    "errors": {
+      "linkInvalid": "Ce lien de réservation n'est plus valide.",
+      "invalidPhone": "Numéro de téléphone invalide.",
+      "nameRequired": "Indiquez votre nom.",
+      "slotUnavailable": "Ce créneau n'est plus disponible. Choisissez-en un autre.",
+      "tooManyRequests": "Trop de demandes récentes. Réessayez plus tard ou appelez le cabinet.",
+      "notFound": "Demande introuvable.",
+      "alreadyDecided": "Cette demande a déjà été traitée.",
+      "slotTaken": "Le créneau n'est plus libre : refusez la demande ou contactez le patient pour un autre horaire.",
+      "requestExpired": "Le créneau est passé.",
+      "reasonRequired": "Le motif est obligatoire.",
+      "noBookableTypes": "Aucun type de rendez-vous n'est ouvert à la réservation en ligne."
+    }
   }
 }

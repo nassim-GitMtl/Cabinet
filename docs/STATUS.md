@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Claude (session 5 — agenda finished, rescheduling added).
+Last updated: 2026-11-17 by Claude (session 5 — agenda finished, booking links + staff approval).
 
 ## How to verify the current state
 
@@ -50,6 +50,11 @@ Session 5 results (Claude, committed Codex's session-4 work): 65/65 tests, typec
 RTL time-range fix (`dir="ltr"`) and Arabic plural for the reception count. Browser-checked on 375 px: booked
 via patient search, moved 10:00 → 11:00, agenda and reception in Arabic.
 
+Session 5b (Claude): patient booking links with mandatory staff approval. 73/73 tests (5 new booking integration
+tests + 3 slot unit tests), typecheck, lint, build green. Browser-checked on 375 px: staff creates link → public
+page shows real free times (weekend and booked slots excluded, 12 h notice) → patient request → status page
+"en attente de validation du cabinet" → staff "Créer la fiche et valider" → status "Rendez-vous confirmé".
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -71,7 +76,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; PDFs in Arabic ⏳ |
 | Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Bottom nav, FAB, sticky form actions. Service worker/offline policy ⏳ (no patient data offline by design) |
-| Scheduler, booking links, staff approval (§9, §9A) | 🟡 | Agenda ✅: provider day view, patient search, working-hours/time-off validation, DB-enforced provider/chair/patient conflict prevention, confirmation/cancel/no-show. Online booking links and approval inbox ⏳ |
+| Scheduler & booking (§9, §9A) | ✅ | Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Week view, drag-and-drop, recurring, waitlist, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
 | Treatment plans/estimates/consents (§12A, §13) | ⏳ | |
@@ -89,12 +94,11 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-1. **Booking links + staff approval inbox** (§9A): availability computed from working hours, bookable types, buffers and existing bookings; patient request stored as `scheduling_status = 'requested'` (never auto-confirmed); staff inbox to approve (transactional re-check, single approval), decline or propose alternatives; single-use expiring tokens and rate limiting.
-2. **Agenda settings and views**: manage chairs, appointment types, working hours and time off in `/settings`; week view.
-3. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
-4. **Consent flows + patient portal accounts** (§4A, §21).
-5. Staff invitations, role editor, MFA (TOTP), session management UI.
-6. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
+1. **Agenda settings and views**: manage chairs, appointment types, working hours and time off in `/settings`; week view.
+2. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
+3. **Consent flows + patient portal accounts** (§4A, §21).
+4. Staff invitations, role editor, MFA (TOTP), session management UI.
+5. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
 
 ## Known gaps / decisions to revisit
 

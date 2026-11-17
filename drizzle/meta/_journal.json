@@ -78,6 +78,20 @@
       "when": 1794945554064,
       "tag": "0010_scheduling_security",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794952046997,
+      "tag": "0011_booking",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1794952047661,
+      "tag": "0012_booking_security",
+      "breakpoints": true
     }
   ]
 }

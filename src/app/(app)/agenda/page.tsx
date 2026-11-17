@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { CalendarDaysIcon, ChevronLeftIcon, ChevronRightIcon, InboxIcon } from "lucide-react";
 import { PageHeader, ForbiddenState } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppointmentCard, EmptyAgenda, NewAppointmentButton, type AppointmentViewItem } from "@/features/agenda/components/agenda-ui";
 import { getAgendaSetup, listAppointments } from "@/features/agenda/server";
+import { countPendingRequests } from "@/features/booking/server";
 import { addDays, parseDateOnly, timeInZone, todayInZone, zonedToUtc } from "@/lib/dates";
 import { can, requireClinicContext } from "@/server/auth/context";
 
@@ -23,7 +24,8 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   const date = parseDateOnly(rawDate) ?? todayInZone(ctx.organization.timezone);
   const from = zonedToUtc(date, "00:00", ctx.organization.timezone);
   const to = zonedToUtc(addDays(date, 1), "00:00", ctx.organization.timezone);
-  const [setup, rows, locale] = await Promise.all([getAgendaSetup(ctx), listAppointments(ctx, from, to), getLocale()]);
+  const [setup, rows, locale, pendingRequests] = await Promise.all([getAgendaSetup(ctx), listAppointments(ctx, from, to), getLocale(), countPendingRequests(ctx)]);
+  const tb = await getTranslations("booking");
   const language = locale === "ar" || locale === "en" ? locale : "fr";
   const items: AppointmentViewItem[] = rows.map((item) => ({
     ...item,
@@ -50,7 +52,16 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
       <PageHeader
         title={t("title")}
         description={displayDate}
-        actions={can(ctx, "appointment.manage") ? <NewAppointmentButton setup={setupView} date={date} /> : null}
+        actions={
+          <>
+            <ButtonLink href="/agenda/requests" variant="outline">
+              <InboxIcon aria-hidden />
+              {tb("requests")}
+              {pendingRequests ? <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular">{pendingRequests}</span> : null}
+            </ButtonLink>
+            {can(ctx, "appointment.manage") ? <NewAppointmentButton setup={setupView} date={date} /> : null}
+          </>
+        }
       />
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-3 no-print">
         <div className="flex items-center gap-2">

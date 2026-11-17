@@ -140,7 +140,7 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
 export async function seedSchedulingDefaults(tx: Tx, organizationId: string, branchId: string, providerId: string | null) {
   await tx.insert(chairs).values({ organizationId, branchId, name: "Fauteuil 1" });
   await tx.insert(appointmentTypes).values(
-    DEFAULT_APPOINTMENT_TYPES.map((a) => ({ organizationId, code: a.code, name: a.name, defaultDurationMin: a.duration, color: a.color })),
+    DEFAULT_APPOINTMENT_TYPES.map((a) => ({ organizationId, code: a.code, name: a.name, defaultDurationMin: a.duration, color: a.color, isBookableOnline: ["CONSULT", "HYGIENE", "FOLLOWUP"].includes(a.code) })),
   );
   if (providerId) await tx.insert(workingHours).values(defaultWorkingHours(organizationId, providerId, branchId));
 }

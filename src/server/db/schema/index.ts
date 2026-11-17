@@ -6,3 +6,4 @@ export * from "./clinical";
 export * from "./finance";
 export * from "./cash";
 export * from "./scheduling";
+export * from "./booking";
