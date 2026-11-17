@@ -1,0 +1,21 @@
+# Local development services. Production uses managed equivalents.
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cabinet_owner
+      POSTGRES_PASSWORD: cabinet_owner_dev
+      POSTGRES_DB: cabinet
+    ports:
+      - "54329:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cabinet_owner -d cabinet"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  pgdata:
