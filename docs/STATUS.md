@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Codex (session 4 — agenda and reception).
+Last updated: 2026-11-17 by Claude (session 5 — agenda finished, rescheduling added).
 
 ## How to verify the current state
 
@@ -38,11 +38,17 @@ invoice, invoice total once, unbilled group, payments by method) → monthly rep
 Bug found and fixed: Drizzle drops table qualifiers in single-table selects, so correlated subqueries must
 use explicit raw identifiers (see ARCHITECTURE.md "Correlated subqueries").
 
-Session 4 results (Codex): 65/65 tests, typecheck and lint green. Agenda WIP completed with `/agenda`
+Session 4 results (Codex): 65/65 tests, typecheck, lint and production build green. Agenda WIP completed with `/agenda`
 provider day columns, patient search and booking dialog, conflict-aware errors, appointment details,
 confirmation/cancellation/no-show actions, `/reception` forward-only arrival → waiting → treatment → completed
 flow, navigation and patient next-appointment card. Browser-checked patient search/selection in English plus
 Agenda and Reception in Arabic RTL without creating product data.
+
+Session 5 results (Claude, committed Codex's session-4 work): 65/65 tests, typecheck, lint, build green. Added
+"Déplacer" rescheduling (version-checked, availability re-checked, confirmation reset), after-visit shortcuts
+(add procedure / bill) on in-treatment and completed appointments, appointment type → default duration auto-fill,
+RTL time-range fix (`dir="ltr"`) and Arabic plural for the reception count. Browser-checked on 375 px: booked
+via patient search, moved 10:00 → 11:00, agenda and reception in Arabic.
 
 ## Requirement coverage map
 
@@ -83,11 +89,12 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-1. **Booking links + staff approval inbox** (§9A).
-2. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
-3. **Consent flows + patient portal accounts** (§4A, §21).
-4. Staff invitations, role editor, MFA (TOTP), session management UI.
-5. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
+1. **Booking links + staff approval inbox** (§9A): availability computed from working hours, bookable types, buffers and existing bookings; patient request stored as `scheduling_status = 'requested'` (never auto-confirmed); staff inbox to approve (transactional re-check, single approval), decline or propose alternatives; single-use expiring tokens and rate limiting.
+2. **Agenda settings and views**: manage chairs, appointment types, working hours and time off in `/settings`; week view.
+3. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
+4. **Consent flows + patient portal accounts** (§4A, §21).
+5. Staff invitations, role editor, MFA (TOTP), session management UI.
+6. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
 
 ## Known gaps / decisions to revisit
 
