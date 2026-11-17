@@ -26,6 +26,10 @@ export const PERMISSIONS = [
   "clinical.sign",
   "clinical.images.read",
   "clinical.images.write",
+  "treatment_plan.read",
+  "treatment_plan.manage",
+  "treatment_plan.accept",
+  "treatment_plan.convert",
   // Cross-clinic shared profile
   "shared_profile.request",
   "shared_profile.read",
@@ -80,6 +84,7 @@ const CLINICAL: Permission[] = [
   "clinical.write",
   "clinical.images.read",
   "clinical.images.write",
+  "treatment_plan.read",
   "appointment.read",
   "catalog.read",
 ];
@@ -101,6 +106,9 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
     permissions: [
       ...CLINICAL,
       "clinical.sign",
+      "treatment_plan.manage",
+      "treatment_plan.accept",
+      "treatment_plan.convert",
       "shared_profile.request",
       "shared_profile.read",
       "appointment.manage",
@@ -114,10 +122,10 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "report.operational",
     ],
   },
-  hygienist: { name: "Hygiéniste", permissions: [...CLINICAL, "clinical.sign"] },
+  hygienist: { name: "Hygiéniste", permissions: [...CLINICAL, "clinical.sign", "treatment_plan.convert"] },
   assistant: {
     name: "Assistant(e) dentaire",
-    permissions: [...CLINICAL, "appointment.manage", "booking.approve", "sterilization.manage"],
+    permissions: [...CLINICAL, "appointment.manage", "booking.approve", "treatment_plan.convert", "sterilization.manage"],
   },
   receptionist: {
     name: "Réceptionniste",
@@ -139,6 +147,8 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "cash.close",
       "report.operational",
       "shared_profile.request",
+      "treatment_plan.read",
+      "treatment_plan.accept",
     ],
   },
   accountant: {

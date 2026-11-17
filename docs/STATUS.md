@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-17 by Codex (session 7 — modern responsive shell and FDI tooth guide).
+Last updated: 2026-11-17 by Codex (session 8 — treatment plans and versioned estimates).
 
 ## How to verify the current state
 
@@ -65,6 +65,13 @@ helper-port restriction; Next's supported `npx next build --webpack` fallback is
 desktop dashboard, mobile agenda, responsive navigation and tooth-guide dialog; RTL ordering and FDI quadrants are
 correct.
 
+Session 8 (Codex): treatment plans and estimates end to end. Added tenant-scoped plan workflow, immutable full
+estimate versions and service/price/anatomy snapshots, exact-version patient acceptance/refusal, revisions that
+preserve prior decisions, and one-time conversion of accepted items into completed procedures. Patient workspace,
+estimate builder/detail/history, FR/EN/AR and RTL are complete. 81/81 tests (3 new integration tests), typecheck and
+lint green; supported `npx next build --webpack` is green after the unchanged Turbopack helper-port restriction.
+Browser-checked the Arabic patient treatment tab and responsive estimate builder without creating product data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -80,7 +87,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
 | Network identity + consent schema (§4A) | 🟡 | Tables + RLS (staff cannot create grants — tested) + `evaluateSharedAccess` (unit-tested). Request/approval flows, portal ⏳ |
 | Patient registration & directory (§6) | ✅ | Numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
-| Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, finance tab (account, invoices, payments, deposit). Odontogram/treatment tabs ⏳ |
+| Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, treatment plans, finance tab (account, invoices, payments, deposit). Odontogram ⏳ |
 | Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; medical questionnaires ⏳ |
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
@@ -89,7 +96,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Scheduler & booking (§9, §9A) | ✅ | Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
-| Treatment plans/estimates/consents (§12A, §13) | ⏳ | |
+| Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Consent capture/signatures ⏳ (next step). |
 | Odontogram, perio chart, notes, signing (§12) | ⏳ | |
 | Images/documents, object storage (§12A, §15) | ⏳ 🔌 | |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
@@ -104,10 +111,9 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-1. **Treatment plans & estimates** (§13) with versioned acceptance and conversion to procedures.
-2. **Consent flows + patient portal accounts** (§4A, §21).
-3. Staff invitations, role editor, MFA (TOTP), session management UI.
-4. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
+1. **Consent flows + patient portal accounts** (§4A, §21).
+2. Staff invitations, role editor, MFA (TOTP), session management UI.
+3. Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.
 
 ## Known gaps / decisions to revisit
 

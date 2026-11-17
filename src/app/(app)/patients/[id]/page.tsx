@@ -16,6 +16,8 @@ import { getPatientAccount } from "@/features/billing/server";
 import { ClinicalProcedures } from "@/features/procedures/components/clinical-procedures";
 import { listPerformedProcedures } from "@/features/procedures/server";
 import { listPatientAppointments } from "@/features/agenda/server";
+import { TreatmentPlansPanel } from "@/features/treatment-plans/components/treatment-plans-panel";
+import { listTreatmentPlans } from "@/features/treatment-plans/server";
 import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -25,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("patients"))("title") };
 }
 
-const TABS = ["overview", "details", "clinical", "finance"] as const;
+const TABS = ["overview", "details", "clinical", "treatments", "finance"] as const;
 
 function Info({ label, value, dir }: { label: string; value: React.ReactNode; dir?: "ltr" | "rtl" }) {
   return (
@@ -48,7 +50,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   if (!data) notFound();
   const { patient: p, alerts, provider } = data;
   const tabAllowed = (x: (typeof TABS)[number]) =>
-    x === "clinical" ? can(ctx, "clinical.read") : x === "finance" ? can(ctx, "invoice.read") : true;
+    x === "clinical" ? can(ctx, "clinical.read") : x === "treatments" ? can(ctx, "treatment_plan.read") : x === "finance" ? can(ctx, "invoice.read") : true;
   const tab = TABS.find((x) => x === sp.tab && tabAllowed(x)) ?? "overview";
   const age = patientAge(p, ctx.organization.timezone);
   const arabic = patientArabicName(p);
@@ -57,8 +59,9 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   const procedures = tab === "clinical" ? await listPerformedProcedures(ctx, p.id) : [];
   const account = tab === "overview" && can(ctx, "invoice.read") ? await getPatientAccount(ctx, p.id) : null;
   const patientAppointments = tab === "overview" && can(ctx, "appointment.read") ? await listPatientAppointments(ctx, p.id) : null;
+  const treatmentPlans = (tab === "overview" || tab === "treatments") && can(ctx, "treatment_plan.read") ? await listTreatmentPlans(ctx, p.id) : [];
   const nextAppointment = patientAppointments?.upcoming[0] ?? null;
-  const fmt = account ? await pageFormat(ctx) : null;
+  const fmt = account || treatmentPlans.length ? await pageFormat(ctx) : null;
 
   return (
     <>
@@ -211,6 +214,12 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                         </span>
                       ) : null}
                     </Link>
+                  ) : card.module === "treatments" && fmt ? (
+                    <Link href={`/patients/${p.id}?tab=treatments`} className="mt-1 block hover:underline">
+                      <span className="block text-lg font-semibold tabular">
+                        {t("treatmentPlans.activeCount", { count: treatmentPlans.filter((plan) => !["completed", "cancelled"].includes(plan.status)).length })}
+                      </span>
+                    </Link>
                   ) : (
                     <p className="mt-1 text-xs text-muted-foreground">
                       {t("patients.overview.pendingModule", { module: t(`patients.modules.${card.module}`) })}
@@ -254,6 +263,9 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
             </div>
           ) : tab === "finance" ? (
             <PatientFinance ctx={ctx} patientId={p.id} canBill={can(ctx, "invoice.create")} />
+          ) : tab === "treatments" ? (
+            <TreatmentPlansPanel patientId={p.id} plans={treatmentPlans} canManage={can(ctx, "treatment_plan.manage") && can(ctx, "catalog.read") && p.status !== "archived" && p.status !== "deceased"}
+              currencySymbol={ctx.organization.settings.currencyDisplay ?? ctx.organization.defaultCurrency} />
           ) : (
             <ClinicalProcedures
               patientId={p.id}

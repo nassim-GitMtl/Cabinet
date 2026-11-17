@@ -87,6 +87,19 @@ tests/                    integration tests + support (global setup resets cabin
 - Reception visit states are forward-only: `not_arrived → arrived → waiting → in_treatment → completed`. They do not imply that clinical procedures were recorded or the account was paid.
 - Appointment notes are administrative only. Clinical findings belong in signed clinical records.
 
+## Treatment plans and estimates (§13)
+
+- `treatment_plans` is the mutable workflow pointer only. Each edit inserts a complete immutable
+  `treatment_plan_versions` snapshot and immutable `treatment_plan_items`; accepted prices and catalog labels are
+  never rewritten by later revisions or catalog changes.
+- A proposal is accepted or declined through an append-only `treatment_plan_decisions` row tied to the exact version.
+  The staff audit records identifiers, version and method only; decision notes stay in the clinical record, not audit metadata.
+- Only an accepted current version can be converted. Each item converts at most once into a completed encounter/procedure,
+  using the accepted service, anatomy and price snapshot, with an append-only `treatment_plan_conversions` link.
+  The plan becomes completed when every item in that accepted version has been converted.
+- Revisions after a proposal or decision create a new draft version and preserve all earlier decisions. Optimistic locking
+  protects workflow transitions; RLS and explicit `treatment_plan.*` permission keys protect every service path.
+
 ## Financial invariants to implement (Release 1, next steps — §16, §18)
 
 - Invoices: draft → issued (immutable) → corrections only via credit note / void-reissue; per-legal-entity numbering via `counters` (`scope = invoice:<legalEntityId>:<year>`), allocated inside the issuing transaction.
