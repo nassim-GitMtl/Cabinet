@@ -25,8 +25,9 @@ profile with header alert chips, catalog price edit with history, Arabic RTL on 
 Session 2 results: 44/44 tests passing (25 unit, 19 PostgreSQL integration), typecheck clean, lint clean,
 and production build green with Next's supported `--webpack` fallback. The sandbox blocks Turbopack's Tailwind
 worker from binding its internal localhost port (`EPERM`); this is a runner restriction, not a compile failure.
-Browser-checked the Turbopack dev build at 375 px: patient → phone-first procedure entry, persistent clinical
-alert, category/search picker, anatomy-dependent fields, clinical history empty state, and Arabic RTL. Integration
+Browser-checked the Turbopack dev build at 375 px: operational dashboard with real activity/recent-patient data,
+patient → phone-first procedure entry, persistent clinical alert, category/search picker, anatomy-dependent fields,
+clinical history empty state, and Arabic RTL. Integration
 coverage verifies completed encounters, immutable catalog/price snapshots, FDI anatomy, override permission +
 reason + approver, audited reversal, favorites/recents, and cross-tenant read/write denial.
 
@@ -59,7 +60,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Images/documents, object storage (§12A, §15) | ⏳ 🔌 | |
 | Invoices, payments, deposits, refunds, ledger (§16) | ⏳ | **Top priority next** |
 | Cash close, expenses (§17) | ⏳ | |
-| Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | ⏳ | |
+| Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Operational dashboard has real daily visit/procedure/patient counts plus recent activity; financial/daily/monthly reports ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
 | Patient portal (§21) | ⏳ | |
 | Lab, inventory, sterilization (§22, §23) | ⏳ | Release 3 |
