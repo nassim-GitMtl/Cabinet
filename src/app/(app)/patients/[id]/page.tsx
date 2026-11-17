@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, InfoIcon, Link2OffIcon, MailIcon, PencilIcon, PhoneIcon, ShieldAlertIcon, TriangleAlertIcon, WalletIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, InfoIcon, Link2OffIcon, MailIcon, PencilIcon, PhoneIcon, PlusIcon, ShieldAlertIcon, TriangleAlertIcon, WalletIcon } from "lucide-react";
 import { ForbiddenState } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,8 @@ import { AlertsPanel } from "@/features/patients/components/alerts-panel";
 import { ArchiveButton } from "@/features/patients/components/archive-button";
 import { patientAge, patientArabicName, patientDisplayName } from "@/features/patients/display";
 import { getPatient } from "@/features/patients/server";
+import { ClinicalProcedures } from "@/features/procedures/components/clinical-procedures";
+import { listPerformedProcedures } from "@/features/procedures/server";
 import { formatDateOnly, formatDateTime } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -19,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("patients"))("title") };
 }
 
-const TABS = ["overview", "details"] as const;
+const TABS = ["overview", "details", "clinical"] as const;
 
 function Info({ label, value, dir }: { label: string; value: React.ReactNode; dir?: "ltr" | "rtl" }) {
   return (
@@ -41,11 +43,12 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   const data = await getPatient(ctx, id);
   if (!data) notFound();
   const { patient: p, alerts, provider } = data;
-  const tab = TABS.find((x) => x === sp.tab) ?? "overview";
+  const tab = TABS.find((x) => x === sp.tab && (x !== "clinical" || can(ctx, "clinical.read"))) ?? "overview";
   const age = patientAge(p, ctx.organization.timezone);
   const arabic = patientArabicName(p);
   const country = ctx.organization.countryCode;
   const criticalCount = alerts.filter((a) => a.severity === "critical").length;
+  const procedures = tab === "clinical" ? await listPerformedProcedures(ctx, p.id) : [];
 
   return (
     <>
@@ -89,6 +92,12 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            {can(ctx, "clinical.write") && can(ctx, "catalog.read") && p.status !== "archived" && p.status !== "deceased" ? (
+              <ButtonLink href={`/patients/${p.id}/procedures/new`}>
+                <PlusIcon aria-hidden />
+                {t("procedures.add")}
+              </ButtonLink>
+            ) : null}
             {can(ctx, "patient.update") ? (
               <ButtonLink href={`/patients/${p.id}/edit`} variant="outline">
                 <PencilIcon aria-hidden />
@@ -125,20 +134,26 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
         <div className="min-w-0 space-y-4">
           <nav aria-label={t("patients.title")} className="flex gap-1 overflow-x-auto rounded-lg border bg-card p-1 text-sm">
-            {TABS.map((x) => (
-              <Link
-                key={x}
-                href={x === "overview" ? `/patients/${p.id}` : `/patients/${p.id}?tab=${x}`}
-                aria-current={tab === x ? "page" : undefined}
-                className={cn(
-                  "shrink-0 rounded-md px-3 py-2 font-medium",
-                  tab === x ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {t(`patients.tabs.${x}`)}
-              </Link>
-            ))}
-            {(["clinical", "finance", "history"] as const).map((x) => (
+            {TABS.map((x) =>
+              x !== "clinical" || can(ctx, "clinical.read") ? (
+                <Link
+                  key={x}
+                  href={x === "overview" ? `/patients/${p.id}` : `/patients/${p.id}?tab=${x}`}
+                  aria-current={tab === x ? "page" : undefined}
+                  className={cn(
+                    "shrink-0 rounded-md px-3 py-2 font-medium",
+                    tab === x ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {t(`patients.tabs.${x}`)}
+                </Link>
+              ) : (
+                <span key={x} aria-disabled className="shrink-0 cursor-not-allowed rounded-md px-3 py-2 text-muted-foreground/60">
+                  {t(`patients.tabs.${x}`)}
+                </span>
+              ),
+            )}
+            {(["finance", "history"] as const).map((x) => (
               <span key={x} aria-disabled className="shrink-0 cursor-not-allowed rounded-md px-3 py-2 text-muted-foreground/60" title={t("common.comingSoon")}>
                 {t(`patients.tabs.${x}`)}
               </span>
@@ -163,7 +178,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                 </div>
               ))}
             </div>
-          ) : (
+          ) : tab === "details" ? (
             <div className="space-y-4">
               <section className="rounded-xl border bg-card p-4 sm:p-5">
                 <h2 className="mb-3 text-sm font-semibold">{t("patients.sections.contact")}</h2>
@@ -196,6 +211,14 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                 </dl>
               </section>
             </div>
+          ) : (
+            <ClinicalProcedures
+              patientId={p.id}
+              procedures={procedures}
+              canWrite={can(ctx, "clinical.write") && can(ctx, "catalog.read") && p.status !== "archived" && p.status !== "deceased"}
+              currencySymbol={ctx.organization.settings.currencyDisplay ?? ctx.organization.defaultCurrency}
+              created={sp.created === "1"}
+            />
           )}
         </div>
 

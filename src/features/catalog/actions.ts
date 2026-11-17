@@ -6,10 +6,12 @@ import { parseMoneyInput } from "@/lib/money";
 import { ForbiddenError, requireClinicContext } from "@/server/auth/context";
 import { ConflictError } from "@/server/errors";
 import {
+  CatalogItemUnavailableError,
   createService,
   DuplicateCodeError,
   getServiceWithHistory,
   serviceInputSchema,
+  setServiceFavorite,
   setServiceActive,
   updateService,
 } from "./server";
@@ -71,4 +73,18 @@ export async function priceHistoryAction(serviceId: string) {
       reason: h.reason,
     })) ?? []
   );
+}
+
+export async function setServiceFavoriteAction(serviceId: string, favorite: boolean) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(serviceId)) {
+    return false;
+  }
+  const ctx = await requireClinicContext();
+  try {
+    await setServiceFavorite(ctx, serviceId, favorite);
+    return true;
+  } catch (error) {
+    if (error instanceof ForbiddenError || error instanceof CatalogItemUnavailableError) return false;
+    throw error;
+  }
 }

@@ -164,7 +164,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
             })}
           </ul>
         </nav>
-        {canCreatePatient && !pathname.startsWith("/patients/new") ? (
+        {canCreatePatient && !pathname.startsWith("/patients/new") && !pathname.endsWith("/procedures/new") ? (
           <Link
             href="/patients/new"
             aria-label={t("quickActions")}

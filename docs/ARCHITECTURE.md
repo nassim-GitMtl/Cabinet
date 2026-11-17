@@ -69,6 +69,15 @@ tests/                    integration tests + support (global setup resets cabin
 - Display currency symbol from `organizations.settings.currencyDisplay` ("DA" for DZD).
 - Timestamps `timestamptz` (UTC), displayed in the clinic timezone. Date-only values (`date`, ISO strings) are never timezone-converted. Keep service date, document date, payment date and created_at distinct.
 
+## Visits and completed procedures (§14)
+
+- `encounters` is the visit boundary (patient, branch, primary clinician, clinic-calendar service date and status). Phone-first fast entry creates a completed encounter and its first `performed_procedure` atomically.
+- `performed_procedures` keeps a catalog snapshot (localized name, code, pricing unit, anatomy and tax), the exact unit price/currency, quantity, anatomy, performing clinician and service date. Later catalog edits never rewrite it.
+- Anatomy is validated against the snapshotted service requirement: FDI tooth numbering, selected surfaces, arch or quadrant. Irrelevant anatomy fields are cleared server-side rather than trusted from the form.
+- A price different from the catalog default requires `price.override`, a reason, and records the approving user. The catalog price itself is not changed.
+- Completed procedures are never deleted in normal workflows. Corrections transition once to `reversed` or `entered_in_error`, retain a reason, and write an audit event without copying the clinical reason into audit metadata.
+- The reusable service picker groups active services by category and adds per-user tenant-scoped favorites plus recent completed-procedure choices. Favorites contain catalog references only, never patient data.
+
 ## Financial invariants to implement (Release 1, next steps — §16, §18)
 
 - Invoices: draft → issued (immutable) → corrections only via credit note / void-reissue; per-legal-entity numbering via `counters` (`scope = invoice:<legalEntityId>:<year>`), allocated inside the issuing transaction.

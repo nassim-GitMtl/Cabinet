@@ -22,6 +22,20 @@
       "when": 1794932462580,
       "tag": "0002_security",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794940801496,
+      "tag": "0003_clinical_procedures",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794940804907,
+      "tag": "0004_clinical_security",
+      "breakpoints": true
     }
   ]
 }

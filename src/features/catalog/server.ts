@@ -1,9 +1,15 @@
 import "server-only";
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
-import { serviceCategories, servicePrices, services } from "@/server/db/schema";
+import {
+  performedProcedures,
+  serviceCategories,
+  serviceFavorites,
+  servicePrices,
+  services,
+} from "@/server/db/schema";
 import type { LocalizedText } from "@/server/db/schema/_shared";
 import { ConflictError } from "@/server/errors";
 
@@ -23,6 +29,12 @@ export type CatalogService = {
 };
 
 export type CatalogCategory = { id: string; code: string; name: LocalizedText; services: CatalogService[] };
+
+export type ServicePickerData = {
+  categories: CatalogCategory[];
+  favoriteIds: string[];
+  recentIds: string[];
+};
 
 export async function listCatalog(ctx: ClinicContext, opts: { includeInactive?: boolean } = {}) {
   requirePermission(ctx, "catalog.read");
@@ -51,6 +63,105 @@ export async function listCatalog(ctx: ClinicContext, opts: { includeInactive?: 
       .where(opts.includeInactive ? undefined : eq(services.isActive, true))
       .orderBy(asc(services.code));
     return cats.map<CatalogCategory>((c) => ({ ...c, services: rows.filter((r) => r.categoryId === c.id) }));
+  });
+}
+
+/** Active catalog grouped for the reusable procedure/estimate/invoice picker. */
+export async function getServicePickerData(ctx: ClinicContext): Promise<ServicePickerData> {
+  requirePermission(ctx, "catalog.read");
+  return tenantTx(ctx, async (tx) => {
+    const [cats, rows, favorites, recentRows] = await Promise.all([
+      tx
+        .select({ id: serviceCategories.id, code: serviceCategories.code, name: serviceCategories.name })
+        .from(serviceCategories)
+        .where(eq(serviceCategories.isActive, true))
+        .orderBy(asc(serviceCategories.sortOrder)),
+      tx
+        .select({
+          id: services.id,
+          categoryId: services.categoryId,
+          code: services.code,
+          name: services.name,
+          pricingUnit: services.pricingUnit,
+          anatomy: services.anatomy,
+          defaultDurationMin: services.defaultDurationMin,
+          priceMinor: services.priceMinor,
+          currency: services.currency,
+          isDemoPrice: services.isDemoPrice,
+          isActive: services.isActive,
+          version: services.version,
+        })
+        .from(services)
+        .where(eq(services.isActive, true))
+        .orderBy(asc(services.code)),
+      tx
+        .select({ serviceId: serviceFavorites.serviceId })
+        .from(serviceFavorites)
+        .where(eq(serviceFavorites.userId, ctx.userId))
+        .orderBy(desc(serviceFavorites.createdAt)),
+      tx
+        .select({ serviceId: performedProcedures.serviceId })
+        .from(performedProcedures)
+        .where(
+          and(
+            eq(performedProcedures.createdByUserId, ctx.userId),
+            eq(performedProcedures.status, "completed"),
+          ),
+        )
+        .orderBy(desc(performedProcedures.createdAt))
+        .limit(50),
+    ]);
+
+    const activeIds = new Set(rows.map((row) => row.id));
+    const recentIds = [
+      ...new Set(recentRows.map((row) => row.serviceId).filter((id) => activeIds.has(id))),
+    ].slice(0, 6);
+    return {
+      categories: cats.map<CatalogCategory>((category) => ({
+        ...category,
+        services: rows.filter((row) => row.categoryId === category.id),
+      })),
+      favoriteIds: favorites.map((row) => row.serviceId).filter((id) => activeIds.has(id)),
+      recentIds,
+    };
+  });
+}
+
+export class CatalogItemUnavailableError extends Error {}
+
+export async function setServiceFavorite(ctx: ClinicContext, serviceId: string, favorite: boolean) {
+  requirePermission(ctx, "catalog.read");
+  return tenantTx(ctx, async (tx) => {
+    const [service] = await tx
+      .select({ id: services.id })
+      .from(services)
+      .where(and(eq(services.id, serviceId), eq(services.isActive, true)))
+      .limit(1);
+    if (!service) throw new CatalogItemUnavailableError();
+
+    if (favorite) {
+      await tx
+        .insert(serviceFavorites)
+        .values({ organizationId: ctx.organizationId, userId: ctx.userId, serviceId })
+        .onConflictDoNothing();
+    } else {
+      await tx
+        .delete(serviceFavorites)
+        .where(
+          and(
+            eq(serviceFavorites.userId, ctx.userId),
+            eq(serviceFavorites.serviceId, serviceId),
+          ),
+        );
+    }
+    await audit(tx, {
+      organizationId: ctx.organizationId,
+      actorType: "staff",
+      actorUserId: ctx.userId,
+      action: favorite ? "catalog.service.favorite_added" : "catalog.service.favorite_removed",
+      entityType: "service",
+      entityId: serviceId,
+    });
   });
 }
 
