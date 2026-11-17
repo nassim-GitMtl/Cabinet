@@ -207,13 +207,21 @@
       "notFound": "Appointment not found.",
       "invalidState": "This action is not allowed in the appointment's current state.",
       "staleVersion": "Someone else changed this appointment. Reload and try again.",
-      "reasonRequired": "Enter a cancellation reason."
+      "reasonRequired": "Enter a cancellation reason.",
+      "nameRequired": "A name is required.",
+      "invalidHours": "Invalid hours (start before end, HH:MM).",
+      "overlappingHours": "Two time ranges overlap on the same day."
     },
     "reschedule": "Move",
     "rescheduleHint": "New date, time or clinician. Availability is checked again; confirmation goes back to pending.",
     "rescheduled": "Appointment moved",
     "save": "Save",
-    "afterVisit": "After the visit"
+    "afterVisit": "After the visit",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "viewLabel": "View",
+    "dayView": "Day",
+    "weekView": "Week"
   },
   "patients": {
     "title": "Patients",
@@ -865,5 +873,52 @@
       "reasonRequired": "A reason is required.",
       "noBookableTypes": "No appointment type is open for online booking."
     }
+  },
+  "agendaSettings": {
+    "title": "Agenda settings",
+    "subtitle": "Chairs, appointment types, hours and time off. Existing appointments are never changed.",
+    "chairs": "Chairs / rooms",
+    "chairName": "New chair",
+    "chairPlaceholder": "Chair 2, X-ray room…",
+    "add": "Add",
+    "activate": "Reactivate",
+    "deactivate": "Deactivate",
+    "types": "Appointment types",
+    "newType": "New type",
+    "edit": "Edit",
+    "typeHint": "The default duration is suggested when booking and used for online booking.",
+    "nameFr": "Name (French)",
+    "nameEn": "Name (English)",
+    "nameAr": "Name (Arabic)",
+    "duration": "Default duration (min)",
+    "minutes": "{n} min",
+    "bookableOnline": "Bookable online (request subject to approval)",
+    "active": "Active",
+    "online": "Online",
+    "save": "Save",
+    "saved": "Saved",
+    "hours": "Working hours",
+    "hoursHint": "Tick working days. Two ranges per day (e.g. 08:00–12:00 / 13:00–17:00). The break is the gap between them.",
+    "start": "start",
+    "end": "end",
+    "timeOff": "Leave, closures and holidays",
+    "timeOffHint": "Blocks the agenda and online booking. Appointments already booked in the period are flagged so you can move them.",
+    "noTimeOff": "No upcoming time off.",
+    "who": "Applies to",
+    "wholeClinic": "Whole clinic",
+    "kindLabel": "Type",
+    "kind": {
+      "leave": "Leave",
+      "holiday": "Public holiday",
+      "blocked": "Blocked time"
+    },
+    "from": "From",
+    "to": "To",
+    "startTime": "Start time",
+    "endTime": "End time",
+    "reason": "Reason",
+    "addTimeOff": "Add time off",
+    "delete": "Delete",
+    "overlapWarning": "{count, plural, one {# existing appointment falls} other {# existing appointments fall}} during this time off: remember to move {count, plural, one {it} other {them}}."
   }
 }

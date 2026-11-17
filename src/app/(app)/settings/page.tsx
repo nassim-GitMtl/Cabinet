@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { ShieldCheckIcon, ShieldQuestionIcon } from "lucide-react";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
+import { ButtonLink } from "@/components/button-link";
 import { Badge } from "@/components/ui/badge";
 import { listStaff } from "@/features/settings/server";
 import { can, requireClinicContext } from "@/server/auth/context";
@@ -27,7 +28,14 @@ export default async function SettingsPage() {
 
   return (
     <>
-      <PageHeader title={t("settings.title")} />
+      <PageHeader
+        title={t("settings.title")}
+        actions={
+          <ButtonLink href="/settings/agenda" variant="outline">
+            {t("agendaSettings.title")}
+          </ButtonLink>
+        }
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-xl border bg-card p-5">
           <h2 className="mb-3 font-semibold">{t("settings.clinic")}</h2>

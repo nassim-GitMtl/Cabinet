@@ -207,13 +207,21 @@
       "notFound": "Rendez-vous introuvable.",
       "invalidState": "Cette action n'est pas autorisée dans l'état actuel du rendez-vous.",
       "staleVersion": "Ce rendez-vous a été modifié. Rechargez la page puis réessayez.",
-      "reasonRequired": "Indiquez le motif de l'annulation."
+      "reasonRequired": "Indiquez le motif de l'annulation.",
+      "nameRequired": "Le nom est obligatoire.",
+      "invalidHours": "Horaires invalides (début avant fin, format HH:MM).",
+      "overlappingHours": "Deux plages horaires se chevauchent le même jour."
     },
     "reschedule": "Déplacer",
     "rescheduleHint": "Nouvelle date, heure ou praticien. La disponibilité est revérifiée ; la confirmation repasse à « en attente ».",
     "rescheduled": "Rendez-vous déplacé",
     "save": "Enregistrer",
-    "afterVisit": "Après la séance"
+    "afterVisit": "Après la séance",
+    "previousWeek": "Semaine précédente",
+    "nextWeek": "Semaine suivante",
+    "viewLabel": "Affichage",
+    "dayView": "Jour",
+    "weekView": "Semaine"
   },
   "patients": {
     "title": "Patients",
@@ -865,5 +873,52 @@
       "reasonRequired": "Le motif est obligatoire.",
       "noBookableTypes": "Aucun type de rendez-vous n'est ouvert à la réservation en ligne."
     }
+  },
+  "agendaSettings": {
+    "title": "Réglages de l'agenda",
+    "subtitle": "Fauteuils, types de rendez-vous, horaires et absences. Les rendez-vous existants ne sont jamais modifiés.",
+    "chairs": "Fauteuils / salles",
+    "chairName": "Nouveau fauteuil",
+    "chairPlaceholder": "Fauteuil 2, Salle de radio…",
+    "add": "Ajouter",
+    "activate": "Réactiver",
+    "deactivate": "Désactiver",
+    "types": "Types de rendez-vous",
+    "newType": "Nouveau type",
+    "edit": "Modifier",
+    "typeHint": "La durée par défaut est proposée à la prise de rendez-vous et utilisée pour la réservation en ligne.",
+    "nameFr": "Nom (français)",
+    "nameEn": "Nom (anglais)",
+    "nameAr": "Nom (arabe)",
+    "duration": "Durée par défaut (min)",
+    "minutes": "{n} min",
+    "bookableOnline": "Réservable en ligne (demande soumise à validation)",
+    "active": "Actif",
+    "online": "En ligne",
+    "save": "Enregistrer",
+    "saved": "Enregistré",
+    "hours": "Horaires de travail",
+    "hoursHint": "Cochez les jours travaillés. Deux plages par jour (ex. 08:00–12:00 / 13:00–17:00). La pause est l'intervalle entre les deux.",
+    "start": "début",
+    "end": "fin",
+    "timeOff": "Absences, congés et jours fériés",
+    "timeOffHint": "Bloque l'agenda et la réservation en ligne. Les rendez-vous déjà pris sur la période sont signalés pour être déplacés.",
+    "noTimeOff": "Aucune absence à venir.",
+    "who": "Concerne",
+    "wholeClinic": "Tout le cabinet",
+    "kindLabel": "Type",
+    "kind": {
+      "leave": "Congé",
+      "holiday": "Jour férié",
+      "blocked": "Créneau bloqué"
+    },
+    "from": "Du",
+    "to": "Au",
+    "startTime": "Heure de début",
+    "endTime": "Heure de fin",
+    "reason": "Motif",
+    "addTimeOff": "Ajouter l'absence",
+    "delete": "Supprimer",
+    "overlapWarning": "{count, plural, one {# rendez-vous existant tombe} other {# rendez-vous existants tombent}} pendant cette absence : pensez à {count, plural, one {le déplacer} other {les déplacer}}."
   }
 }
