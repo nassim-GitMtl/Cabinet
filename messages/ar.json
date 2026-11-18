@@ -365,7 +365,8 @@
       "clinical": "الملف السريري",
       "treatments": "خطط العلاج",
       "finance": "المالية",
-      "history": "السجل"
+      "history": "السجل",
+      "health": "الصحة"
     },
     "overview": {
       "nextAppointment": "الموعد القادم",
@@ -1381,6 +1382,56 @@
       "attestationRequired": "حدّد خانة الإشهاد للتوقيع.",
       "reasonRequired": "سبب الملحق إلزامي.",
       "notSigned": "الملاحظة غير موقّعة."
+    }
+  },
+  "health": {
+    "formTitle": "استبيان السوابق الطبية",
+    "formHint": "السؤال المتروك فارغًا يبقى «دون إجابة» (وليس «لا»). تُقترح الإجابات السابقة؛ ويُنشأ تسجيل جديد مع حفظ السجل.",
+    "values": {
+      "yes": "نعم",
+      "no": "لا",
+      "unknown": "لا يعرف",
+      "declined": "يفضّل عدم الإجابة"
+    },
+    "clear": "مسح",
+    "sensitive": "معلومة حساسة",
+    "acknowledged": "أكّد المريض (أو ممثله) هذه الإجابات.",
+    "save": "حفظ الاستبيان",
+    "none": "لا يوجد استبيان مسجل.",
+    "recordedOn": "مُلئ في {date}",
+    "sources": {
+      "staff_entered": "أدخلته العيادة",
+      "patient_portal": "ملأه المريض (البوابة)",
+      "patient_tablet": "ملأه المريض (اللوحة)"
+    },
+    "ackYes": "أكّده المريض",
+    "ackNo": "لم يؤكده المريض",
+    "pendingReview": "للمراجعة من طرف الطبيب",
+    "reviewedBy": "راجعه {name} في {date}",
+    "reviewedNoChanges": "روجع دون تغيير من طرف {name} في {date}",
+    "update": "تحديث",
+    "fill": "ملء الاستبيان",
+    "markReviewed": "تحديد كمراجَع",
+    "noChanges": "روجع، دون تغيير",
+    "reviewedToast": "سُجلت المراجعة",
+    "changedSince": "{count, plural, one {تغيّرت إجابة واحدة} two {تغيّرت إجابتان} few {تغيّرت # إجابات} other {تغيّرت # إجابة}} منذ آخر مراجعة.",
+    "changedBadge": "تغيّر منذ آخر مراجعة",
+    "unanswered": "دون إجابة",
+    "createAlert": "إنشاء تنبيه",
+    "alertCreated": "أُضيف التنبيه إلى الملف",
+    "history": "السجل",
+    "historyReviewed": "راجعه {name}",
+    "historyNoChanges": "روجع دون تغيير من طرف {name}",
+    "notApproved": "استبيان أولي: يجب أن يصادق عليه طبيب قبل الاستعمال (المحتوى ليس أداة سريرية معتمدة).",
+    "approve": "المصادقة على هذا الاستبيان",
+    "approvedToast": "تمت المصادقة على الاستبيان",
+    "headerNone": "السوابق الطبية غير مسجلة",
+    "headerPending": "السوابق الطبية للمراجعة",
+    "errors": {
+      "notFound": "المريض غير موجود.",
+      "empty": "لم تُدخل أي إجابة.",
+      "nothingToReview": "لا يوجد استبيان للمراجعة.",
+      "notPromotable": "يمكن تحويل إجابة «نعم» أو إجابة نصية فقط إلى تنبيه."
     }
   }
 }

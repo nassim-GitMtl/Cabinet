@@ -11,3 +11,4 @@ export * from "./treatment";
 export * from "./portal";
 export * from "./odontogram";
 export * from "./notes";
+export * from "./health";

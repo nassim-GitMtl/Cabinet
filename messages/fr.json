@@ -365,7 +365,8 @@
       "clinical": "Dossier clinique",
       "treatments": "Plans de traitement",
       "finance": "Finances",
-      "history": "Historique"
+      "history": "Historique",
+      "health": "Santé"
     },
     "overview": {
       "nextAppointment": "Prochain rendez-vous",
@@ -1381,6 +1382,56 @@
       "attestationRequired": "Cochez l'attestation pour signer.",
       "reasonRequired": "Le motif de l'avenant est obligatoire.",
       "notSigned": "La note n'est pas signée."
+    }
+  },
+  "health": {
+    "formTitle": "Questionnaire médical",
+    "formHint": "Une réponse non renseignée reste « sans réponse » (ce n'est pas un « non »). Les réponses précédentes sont proposées ; un nouvel enregistrement est créé et l'historique est conservé.",
+    "values": {
+      "yes": "Oui",
+      "no": "Non",
+      "unknown": "Ne sait pas",
+      "declined": "Ne souhaite pas répondre"
+    },
+    "clear": "Effacer",
+    "sensitive": "information sensible",
+    "acknowledged": "Le patient (ou son représentant) a confirmé ces réponses.",
+    "save": "Enregistrer le questionnaire",
+    "none": "Aucun questionnaire enregistré.",
+    "recordedOn": "Rempli le {date}",
+    "sources": {
+      "staff_entered": "saisi par le cabinet",
+      "patient_portal": "rempli par le patient (portail)",
+      "patient_tablet": "rempli par le patient (tablette)"
+    },
+    "ackYes": "confirmé par le patient",
+    "ackNo": "non confirmé par le patient",
+    "pendingReview": "À revoir par un praticien",
+    "reviewedBy": "Revu par {name} le {date}",
+    "reviewedNoChanges": "Revu sans changement par {name} le {date}",
+    "update": "Mettre à jour",
+    "fill": "Remplir le questionnaire",
+    "markReviewed": "Marquer comme revu",
+    "noChanges": "Revu, sans changement",
+    "reviewedToast": "Revue enregistrée",
+    "changedSince": "{count, plural, one {# réponse a changé} other {# réponses ont changé}} depuis la dernière revue.",
+    "changedBadge": "Modifié depuis la dernière revue",
+    "unanswered": "Sans réponse",
+    "createAlert": "Créer une alerte",
+    "alertCreated": "Alerte ajoutée au dossier",
+    "history": "Historique",
+    "historyReviewed": "revu par {name}",
+    "historyNoChanges": "revu sans changement par {name}",
+    "notApproved": "Questionnaire de démarrage : à valider par un praticien avant usage (le contenu n'est pas un outil clinique validé).",
+    "approve": "Valider ce questionnaire",
+    "approvedToast": "Questionnaire validé",
+    "headerNone": "Questionnaire médical non renseigné",
+    "headerPending": "Questionnaire médical à revoir",
+    "errors": {
+      "notFound": "Patient introuvable.",
+      "empty": "Aucune réponse saisie.",
+      "nothingToReview": "Aucun questionnaire à revoir.",
+      "notPromotable": "Seule une réponse « Oui » ou un texte peut devenir une alerte."
     }
   }
 }

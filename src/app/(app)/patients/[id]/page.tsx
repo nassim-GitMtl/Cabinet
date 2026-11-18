@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { HeartPulseIcon } from "lucide-react";
 import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, InfoIcon, MailIcon, PencilIcon, PhoneIcon, PlusIcon, ShieldAlertIcon, TriangleAlertIcon, WalletIcon } from "lucide-react";
 import { ForbiddenState } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
@@ -25,6 +26,8 @@ import { getOdontogram } from "@/features/odontogram/server";
 import { NotesSection } from "@/features/notes/components/notes-section";
 import { listNotes, listNoteTemplates } from "@/features/notes/server";
 import { getAgendaSetup } from "@/features/agenda/server";
+import { HealthPanel } from "@/features/health/components/health-panel";
+import { healthStatus } from "@/features/health/server";
 import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -34,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("patients"))("title") };
 }
 
-const TABS = ["overview", "details", "clinical", "treatments", "finance"] as const;
+const TABS = ["overview", "details", "health", "clinical", "treatments", "finance"] as const;
 
 function Info({ label, value, dir }: { label: string; value: React.ReactNode; dir?: "ltr" | "rtl" }) {
   return (
@@ -57,8 +60,9 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   if (!data) notFound();
   const { patient: p, alerts, provider } = data;
   const tabAllowed = (x: (typeof TABS)[number]) =>
-    x === "clinical" ? can(ctx, "clinical.read") : x === "treatments" ? can(ctx, "treatment_plan.read") : x === "finance" ? can(ctx, "invoice.read") : true;
+    x === "clinical" || x === "health" ? can(ctx, "clinical.read") : x === "treatments" ? can(ctx, "treatment_plan.read") : x === "finance" ? can(ctx, "invoice.read") : true;
   const tab = TABS.find((x) => x === sp.tab && tabAllowed(x)) ?? "overview";
+  const health = await healthStatus(ctx, id);
   const age = patientAge(p, ctx.organization.timezone);
   const arabic = patientArabicName(p);
   const country = ctx.organization.countryCode;
@@ -138,6 +142,12 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
             {can(ctx, "patient.archive") ? <ArchiveButton patientId={p.id} archived={p.status === "archived"} /> : null}
           </div>
         </div>
+        {health === "none" || health === "pending_review" ? (
+          <Link href={`/patients/${p.id}?tab=health`} className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-warning/50 bg-warning/10 px-2 py-1 text-xs font-medium text-warning-foreground">
+            <HeartPulseIcon className="size-3.5" aria-hidden />
+            {t(health === "none" ? "health.headerNone" : "health.headerPending")}
+          </Link>
+        ) : null}
         {alerts.length > 0 ? (
           <ul aria-label={t("patients.alerts")} className="mt-3 flex flex-wrap gap-1.5 border-t pt-3">
             {alerts.map((a) => {
@@ -273,6 +283,8 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                 </dl>
               </section>
             </div>
+          ) : tab === "health" ? (
+            <HealthPanel ctx={ctx} patientId={p.id} editable={can(ctx, "clinical.write") && p.status !== "archived" && p.status !== "deceased"} />
           ) : tab === "finance" ? (
             <PatientFinance ctx={ctx} patientId={p.id} canBill={can(ctx, "invoice.create")} />
           ) : tab === "treatments" ? (

@@ -148,6 +148,27 @@
       "when": 1795029133770,
       "tag": "0020_clinical_notes_security",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1795029625700,
+      "tag": "0021_health_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1795029626384,
+      "tag": "0022_health_history_security",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795029902072,
+      "tag": "0023_no_delete_guard",
+      "breakpoints": true
     }
   ]
 }

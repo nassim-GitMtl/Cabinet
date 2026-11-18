@@ -365,7 +365,8 @@
       "clinical": "Clinical record",
       "treatments": "Treatment plans",
       "finance": "Finance",
-      "history": "History"
+      "history": "History",
+      "health": "Health"
     },
     "overview": {
       "nextAppointment": "Next appointment",
@@ -1381,6 +1382,56 @@
       "attestationRequired": "Tick the attestation to sign.",
       "reasonRequired": "A reason for the amendment is required.",
       "notSigned": "The note is not signed."
+    }
+  },
+  "health": {
+    "formTitle": "Medical history questionnaire",
+    "formHint": "A question left blank stays “unanswered” (it is not a “no”). Previous answers are prefilled; a new record is created and history is kept.",
+    "values": {
+      "yes": "Yes",
+      "no": "No",
+      "unknown": "Doesn't know",
+      "declined": "Prefers not to answer"
+    },
+    "clear": "Clear",
+    "sensitive": "sensitive information",
+    "acknowledged": "The patient (or their representative) confirmed these answers.",
+    "save": "Save questionnaire",
+    "none": "No questionnaire recorded.",
+    "recordedOn": "Completed on {date}",
+    "sources": {
+      "staff_entered": "entered by the clinic",
+      "patient_portal": "completed by the patient (portal)",
+      "patient_tablet": "completed by the patient (tablet)"
+    },
+    "ackYes": "confirmed by the patient",
+    "ackNo": "not confirmed by the patient",
+    "pendingReview": "To be reviewed by a clinician",
+    "reviewedBy": "Reviewed by {name} on {date}",
+    "reviewedNoChanges": "Reviewed with no changes by {name} on {date}",
+    "update": "Update",
+    "fill": "Fill in questionnaire",
+    "markReviewed": "Mark as reviewed",
+    "noChanges": "Reviewed, no changes",
+    "reviewedToast": "Review recorded",
+    "changedSince": "{count, plural, one {# answer changed} other {# answers changed}} since the last review.",
+    "changedBadge": "Changed since the last review",
+    "unanswered": "Unanswered",
+    "createAlert": "Create alert",
+    "alertCreated": "Alert added to the record",
+    "history": "History",
+    "historyReviewed": "reviewed by {name}",
+    "historyNoChanges": "reviewed with no changes by {name}",
+    "notApproved": "Starter questionnaire: a clinician must approve it before use (the content is not a validated clinical instrument).",
+    "approve": "Approve this questionnaire",
+    "approvedToast": "Questionnaire approved",
+    "headerNone": "Medical history not recorded",
+    "headerPending": "Medical history to review",
+    "errors": {
+      "notFound": "Patient not found.",
+      "empty": "No answers entered.",
+      "nothingToReview": "No questionnaire to review.",
+      "notPromotable": "Only a “Yes” answer or a text answer can become an alert."
     }
   }
 }
