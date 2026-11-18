@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Codex (session 19 — barcode/QR scanning and GS1 stock actions).
+Last updated: 2026-11-18 by Claude (session 20 — consumables per procedure, lot recall, reorder suggestions).
 
 ## How to verify the current state
 
@@ -170,6 +170,17 @@ cover actor, same-tenant item links and mutation; tests cover compact/human GS1,
 immutability and cross-tenant denial. 119/119 tests, typecheck and lint green; `npx next build --webpack` is green after
 the unchanged runner-only Turbopack helper-port restriction. Browser-checked the responsive French GS1 scan/assignment flow.
 
+Session 20 (Claude): inventory phase 2. Consumable recipes per catalog service (`/inventory/consumables`); each completed
+procedure creates usage lines, confirmed at chairside (default) or consumed automatically (org mode `auto`, shortage stays
+pending, never blocks care); confirm/skip with reason, then frozen by trigger; reversed procedures cannot consume. Usage
+movements link to the procedure, giving `/inventory/lots/[lotId]`: patients/procedures per lot, untraced manual usage, and
+an audited Excel/CSV recall export (`/api/exports/lot`). Explainable reorder suggestions from 90-day usage, agenda load,
+minimum stock and open orders. Migrations 0027–0028 (same-clinic link triggers, no-delete registration). 124/124 tests
+(5 new consumables integration tests + grants list), typecheck, lint, `npx next build` green. Browser-checked on the dev
+server: item + lot created, recipe REST-01 → 2 capsules, auto mode, composite recorded on tooth 36 → lot L2611A shows
+the patient with 18 left, export headers translated, Arabic RTL page. Note: a long-running `next dev` served stale
+message JSON to a route handler until restarted.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -202,7 +213,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, and assisted single-use account recovery ✅. Health records and online payment provider integration ⏳ |
-| Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Procedure recipes, recall traceability, forecasting, lab and sterilization ⏳ |
+| Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Lab and sterilization ⏳ |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
 | Backups/restore exercise (§27, scenario 32) | ⏳ | |
 | Platform operations console (§25) | ⏳ | |
@@ -213,11 +224,11 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Inventory phase 2 continued: procedure consumable recipes with automatic stock use, patient-to-lot recall
-   traceability, and explainable reorder forecasts from actual usage + agenda.
-2. Sterilization traceability: instrument sets, cycle/indicator records, chairside scan and exact patient/procedure linkage.
-3. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
-4. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
+1. Sterilization traceability: instrument sets, cycle/indicator records, chairside scan and exact patient/procedure linkage.
+2. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
+3. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
+4. Inventory follow-ups: show pending consumptions on the procedure/patient screen for chairside confirmation; turn a
+   reorder suggestion into a draft purchase order.
 
 ## Known gaps / decisions to revisit
 

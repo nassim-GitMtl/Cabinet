@@ -99,6 +99,12 @@ export type OrganizationSettings = {
   dateFormat?: "DD/MM/YYYY";
   /** Max discount (basis points) a user with price.override may apply without approval. */
   discountLimitBp?: number;
+  /**
+   * Stock use from completed procedures: "suggest" (default) lists consumables
+   * for staff confirmation; "auto" consumes FEFO immediately when stock allows.
+   * Planned appointments never reduce stock.
+   */
+  consumablesMode?: "suggest" | "auto";
 };
 
 export const organizations = pgTable("organizations", {

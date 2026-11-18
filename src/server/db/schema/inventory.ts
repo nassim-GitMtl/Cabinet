@@ -1,3 +1,4 @@
+import { performedProcedures } from "./clinical";
 import { bigint, boolean, check, date, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createdAt, id, organizationId } from "./_shared";
@@ -152,6 +153,8 @@ export const inventoryMovements = pgTable(
     branchId: uuid("branch_id").notNull().references(() => branches.id),
     kind: inventoryMovementKind("kind").notNull(),
     purchaseOrderLineId: uuid("purchase_order_line_id").references(() => inventoryPurchaseOrderLines.id),
+    /** Patient care that used this stock (lot recall traceability). */
+    performedProcedureId: uuid("performed_procedure_id").references(() => performedProcedures.id),
     quantityDelta: integer("quantity_delta").notNull(),
     occurredOn: date("occurred_on").notNull(),
     reference: text("reference"),
@@ -163,6 +166,7 @@ export const inventoryMovements = pgTable(
     index("inventory_movements_lot_idx").on(t.organizationId, t.lotId, t.createdAt),
     index("inventory_movements_item_idx").on(t.organizationId, t.itemId, t.branchId, t.occurredOn),
     index("inventory_movements_purchase_order_line_idx").on(t.organizationId, t.purchaseOrderLineId),
+    index("inventory_movements_procedure_idx").on(t.organizationId, t.performedProcedureId),
     check("inventory_movements_nonzero", sql`${t.quantityDelta} <> 0`),
   ],
 );

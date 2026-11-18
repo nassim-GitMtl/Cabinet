@@ -1,4 +1,5 @@
 import "server-only";
+import { planConsumptionsForProcedure } from "@/features/inventory/consumables";
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { todayInZone } from "@/lib/dates";
 import { audit } from "@/server/audit";
@@ -191,6 +192,13 @@ export async function recordPerformedProcedure(
         priceOverridden: isPriceOverride,
       },
     });
+    // Stock use from the service recipe (suggested or automatic per clinic setting; never blocks care).
+    await planConsumptionsForProcedure(
+      tx,
+      ctx,
+      { id: procedure!.id, serviceId: service.id, quantity: input.quantity, branchId: input.branchId },
+      todayInZone(ctx.organization.timezone),
+    );
     return { id: procedure!.id, encounterId: encounter!.id };
   });
 }

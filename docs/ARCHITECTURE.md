@@ -186,7 +186,7 @@ never summed. "Paid to date" is as of generation time.
 - No inference: alerts are created only by a clinician from an answer (`promoteToAlertAction`, label built server-side).
 - The starter questionnaire is generic wording flagged "to be approved by a clinician" until approved.
 
-## Inventory (`src/features/inventory`, migrations 0024–0026)
+## Inventory (`src/features/inventory`, migrations 0024–0028)
 
 - `inventory_items` is the tenant catalog; stock is never stored as a mutable total. The balance is always derived from
   append-only `inventory_movements`, grouped by immutable `inventory_lots` and branch.
@@ -205,3 +205,13 @@ never summed. "Paid to date" is as of generation time.
   Camera scanning uses the browser's local `BarcodeDetector` when available and always retains manual/USB-scanner input.
   GS1 application identifiers `01`, `17` and `10` populate the product lookup, expiry date and lot without sending images
   or scan payloads off the clinic server.
+- Consumable recipes (`service_consumables`) give a quantity per unit of a catalog service. Recording a completed procedure
+  creates one `procedure_consumptions` line per recipe item in the same transaction. Mode is the org setting
+  `consumablesMode`: `suggest` (default) leaves lines pending for chairside/stock-room confirmation; `auto` consumes FEFO
+  immediately. A stock shortage NEVER blocks recording care: the line stays pending with note `insufficientStock`.
+  Lines move once `pending → consumed | skipped` (skip needs a reason) and are then frozen by trigger; they are never deleted.
+  Confirmation is refused if the procedure has been reversed. Usage movements carry `performed_procedure_id`, which is the
+  basis of lot recall (`getLotTrace`: patients/procedures per lot, plus manual usage that cannot be traced to a patient).
+- Reorder suggestions are explainable, not a model: max(0, ceil(90-day usage / 90 × 30 × agenda factor) + minimum stock −
+  usable on hand − open order quantity). Agenda factor = booked appointments in the next 14 days ÷ the 14-day average of the
+  last 90 days, clamped to [0.5, 2]. Expired lots are not counted as on hand.

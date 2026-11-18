@@ -190,6 +190,20 @@
       "when": 1795043081438,
       "tag": "0026_inventory_identifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1795043631897,
+      "tag": "0027_consumables",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1795043632608,
+      "tag": "0028_consumables_security",
+      "breakpoints": true
     }
   ]
 }

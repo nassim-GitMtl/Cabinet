@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
-import { AlertTriangleIcon, BoxesIcon, CalendarClockIcon, PackageCheckIcon } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangleIcon, BoxesIcon, CalendarClockIcon, ListChecksIcon, PackageCheckIcon } from "lucide-react";
+import { ButtonLink } from "@/components/button-link";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { InventoryForms } from "@/features/inventory/components/inventory-forms";
@@ -33,12 +35,13 @@ export default async function InventoryPage() {
   if (!can(ctx, "inventory.manage")) return <ForbiddenState message={(await getTranslations("errors"))("forbiddenPage")} />;
   const today = todayInZone(ctx.organization.timezone);
   const [data, orders, identifierRows, locale] = await Promise.all([getInventory(ctx, today), getPurchaseOrders(ctx), getInventoryIdentifiers(ctx), getLocale()]);
+  const canTrace = can(ctx, "patient.read");
   const options = data.items.map((item) => ({ id: item.id, label: `${item.sku} · ${item.name}` }));
   const branchOptions = data.branches.filter((branch) => branch.active).map((branch) => ({ id: branch.id, label: branch.name }));
 
   return (
     <>
-      <PageHeader title={t("title")} description={t("subtitle")} />
+      <PageHeader title={t("title")} description={t("subtitle")} actions={<ButtonLink href="/inventory/consumables" variant="outline"><ListChecksIcon aria-hidden />{t("consumables.title")}</ButtonLink>} />
 
       <section className="mb-5 grid grid-cols-2 gap-3 xl:grid-cols-4">
         <Stat label={t("stats.items")} value={data.items.length} icon={<BoxesIcon className="size-5" aria-hidden />} />
@@ -130,7 +133,7 @@ export default async function InventoryPage() {
                       <thead className="bg-muted/50 text-xs text-muted-foreground"><tr><th className="px-3 py-2 text-start">{t("lotNumber")}</th><th className="px-3 py-2 text-start">{t("branch")}</th><th className="px-3 py-2 text-start">{t("receivedOn")}</th><th className="px-3 py-2 text-start">{t("expiresOn")}</th><th className="px-3 py-2 text-end">{t("available")}</th></tr></thead>
                       <tbody className="divide-y">{item.lots.map((lot) => (
                         <tr key={lot.id} className={lot.balance <= 0 ? "text-muted-foreground" : undefined}>
-                          <td className="px-3 py-2"><bdi>{lot.lotNumber}</bdi></td><td className="px-3 py-2"><bdi>{lot.branchName}</bdi></td><td className="px-3 py-2 tabular-nums">{formatDateOnly(lot.receivedOn)}</td><td className="px-3 py-2 tabular-nums">{lot.expiresOn ? formatDateOnly(lot.expiresOn) : "—"}</td><td className="px-3 py-2 text-end font-medium tabular-nums">{lot.balance}</td>
+                          <td className="px-3 py-2">{canTrace ? <Link href={`/inventory/lots/${lot.id}`} className="font-medium text-primary underline-offset-4 hover:underline" title={t("lot.traceLink")}><bdi>{lot.lotNumber}</bdi></Link> : <bdi>{lot.lotNumber}</bdi>}</td><td className="px-3 py-2"><bdi>{lot.branchName}</bdi></td><td className="px-3 py-2 tabular-nums">{formatDateOnly(lot.receivedOn)}</td><td className="px-3 py-2 tabular-nums">{lot.expiresOn ? formatDateOnly(lot.expiresOn) : "—"}</td><td className="px-3 py-2 text-end font-medium tabular-nums">{lot.balance}</td>
                         </tr>
                       ))}</tbody>
                     </table>

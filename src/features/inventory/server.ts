@@ -1,4 +1,5 @@
 import "server-only";
+import type { Tx } from "@/server/db/client";
 
 import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { audit } from "@/server/audit";
@@ -309,48 +310,64 @@ export async function receivePurchaseOrderLine(ctx: ClinicContext, input: Receiv
 export async function consumeInventoryFefo(ctx: ClinicContext, input: ConsumeInventoryInput, today: string) {
   requirePermission(ctx, "inventory.manage");
   return tenantTx(ctx, async (tx) => {
-    const [[item], [branch]] = await Promise.all([
-      tx.select({ id: inventoryItems.id }).from(inventoryItems).where(and(eq(inventoryItems.id, input.itemId), eq(inventoryItems.isActive, true))).limit(1),
-      tx.select({ id: branches.id }).from(branches).where(and(eq(branches.id, input.branchId), eq(branches.isActive, true))).limit(1),
-    ]);
-    if (!item) throw new InventoryError("itemUnavailable");
-    if (!branch) throw new InventoryError("branchUnavailable");
-    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.itemId}:${input.branchId}`}, 0))`);
-    const lots = await tx.select().from(inventoryLots).where(and(
-      eq(inventoryLots.itemId, input.itemId),
-      eq(inventoryLots.branchId, input.branchId),
-      or(isNull(inventoryLots.expiresOn), gte(inventoryLots.expiresOn, today)),
-    )).orderBy(sql`${inventoryLots.expiresOn} asc nulls last`, asc(inventoryLots.receivedOn), asc(inventoryLots.id));
-    const movementRows = lots.length
-      ? await tx.select({ lotId: inventoryMovements.lotId, delta: inventoryMovements.quantityDelta }).from(inventoryMovements).where(inArray(inventoryMovements.lotId, lots.map((lot) => lot.id)))
-      : [];
-    const balances = new Map<string, number>();
-    for (const row of movementRows) balances.set(row.lotId, (balances.get(row.lotId) ?? 0) + row.delta);
-    let remaining = input.quantity;
-    const allocations: { lotId: string; quantity: number }[] = [];
-    for (const lot of lots) {
-      const available = balances.get(lot.id) ?? 0;
-      if (available <= 0) continue;
-      const quantity = Math.min(available, remaining);
-      allocations.push({ lotId: lot.id, quantity });
-      remaining -= quantity;
-      if (remaining === 0) break;
-    }
-    if (remaining > 0) throw new InventoryError("insufficientStock");
-    for (const allocation of allocations) {
-      await tx.insert(inventoryMovements).values({
-        organizationId: ctx.organizationId,
-        itemId: input.itemId,
-        lotId: allocation.lotId,
-        branchId: input.branchId,
-        kind: "usage",
-        quantityDelta: -allocation.quantity,
-        occurredOn: today,
-        reference: input.reference,
-        createdByUserId: ctx.userId,
-      });
-    }
+    const allocations = await consumeFefoInTx(tx, ctx, { ...input, performedProcedureId: null }, today);
     await audit(tx, { ...actor(ctx), action: "inventory.consumed_fefo", entityType: "inventory_item", entityId: input.itemId, metadata: { branchId: input.branchId, quantity: input.quantity, lotCount: allocations.length } });
     return allocations;
   });
+}
+
+/**
+ * FEFO usage inside the caller's transaction (first-expiring lots first, expired
+ * lots never used). Throws InventoryError("insufficientStock") BEFORE writing
+ * anything, so callers can catch it without aborting their transaction.
+ */
+export async function consumeFefoInTx(
+  tx: Tx,
+  ctx: ClinicContext,
+  input: { itemId: string; branchId: string; quantity: number; reference?: string | null; performedProcedureId: string | null },
+  today: string,
+) {
+  const [[item], [branch]] = await Promise.all([
+    tx.select({ id: inventoryItems.id }).from(inventoryItems).where(and(eq(inventoryItems.id, input.itemId), eq(inventoryItems.isActive, true))).limit(1),
+    tx.select({ id: branches.id }).from(branches).where(and(eq(branches.id, input.branchId), eq(branches.isActive, true))).limit(1),
+  ]);
+  if (!item) throw new InventoryError("itemUnavailable");
+  if (!branch) throw new InventoryError("branchUnavailable");
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${input.itemId}:${input.branchId}`}, 0))`);
+  const lots = await tx.select().from(inventoryLots).where(and(
+    eq(inventoryLots.itemId, input.itemId),
+    eq(inventoryLots.branchId, input.branchId),
+    or(isNull(inventoryLots.expiresOn), gte(inventoryLots.expiresOn, today)),
+  )).orderBy(sql`${inventoryLots.expiresOn} asc nulls last`, asc(inventoryLots.receivedOn), asc(inventoryLots.id));
+  const movementRows = lots.length
+    ? await tx.select({ lotId: inventoryMovements.lotId, delta: inventoryMovements.quantityDelta }).from(inventoryMovements).where(inArray(inventoryMovements.lotId, lots.map((lot) => lot.id)))
+    : [];
+  const balances = new Map<string, number>();
+  for (const row of movementRows) balances.set(row.lotId, (balances.get(row.lotId) ?? 0) + row.delta);
+  let remaining = input.quantity;
+  const allocations: { lotId: string; quantity: number }[] = [];
+  for (const lot of lots) {
+    const available = balances.get(lot.id) ?? 0;
+    if (available <= 0) continue;
+    const quantity = Math.min(available, remaining);
+    allocations.push({ lotId: lot.id, quantity });
+    remaining -= quantity;
+    if (remaining === 0) break;
+  }
+  if (remaining > 0) throw new InventoryError("insufficientStock");
+  for (const allocation of allocations) {
+    await tx.insert(inventoryMovements).values({
+      organizationId: ctx.organizationId,
+      itemId: input.itemId,
+      lotId: allocation.lotId,
+      branchId: input.branchId,
+      kind: "usage",
+      quantityDelta: -allocation.quantity,
+      occurredOn: today,
+      reference: input.reference ?? null,
+      performedProcedureId: input.performedProcedureId,
+      createdByUserId: ctx.userId,
+    });
+  }
+  return allocations;
 }
