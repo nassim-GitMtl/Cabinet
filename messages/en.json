@@ -1181,9 +1181,22 @@
     "balance": "Balance: {amount}",
     "billingContactClinic": "To make a payment or request a correction, contact the clinic.",
     "noClinicRecords": "No clinic record is linked to this account.",
-    "appointmentStatus": { "requested": "Requested", "booked": "Booked", "cancelled": "Cancelled", "no_show": "No-show" },
-    "confirmationStatus": { "pending": "Confirmation pending", "confirmed": "Confirmed", "declined": "Declined", "reschedule_requested": "Reschedule requested" },
-    "estimateStatus": { "accepted": "Accepted", "completed": "Completed" },
+    "appointmentStatus": {
+      "requested": "Requested",
+      "booked": "Booked",
+      "cancelled": "Cancelled",
+      "no_show": "No-show"
+    },
+    "confirmationStatus": {
+      "pending": "Confirmation pending",
+      "confirmed": "Confirmed",
+      "declined": "Declined",
+      "reschedule_requested": "Reschedule requested"
+    },
+    "estimateStatus": {
+      "accepted": "Accepted",
+      "completed": "Completed"
+    },
     "pendingRequests": "Requests awaiting your decision",
     "noPending": "No request is awaiting your decision.",
     "clinic": "Dental clinic",
@@ -1295,6 +1308,79 @@
       "credit_note": "Credit note",
       "payment": "Payment",
       "refund": "Refund"
+    }
+  },
+  "notes": {
+    "title": "Clinical notes",
+    "new": "New note",
+    "newHint": "The note starts as a draft; it can no longer be edited once signed.",
+    "empty": "No clinical notes.",
+    "template": "Template",
+    "noTemplate": "No template",
+    "kind": "Note type",
+    "serviceDate": "Date of care",
+    "provider": "Clinician",
+    "create": "Create draft",
+    "kinds": {
+      "consultation": "Consultation",
+      "progress": "Progress",
+      "procedure": "Procedure report",
+      "post_op": "Post-operative",
+      "referral": "Referral",
+      "other": "Other"
+    },
+    "status": {
+      "draft": "Draft",
+      "in_review": "To sign",
+      "signed": "Signed",
+      "discarded": "Discarded"
+    },
+    "sections": {
+      "chiefComplaint": "Chief complaint",
+      "observations": "Observations / examination",
+      "assessment": "Assessment (entered by the clinician)",
+      "plan": "Plan",
+      "performedWork": "Work performed"
+    },
+    "teeth": "Teeth (FDI)",
+    "teethHint": "FDI numbers separated by spaces, e.g. 36 37.",
+    "autosaved": "Saved automatically",
+    "saving": "Saving…",
+    "unsaved": "Unsaved changes",
+    "conflict": "Changed elsewhere: reload before continuing.",
+    "saveError": "Save failed — try again.",
+    "reload": "Reload latest version",
+    "attestation": "I confirm I am the author of, or responsible for, this information and that it is accurate to my knowledge. Once signed, the note can only be corrected by a dated amendment.",
+    "sign": "Sign note",
+    "signed": "Note signed",
+    "submitForReview": "Send for signature",
+    "submitted": "Sent to the clinician for signature",
+    "awaitingSignature": "Awaiting a clinician's signature.",
+    "discard": "Discard draft",
+    "amend": "Add amendment",
+    "amendHint": "The amendment is dated, signed and appended; the original signed text stays unchanged.",
+    "amendReason": "Reason for amendment",
+    "signAmendment": "Sign amendment",
+    "amended": "Amendment added",
+    "cancel": "Cancel",
+    "original": "Original signed version",
+    "amendmentN": "Amendment no. {n}",
+    "signedBy": "signed by {name} on {date}",
+    "author": "written by {name}",
+    "fromTemplate": "template “{name}”",
+    "amendedBadge": "{count, plural, one {# amendment} other {# amendments}}",
+    "integrityOk": "Integrity verified",
+    "integrityBroken": "Integrity broken",
+    "errors": {
+      "notFound": "Note not found.",
+      "providerUnavailable": "Clinician unavailable.",
+      "futureDate": "The date cannot be in the future.",
+      "notEditable": "This note can no longer be edited.",
+      "conflict": "Another user changed the note: reload it.",
+      "emptyNote": "The note is empty.",
+      "attestationRequired": "Tick the attestation to sign.",
+      "reasonRequired": "A reason for the amendment is required.",
+      "notSigned": "The note is not signed."
     }
   }
 }

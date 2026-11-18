@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Codex (session 14 — append-only odontogram foundation and treatment linkage).
+Last updated: 2026-11-18 by Claude (session 15 — clinical notes, signing, amendments).
 
 ## How to verify the current state
 
@@ -128,6 +128,14 @@ not clinical notes. FR/EN/AR and RTL are complete. 102/102 tests (2 unit + 2 int
 green; `npx next build --webpack` green after the unchanged Turbopack helper-port restriction. Browser-checked the
 Arabic clinical workspace and odontogram layout without creating demo data.
 
+Session 15 (Claude): clinical notes (§12). 106/106 tests (+4 integration), typecheck, lint, build green. Drafts with
+1.2 s debounced autosave + optimistic locking (conflict → reload), structured sections (complaint, observations,
+assessment, plan, work performed, FDI teeth), clinic templates (5 starters; template snapshot stored to separate copied
+text), assistant "send for signature" → signer review, explicit attestation, signing writes immutable version 1
+(append-only `clinical_note_versions`, DB trigger freezes the header), dated amendments with reason as new versions,
+SHA-256 hash chain verified on every view ("Intégrité vérifiée"), discard instead of delete, audit of view/sign/amend.
+Browser-checked: template draft → autosave → sign → amendment, integrity badge.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -171,10 +179,11 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Clinical notes and signing: immutable encounter-note versions, author/signature state and odontogram/procedure linkage.
-2. Medical questionnaires and structured health history with alert promotion.
+1. Medical questionnaires and structured health history with alert promotion.
 
 ## Known gaps / decisions to revisit
+
+- Clinical notes: links to specific performed procedures/odontogram findings are by tooth number and date only; a note-template editor UI and per-encounter auto-note are not built yet.
 
 - Role names for custom roles are stored as entered; system roles are translated via `messages.*.roles`.
 - `next dev` must be started with an explicit `--port` if 3000 is busy (see `.claude/launch.json`).

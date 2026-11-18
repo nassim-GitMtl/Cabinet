@@ -22,6 +22,9 @@ import { ConsentPanel } from "@/features/consent/components/consent-panel";
 import { getConsentOverview } from "@/features/consent/server";
 import { OdontogramPanel } from "@/features/odontogram/components/odontogram-panel";
 import { getOdontogram } from "@/features/odontogram/server";
+import { NotesSection } from "@/features/notes/components/notes-section";
+import { listNotes, listNoteTemplates } from "@/features/notes/server";
+import { getAgendaSetup } from "@/features/agenda/server";
 import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -62,6 +65,9 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   const criticalCount = alerts.filter((a) => a.severity === "critical").length;
   const procedures = tab === "clinical" ? await listPerformedProcedures(ctx, p.id) : [];
   const odontogram = tab === "clinical" ? await getOdontogram(ctx, p.id) : null;
+  const notes = tab === "clinical" ? await listNotes(ctx, p.id) : [];
+  const noteTemplates = tab === "clinical" && can(ctx, "clinical.write") ? await listNoteTemplates(ctx) : [];
+  const noteProviders = tab === "clinical" && can(ctx, "clinical.write") ? (await getAgendaSetup(ctx)).providers : [];
   const account = tab === "overview" && can(ctx, "invoice.read") ? await getPatientAccount(ctx, p.id) : null;
   const patientAppointments = tab === "overview" && can(ctx, "appointment.read") ? await listPatientAppointments(ctx, p.id) : null;
   const treatmentPlans = (tab === "overview" || tab === "treatments") && can(ctx, "treatment_plan.read") ? await listTreatmentPlans(ctx, p.id) : [];
@@ -274,6 +280,14 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
               currencySymbol={ctx.organization.settings.currencyDisplay ?? ctx.organization.defaultCurrency} />
           ) : (
             <div className="space-y-8">
+              <NotesSection
+                patientId={p.id}
+                notes={notes}
+                canWrite={can(ctx, "clinical.write") && p.status !== "archived" && p.status !== "deceased"}
+                templates={noteTemplates.map((x) => ({ value: x.id, label: x.name, kind: x.kind }))}
+                providers={noteProviders.map((x) => ({ value: x.id, label: [x.title, x.displayName].filter(Boolean).join(" ") }))}
+                today={todayInZone(ctx.organization.timezone)}
+              />
               {odontogram ? <OdontogramPanel patientId={p.id} findings={odontogram.findings} providers={odontogram.providers}
                 planItems={odontogram.planItems} procedures={odontogram.procedures}
                 canWrite={can(ctx, "clinical.write") && p.status !== "archived" && p.status !== "deceased"}

@@ -1181,9 +1181,22 @@
     "balance": "الرصيد: {amount}",
     "billingContactClinic": "للدفع أو طلب تصحيح، تواصل مع العيادة.",
     "noClinicRecords": "لا يوجد ملف عيادة مرتبط بهذا الحساب.",
-    "appointmentStatus": { "requested": "مطلوب", "booked": "محجوز", "cancelled": "ملغى", "no_show": "لم يحضر" },
-    "confirmationStatus": { "pending": "بانتظار التأكيد", "confirmed": "مؤكد", "declined": "مرفوض", "reschedule_requested": "طُلب تغيير الموعد" },
-    "estimateStatus": { "accepted": "مقبول", "completed": "مكتمل" },
+    "appointmentStatus": {
+      "requested": "مطلوب",
+      "booked": "محجوز",
+      "cancelled": "ملغى",
+      "no_show": "لم يحضر"
+    },
+    "confirmationStatus": {
+      "pending": "بانتظار التأكيد",
+      "confirmed": "مؤكد",
+      "declined": "مرفوض",
+      "reschedule_requested": "طُلب تغيير الموعد"
+    },
+    "estimateStatus": {
+      "accepted": "مقبول",
+      "completed": "مكتمل"
+    },
     "pendingRequests": "طلبات تنتظر قرارك",
     "noPending": "لا يوجد طلب ينتظر قرارك.",
     "clinic": "عيادة الأسنان",
@@ -1295,6 +1308,79 @@
       "credit_note": "إشعار دائن",
       "payment": "دفعة",
       "refund": "استرجاع"
+    }
+  },
+  "notes": {
+    "title": "الملاحظات السريرية",
+    "new": "ملاحظة جديدة",
+    "newHint": "تبدأ الملاحظة كمسودة، ولا يمكن تعديلها بعد التوقيع.",
+    "empty": "لا توجد ملاحظات سريرية.",
+    "template": "النموذج",
+    "noTemplate": "دون نموذج",
+    "kind": "نوع الملاحظة",
+    "serviceDate": "تاريخ العلاج",
+    "provider": "الطبيب",
+    "create": "إنشاء المسودة",
+    "kinds": {
+      "consultation": "استشارة",
+      "progress": "متابعة",
+      "procedure": "تقرير علاج",
+      "post_op": "ما بعد الجراحة",
+      "referral": "توجيه",
+      "other": "أخرى"
+    },
+    "status": {
+      "draft": "مسودة",
+      "in_review": "للتوقيع",
+      "signed": "موقّعة",
+      "discarded": "متروكة"
+    },
+    "sections": {
+      "chiefComplaint": "سبب الزيارة",
+      "observations": "الملاحظات / الفحص",
+      "assessment": "التقييم (يدخله الطبيب)",
+      "plan": "الخطة",
+      "performedWork": "الأعمال المنجزة"
+    },
+    "teeth": "الأسنان المعنية (FDI)",
+    "teethHint": "أرقام FDI مفصولة بمسافات، مثل 36 37.",
+    "autosaved": "حُفظ تلقائيًا",
+    "saving": "جارٍ الحفظ…",
+    "unsaved": "تعديلات غير محفوظة",
+    "conflict": "عُدّلت في مكان آخر: أعد التحميل قبل المتابعة.",
+    "saveError": "فشل الحفظ — أعد المحاولة.",
+    "reload": "إعادة تحميل آخر نسخة",
+    "attestation": "أشهد أنني كاتب هذه المعلومات أو المسؤول عنها وأنها صحيحة حسب علمي. بعد التوقيع لا يمكن تصحيح الملاحظة إلا بملحق مؤرخ.",
+    "sign": "توقيع الملاحظة",
+    "signed": "تم توقيع الملاحظة",
+    "submitForReview": "إرسال للتوقيع",
+    "submitted": "أُرسلت إلى الطبيب للتوقيع",
+    "awaitingSignature": "في انتظار توقيع الطبيب.",
+    "discard": "ترك المسودة",
+    "amend": "إضافة ملحق",
+    "amendHint": "يُؤرَّخ الملحق ويُوقَّع ويُضاف بعد الأصل؛ يبقى النص الموقّع الأصلي دون تغيير.",
+    "amendReason": "سبب الملحق",
+    "signAmendment": "توقيع الملحق",
+    "amended": "أُضيف الملحق",
+    "cancel": "إلغاء",
+    "original": "النسخة الموقّعة الأصلية",
+    "amendmentN": "الملحق رقم {n}",
+    "signedBy": "وقّعه {name} في {date}",
+    "author": "كتبه {name}",
+    "fromTemplate": "النموذج «{name}»",
+    "amendedBadge": "{count, plural, one {ملحق واحد} two {ملحقان} few {# ملحقات} other {# ملحق}}",
+    "integrityOk": "تم التحقق من السلامة",
+    "integrityBroken": "السلامة مخترقة",
+    "errors": {
+      "notFound": "الملاحظة غير موجودة.",
+      "providerUnavailable": "الطبيب غير متاح.",
+      "futureDate": "لا يمكن أن يكون التاريخ في المستقبل.",
+      "notEditable": "لم تعد هذه الملاحظة قابلة للتعديل.",
+      "conflict": "عدّل مستخدم آخر الملاحظة: أعد تحميلها.",
+      "emptyNote": "الملاحظة فارغة.",
+      "attestationRequired": "حدّد خانة الإشهاد للتوقيع.",
+      "reasonRequired": "سبب الملحق إلزامي.",
+      "notSigned": "الملاحظة غير موقّعة."
     }
   }
 }

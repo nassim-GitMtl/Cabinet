@@ -5,6 +5,7 @@ import { ROLE_TEMPLATES, type RoleTemplateKey } from "../authz/permissions";
 import { STARTER_CATALOG } from "../catalog/starter-catalog";
 import { db, type Database, type Tx } from "../db/client";
 import {
+  noteTemplates,
   appointmentTypes,
   chairs,
   workingHours,
@@ -120,6 +121,7 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
       .returning({ id: memberships.id });
 
     await seedSchedulingDefaults(tx, organizationId, branch!.id, input.ownerIsDentist ? membership!.id : null);
+    await tx.insert(noteTemplates).values(STARTER_NOTE_TEMPLATES.map((n) => ({ organizationId, ...n })));
 
     await seedStarterCatalog(tx, organizationId, user!.id, currency);
 
@@ -137,6 +139,15 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
 }
 
 /** Editable defaults: one chair, common appointment types, Sun–Thu working hours. */
+/** Structure-only starter note templates (clinics adapt the wording). */
+const STARTER_NOTE_TEMPLATES = [
+  { name: "Consultation", kind: "consultation" as const, body: { chiefComplaint: "", observations: "Examen exobuccal :\nExamen endobuccal :", assessment: "", plan: "" } },
+  { name: "Soins conservateurs", kind: "procedure" as const, body: { performedWork: "Anesthésie :\nPréparation :\nObturation :", plan: "Contrôle :" } },
+  { name: "Extraction", kind: "procedure" as const, body: { performedWork: "Anesthésie :\nAvulsion :\nHémostase :", plan: "Conseils post-opératoires remis :\nContrôle :" } },
+  { name: "Détartrage", kind: "procedure" as const, body: { performedWork: "Détartrage sus- et sous-gingival :\nPolissage :", plan: "Prochain détartrage :" } },
+  { name: "Contrôle", kind: "progress" as const, body: { observations: "", assessment: "", plan: "" } },
+];
+
 export async function seedSchedulingDefaults(tx: Tx, organizationId: string, branchId: string, providerId: string | null) {
   await tx.insert(chairs).values({ organizationId, branchId, name: "Fauteuil 1" });
   await tx.insert(appointmentTypes).values(

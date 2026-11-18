@@ -1181,9 +1181,22 @@
     "balance": "Solde : {amount}",
     "billingContactClinic": "Pour payer ou demander une correction, contactez le cabinet.",
     "noClinicRecords": "Aucun dossier de cabinet n’est lié à ce compte.",
-    "appointmentStatus": { "requested": "Demandé", "booked": "Réservé", "cancelled": "Annulé", "no_show": "Absent" },
-    "confirmationStatus": { "pending": "Confirmation en attente", "confirmed": "Confirmé", "declined": "Refusé", "reschedule_requested": "Report demandé" },
-    "estimateStatus": { "accepted": "Accepté", "completed": "Terminé" },
+    "appointmentStatus": {
+      "requested": "Demandé",
+      "booked": "Réservé",
+      "cancelled": "Annulé",
+      "no_show": "Absent"
+    },
+    "confirmationStatus": {
+      "pending": "Confirmation en attente",
+      "confirmed": "Confirmé",
+      "declined": "Refusé",
+      "reschedule_requested": "Report demandé"
+    },
+    "estimateStatus": {
+      "accepted": "Accepté",
+      "completed": "Terminé"
+    },
     "pendingRequests": "Demandes en attente de votre décision",
     "noPending": "Aucune demande n'attend votre décision.",
     "clinic": "Cabinet dentaire",
@@ -1295,6 +1308,79 @@
       "credit_note": "Avoir",
       "payment": "Paiement",
       "refund": "Remboursement"
+    }
+  },
+  "notes": {
+    "title": "Notes cliniques",
+    "new": "Nouvelle note",
+    "newHint": "La note démarre en brouillon ; elle devient non modifiable une fois signée.",
+    "empty": "Aucune note clinique.",
+    "template": "Modèle",
+    "noTemplate": "Sans modèle",
+    "kind": "Type de note",
+    "serviceDate": "Date des soins",
+    "provider": "Praticien",
+    "create": "Créer le brouillon",
+    "kinds": {
+      "consultation": "Consultation",
+      "progress": "Suivi",
+      "procedure": "Compte rendu de soins",
+      "post_op": "Post-opératoire",
+      "referral": "Adressage",
+      "other": "Autre"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "in_review": "À signer",
+      "signed": "Signée",
+      "discarded": "Abandonnée"
+    },
+    "sections": {
+      "chiefComplaint": "Motif de consultation",
+      "observations": "Observations / examen",
+      "assessment": "Évaluation (saisie par le praticien)",
+      "plan": "Plan",
+      "performedWork": "Actes réalisés"
+    },
+    "teeth": "Dents concernées (FDI)",
+    "teethHint": "Numéros FDI séparés par des espaces, ex. 36 37.",
+    "autosaved": "Enregistré automatiquement",
+    "saving": "Enregistrement…",
+    "unsaved": "Modifications non enregistrées",
+    "conflict": "Modifiée ailleurs : rechargez avant de continuer.",
+    "saveError": "Échec de l'enregistrement — réessayez.",
+    "reload": "Recharger la dernière version",
+    "attestation": "Je certifie être l'auteur ou le responsable de ces informations et qu'elles sont exactes à ma connaissance. Après signature, la note ne pourra être corrigée que par un avenant daté.",
+    "sign": "Signer la note",
+    "signed": "Note signée",
+    "submitForReview": "Envoyer pour signature",
+    "submitted": "Envoyée au praticien pour signature",
+    "awaitingSignature": "En attente de la signature d'un praticien.",
+    "discard": "Abandonner le brouillon",
+    "amend": "Ajouter un avenant",
+    "amendHint": "L'avenant est daté, signé et ajouté à la suite ; le texte signé d'origine reste inchangé.",
+    "amendReason": "Motif de l'avenant",
+    "signAmendment": "Signer l'avenant",
+    "amended": "Avenant ajouté",
+    "cancel": "Annuler",
+    "original": "Version signée d'origine",
+    "amendmentN": "Avenant n° {n}",
+    "signedBy": "signé par {name} le {date}",
+    "author": "rédigée par {name}",
+    "fromTemplate": "modèle « {name} »",
+    "amendedBadge": "{count, plural, one {# avenant} other {# avenants}}",
+    "integrityOk": "Intégrité vérifiée",
+    "integrityBroken": "Intégrité rompue",
+    "errors": {
+      "notFound": "Note introuvable.",
+      "providerUnavailable": "Praticien indisponible.",
+      "futureDate": "La date ne peut pas être dans le futur.",
+      "notEditable": "Cette note n'est plus modifiable.",
+      "conflict": "La note a été modifiée par un autre utilisateur : rechargez-la.",
+      "emptyNote": "La note est vide.",
+      "attestationRequired": "Cochez l'attestation pour signer.",
+      "reasonRequired": "Le motif de l'avenant est obligatoire.",
+      "notSigned": "La note n'est pas signée."
     }
   }
 }
