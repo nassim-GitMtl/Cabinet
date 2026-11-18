@@ -20,6 +20,8 @@ import { TreatmentPlansPanel } from "@/features/treatment-plans/components/treat
 import { listTreatmentPlans } from "@/features/treatment-plans/server";
 import { ConsentPanel } from "@/features/consent/components/consent-panel";
 import { getConsentOverview } from "@/features/consent/server";
+import { OdontogramPanel } from "@/features/odontogram/components/odontogram-panel";
+import { getOdontogram } from "@/features/odontogram/server";
 import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -59,6 +61,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   const country = ctx.organization.countryCode;
   const criticalCount = alerts.filter((a) => a.severity === "critical").length;
   const procedures = tab === "clinical" ? await listPerformedProcedures(ctx, p.id) : [];
+  const odontogram = tab === "clinical" ? await getOdontogram(ctx, p.id) : null;
   const account = tab === "overview" && can(ctx, "invoice.read") ? await getPatientAccount(ctx, p.id) : null;
   const patientAppointments = tab === "overview" && can(ctx, "appointment.read") ? await listPatientAppointments(ctx, p.id) : null;
   const treatmentPlans = (tab === "overview" || tab === "treatments") && can(ctx, "treatment_plan.read") ? await listTreatmentPlans(ctx, p.id) : [];
@@ -270,13 +273,19 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
             <TreatmentPlansPanel patientId={p.id} plans={treatmentPlans} canManage={can(ctx, "treatment_plan.manage") && can(ctx, "catalog.read") && p.status !== "archived" && p.status !== "deceased"}
               currencySymbol={ctx.organization.settings.currencyDisplay ?? ctx.organization.defaultCurrency} />
           ) : (
-            <ClinicalProcedures
-              patientId={p.id}
-              procedures={procedures}
-              canWrite={can(ctx, "clinical.write") && can(ctx, "catalog.read") && p.status !== "archived" && p.status !== "deceased"}
-              currencySymbol={ctx.organization.settings.currencyDisplay ?? ctx.organization.defaultCurrency}
-              created={sp.created === "1"}
-            />
+            <div className="space-y-8">
+              {odontogram ? <OdontogramPanel patientId={p.id} findings={odontogram.findings} providers={odontogram.providers}
+                planItems={odontogram.planItems} procedures={odontogram.procedures}
+                canWrite={can(ctx, "clinical.write") && p.status !== "archived" && p.status !== "deceased"}
+                today={todayInZone(ctx.organization.timezone)} /> : null}
+              <ClinicalProcedures
+                patientId={p.id}
+                procedures={procedures}
+                canWrite={can(ctx, "clinical.write") && can(ctx, "catalog.read") && p.status !== "archived" && p.status !== "deceased"}
+                currencySymbol={ctx.organization.settings.currencyDisplay ?? ctx.organization.defaultCurrency}
+                created={sp.created === "1"}
+              />
+            </div>
           )}
         </div>
 

@@ -127,6 +127,13 @@
       "when": 1794990879041,
       "tag": "0017_portal_expansion",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794992659580,
+      "tag": "0018_odontogram",
+      "breakpoints": true
     }
   ]
 }

@@ -104,6 +104,18 @@ tests/                    integration tests + support (global setup resets cabin
 - Revisions after a proposal or decision create a new draft version and preserve all earlier decisions. Optimistic locking
   protects workflow transitions; RLS and explicit `treatment_plan.*` permission keys protect every service path.
 
+## Odontogram findings (§12)
+
+- `odontogram_findings` is an append-only clinical event table. The current chart is derived from rows that have not
+  been superseded; resolving or correcting an active finding inserts a new event referencing `supersedes_id` and never
+  rewrites the original observation. A unique index plus a transaction advisory lock permits only one successor.
+- FDI tooth validity and the allowed surface vocabulary are database checks as well as application validation. The
+  first visual chart covers permanent teeth (11–48); the data model also accepts primary FDI teeth (51–85) for later UI.
+- Optional links to `treatment_plan_items` and `performed_procedures` are accepted only when organization, patient and
+  exact tooth all match. A database trigger enforces this even when application services are bypassed.
+- Reading requires `clinical.read`; recording, resolving and correcting require `clinical.write`. All services use
+  `tenantTx`, and audits record only finding identifiers and actions—never the finding kind, surfaces or clinical note.
+
 ## Financial invariants to implement (Release 1, next steps — §16, §18)
 
 - Invoices: draft → issued (immutable) → corrections only via credit note / void-reissue; per-legal-entity numbering via `counters` (`scope = invoice:<legalEntityId>:<year>`), allocated inside the issuing transaction.

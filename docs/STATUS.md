@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Codex (session 13 — patient portal expansion and assisted account recovery).
+Last updated: 2026-11-18 by Codex (session 14 — append-only odontogram foundation and treatment linkage).
 
 ## How to verify the current state
 
@@ -119,6 +119,15 @@ patient session, and consumes the link. FR/EN/AR and RTL copy are complete. 98/9
 typecheck and lint green. The standard Turbopack build still hits the known runner-only helper-port `EPERM`;
 `npx next build --webpack` is green and includes `/portal/recover/[token]`.
 
+Session 14 (Codex): odontogram foundation end to end. Added a responsive permanent-dentition FDI chart to the
+patient clinical workspace with tooth/surface findings, ten finding types, observation date and clinician, plus
+optional exact-tooth links to current treatment-plan items and completed procedures. Findings are append-only:
+resolution or correction creates one serialized superseding event, and the database rejects mutation, duplicate
+supersession, cross-patient/cross-tooth treatment links, and cross-tenant writes. Audits contain identifiers only,
+not clinical notes. FR/EN/AR and RTL are complete. 102/102 tests (2 unit + 2 integration added), typecheck and lint
+green; `npx next build --webpack` green after the unchanged Turbopack helper-port restriction. Browser-checked the
+Arabic clinical workspace and odontogram layout without creating demo data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -134,7 +143,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
 | Network identity + consent schema (§4A) | ✅ | Assisted in-person verified linking, exact-scope requests, patient-only approval/revocation, immutable grants, guarded + logged shared reads and cross-tenant tests |
 | Patient registration & directory (§6) | ✅ | Numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
-| Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, treatment plans, finance tab (account, invoices, payments, deposit). Odontogram ⏳ |
+| Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, odontogram, treatment plans, finance tab (account, invoices, payments, deposit). |
 | Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; medical questionnaires ⏳ |
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
@@ -143,8 +152,8 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Scheduler & booking (§9, §9A) | ✅ | Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
-| Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Consent capture/signatures ⏳ (next step). |
-| Odontogram, perio chart, notes, signing (§12) | ⏳ | |
+| Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Consent capture/signatures ⏳. |
+| Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and same-patient/same-tooth links to planned/completed treatment. Primary visual chart, periodontal chart, encounter notes and signing ⏳. |
 | Images/documents, object storage (§12A, §15) | ⏳ 🔌 | |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
@@ -162,7 +171,8 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Odontogram foundation: FDI chart state, findings and treatment linkage.
+1. Clinical notes and signing: immutable encounter-note versions, author/signature state and odontogram/procedure linkage.
+2. Medical questionnaires and structured health history with alert promotion.
 
 ## Known gaps / decisions to revisit
 
