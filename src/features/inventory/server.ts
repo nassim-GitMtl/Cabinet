@@ -5,6 +5,7 @@ import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
 import {
   branches,
+  inventoryItemIdentifiers,
   inventoryItems,
   inventoryLots,
   inventoryMovements,
@@ -13,7 +14,8 @@ import {
   suppliers,
 } from "@/server/db/schema";
 import { nextCounter } from "@/server/db/tenant";
-import type { ConsumeInventoryInput, CreateInventoryItemInput, CreatePurchaseOrderInput, ReceiveInventoryInput, ReceivePurchaseOrderLineInput } from "./schemas";
+import type { ConsumeInventoryInput, CreateInventoryItemInput, CreatePurchaseOrderInput, ReceiveInventoryInput, ReceivePurchaseOrderLineInput, RegisterInventoryIdentifierInput } from "./schemas";
+import { parseInventoryScan } from "./scan";
 
 export class InventoryError extends Error {
   constructor(public readonly code: string) {
@@ -93,6 +95,15 @@ export async function getPurchaseOrders(ctx: ClinicContext) {
   });
 }
 
+export async function getInventoryIdentifiers(ctx: ClinicContext) {
+  requirePermission(ctx, "inventory.manage");
+  return tenantTx(ctx, (tx) => tx.select({ identifier: inventoryItemIdentifiers, itemName: inventoryItems.name, sku: inventoryItems.sku })
+    .from(inventoryItemIdentifiers)
+    .innerJoin(inventoryItems, eq(inventoryItems.id, inventoryItemIdentifiers.itemId))
+    .where(eq(inventoryItemIdentifiers.isActive, true))
+    .orderBy(asc(inventoryItems.name), asc(inventoryItemIdentifiers.code)));
+}
+
 export async function createInventoryItem(ctx: ClinicContext, input: CreateInventoryItemInput) {
   requirePermission(ctx, "inventory.manage");
   return tenantTx(ctx, async (tx) => {
@@ -109,6 +120,43 @@ export async function createInventoryItem(ctx: ClinicContext, input: CreateInven
     }).returning({ id: inventoryItems.id });
     await audit(tx, { ...actor(ctx), action: "inventory.item_created", entityType: "inventory_item", entityId: row!.id });
     return row!.id;
+  });
+}
+
+export async function registerInventoryIdentifier(ctx: ClinicContext, input: RegisterInventoryIdentifierInput) {
+  requirePermission(ctx, "inventory.manage");
+  return tenantTx(ctx, async (tx) => {
+    const [item] = await tx.select({ id: inventoryItems.id }).from(inventoryItems)
+      .where(and(eq(inventoryItems.id, input.itemId), eq(inventoryItems.isActive, true))).limit(1);
+    if (!item) throw new InventoryError("itemUnavailable");
+    const parsed = parseInventoryScan(input.code);
+    const code = parsed.gs1 ? parsed.productCode : parsed.raw;
+    if (!code) throw new InventoryError("invalidScanCode");
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`inventory-code:${code}`}, 0))`);
+    const [duplicate] = await tx.select({ id: inventoryItemIdentifiers.id }).from(inventoryItemIdentifiers)
+      .where(eq(inventoryItemIdentifiers.code, code)).limit(1);
+    if (duplicate) throw new InventoryError("duplicateScanCode");
+    const [identifier] = await tx.insert(inventoryItemIdentifiers).values({
+      organizationId: ctx.organizationId,
+      itemId: input.itemId,
+      code,
+      format: parsed.gs1 && /^\d{14}$/.test(code) && input.format === "other" ? "gtin" : input.format,
+      createdByUserId: ctx.userId,
+    }).returning({ id: inventoryItemIdentifiers.id });
+    await audit(tx, { ...actor(ctx), action: "inventory.identifier_registered", entityType: "inventory_item_identifier", entityId: identifier!.id, metadata: { itemId: input.itemId, format: input.format } });
+    return identifier!.id;
+  });
+}
+
+export async function deactivateInventoryIdentifier(ctx: ClinicContext, identifierId: string) {
+  requirePermission(ctx, "inventory.manage");
+  return tenantTx(ctx, async (tx) => {
+    const [identifier] = await tx.select({ id: inventoryItemIdentifiers.id, itemId: inventoryItemIdentifiers.itemId })
+      .from(inventoryItemIdentifiers).where(and(eq(inventoryItemIdentifiers.id, identifierId), eq(inventoryItemIdentifiers.isActive, true))).limit(1);
+    if (!identifier) throw new InventoryError("identifierUnavailable");
+    await tx.update(inventoryItemIdentifiers).set({ isActive: false, deactivatedByUserId: ctx.userId, deactivatedAt: new Date() })
+      .where(eq(inventoryItemIdentifiers.id, identifierId));
+    await audit(tx, { ...actor(ctx), action: "inventory.identifier_deactivated", entityType: "inventory_item_identifier", entityId: identifierId, metadata: { itemId: identifier.itemId } });
   });
 }
 

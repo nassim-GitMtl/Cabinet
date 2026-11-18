@@ -4,8 +4,9 @@ import { AlertTriangleIcon, BoxesIcon, CalendarClockIcon, PackageCheckIcon } fro
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { InventoryForms } from "@/features/inventory/components/inventory-forms";
+import { InventoryScanner } from "@/features/inventory/components/inventory-scanner";
 import { PurchaseOrderForm, PurchaseOrderReceiptForm } from "@/features/inventory/components/purchase-orders";
-import { getInventory, getPurchaseOrders } from "@/features/inventory/server";
+import { getInventory, getInventoryIdentifiers, getPurchaseOrders } from "@/features/inventory/server";
 import { formatDateOnly, todayInZone } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { can, requireClinicContext } from "@/server/auth/context";
@@ -31,7 +32,7 @@ export default async function InventoryPage() {
   const t = await getTranslations("inventory");
   if (!can(ctx, "inventory.manage")) return <ForbiddenState message={(await getTranslations("errors"))("forbiddenPage")} />;
   const today = todayInZone(ctx.organization.timezone);
-  const [data, orders, locale] = await Promise.all([getInventory(ctx, today), getPurchaseOrders(ctx), getLocale()]);
+  const [data, orders, identifierRows, locale] = await Promise.all([getInventory(ctx, today), getPurchaseOrders(ctx), getInventoryIdentifiers(ctx), getLocale()]);
   const options = data.items.map((item) => ({ id: item.id, label: `${item.sku} · ${item.name}` }));
   const branchOptions = data.branches.filter((branch) => branch.active).map((branch) => ({ id: branch.id, label: branch.name }));
 
@@ -62,6 +63,13 @@ export default async function InventoryPage() {
           </div>
         </section>
       ) : null}
+
+      <InventoryScanner
+        items={data.items.map((item) => ({ id: item.id, sku: item.sku, name: item.name, stock: item.stock, unit: item.unit }))}
+        branches={branchOptions}
+        identifiers={identifierRows.map((row) => ({ ...row.identifier, itemName: row.itemName, sku: row.sku }))}
+        today={today}
+      />
 
       <InventoryForms items={options} branches={branchOptions} today={today} />
       <PurchaseOrderForm items={options} branches={branchOptions} today={today} currency={ctx.organization.defaultCurrency} />

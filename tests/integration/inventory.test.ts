@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { consumeInventoryFefo, createInventoryItem, createPurchaseOrder, getInventory, getPurchaseOrders, receiveInventory, receivePurchaseOrderLine } from "@/features/inventory/server";
+import { consumeInventoryFefo, createInventoryItem, createPurchaseOrder, deactivateInventoryIdentifier, getInventory, getInventoryIdentifiers, getPurchaseOrders, receiveInventory, receivePurchaseOrderLine, registerInventoryIdentifier } from "@/features/inventory/server";
 import { ForbiddenError } from "@/server/auth/context";
-import { inventoryItems, inventoryLots, inventoryMovements, inventoryPurchaseOrderLines, inventoryPurchaseOrders } from "@/server/db/schema";
+import { inventoryItemIdentifiers, inventoryItems, inventoryLots, inventoryMovements, inventoryPurchaseOrderLines, inventoryPurchaseOrders } from "@/server/db/schema";
 import { withDbContext } from "@/server/db/tenant";
 import { contextFor, expectDbError, makeClinic } from "../support/factories";
 
@@ -16,6 +16,22 @@ async function setup(name: string) {
 }
 
 describe("inventory", () => {
+  it("registers immutable scan identifiers, normalizes GS1 and deactivates corrections", async () => {
+    const f = await setup("Cabinet Inventaire Scan");
+    const identifierId = await registerInventoryIdentifier(f.ctx, { itemId: f.itemId, code: "]C1(01)01234567890128(17)271231(10)LOT-A", format: "other" });
+    let identifiers = await getInventoryIdentifiers(f.ctx);
+    expect(identifiers).toHaveLength(1);
+    expect(identifiers[0]!.identifier).toMatchObject({ id: identifierId, itemId: f.itemId, code: "01234567890128", format: "gtin", isActive: true });
+    await expect(registerInventoryIdentifier(f.ctx, { itemId: f.itemId, code: "01234567890128", format: "gtin" })).rejects.toMatchObject({ code: "duplicateScanCode" });
+
+    const db = { organizationId: f.ctx.organizationId, userId: f.ctx.userId, actorType: "staff" as const };
+    await expectDbError(withDbContext(db, (tx) => tx.update(inventoryItemIdentifiers).set({ code: "CHANGED" }).where(eq(inventoryItemIdentifiers.id, identifierId))), /may only be deactivated once/);
+    await deactivateInventoryIdentifier(f.ctx, identifierId);
+    identifiers = await getInventoryIdentifiers(f.ctx);
+    expect(identifiers).toHaveLength(0);
+    await expect(deactivateInventoryIdentifier(f.ctx, identifierId)).rejects.toMatchObject({ code: "identifierUnavailable" });
+  });
+
   it("tracks supplier purchase orders through partial and complete lot receipts", async () => {
     const f = await setup("Cabinet Inventaire Commandes");
     const orderId = await createPurchaseOrder(f.ctx, {
@@ -83,6 +99,7 @@ describe("inventory", () => {
     const f = await setup("Cabinet Inventaire C");
     await expect(getInventory(contextFor(f.ctx, "accountant"), "2026-11-18")).rejects.toBeInstanceOf(ForbiddenError);
     await expect(getPurchaseOrders(contextFor(f.ctx, "accountant"))).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(getInventoryIdentifiers(contextFor(f.ctx, "accountant"))).rejects.toBeInstanceOf(ForbiddenError);
     const other = await makeClinic("Cabinet Inventaire D");
     expect((await getInventory(other, "2026-11-18")).items).toHaveLength(0);
     const otherDb = { organizationId: other.organizationId, userId: other.userId, actorType: "staff" as const };
@@ -94,5 +111,6 @@ describe("inventory", () => {
     const line = await withDbContext(ownDb, async (tx) => (await tx.select().from(inventoryPurchaseOrderLines).where(eq(inventoryPurchaseOrderLines.purchaseOrderId, orderId)).limit(1))[0]!);
     await expectDbError(withDbContext(otherDb, (tx) => tx.insert(inventoryPurchaseOrders).values({ organizationId: f.ctx.organizationId, number: "CROSS-PO", supplierId: order.supplierId, branchId: f.branchId, orderedOn: "2026-11-18", createdByUserId: other.userId })), /row-level security|references must belong/);
     await expectDbError(withDbContext(ownDb, (tx) => tx.update(inventoryPurchaseOrderLines).set({ quantityOrdered: 99 }).where(eq(inventoryPurchaseOrderLines.id, line.id))), /permission denied/);
+    await expectDbError(withDbContext(otherDb, (tx) => tx.insert(inventoryItemIdentifiers).values({ organizationId: f.ctx.organizationId, itemId: f.itemId, code: "CROSS-CODE", format: "other", createdByUserId: other.userId })), /row-level security|same organization/);
   });
 });

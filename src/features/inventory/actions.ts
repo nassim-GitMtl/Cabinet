@@ -5,8 +5,8 @@ import { fieldErrorsOf, formValues, type ActionState } from "@/lib/action-state"
 import { todayInZone } from "@/lib/dates";
 import { parseMoneyInput } from "@/lib/money";
 import { ForbiddenError, requireClinicContext } from "@/server/auth/context";
-import { consumeInventoryFefo, createInventoryItem, createPurchaseOrder, InventoryError, receiveInventory, receivePurchaseOrderLine } from "./server";
-import { consumeInventorySchema, createInventoryItemSchema, createPurchaseOrderSchema, receiveInventorySchema, receivePurchaseOrderLineSchema } from "./schemas";
+import { consumeInventoryFefo, createInventoryItem, createPurchaseOrder, deactivateInventoryIdentifier, InventoryError, receiveInventory, receivePurchaseOrderLine, registerInventoryIdentifier } from "./server";
+import { consumeInventorySchema, createInventoryItemSchema, createPurchaseOrderSchema, deactivateInventoryIdentifierSchema, receiveInventorySchema, receivePurchaseOrderLineSchema, registerInventoryIdentifierSchema } from "./schemas";
 
 function fail(error: unknown, values: Record<string, string>): ActionState {
   if (error instanceof ForbiddenError) return { error: "forbidden", values };
@@ -105,6 +105,32 @@ export async function receivePurchaseOrderLineAction(_previous: ActionState, for
   if (parsed.data.receivedOn > today) return { fieldErrors: { receivedOn: "futureDate" }, values };
   try {
     await receivePurchaseOrderLine(ctx, parsed.data);
+  } catch (error) {
+    return fail(error, values);
+  }
+  return done();
+}
+
+export async function registerInventoryIdentifierAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const ctx = await requireClinicContext();
+  const values = formValues(formData);
+  const parsed = registerInventoryIdentifierSchema.safeParse(values);
+  if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values };
+  try {
+    await registerInventoryIdentifier(ctx, parsed.data);
+  } catch (error) {
+    return fail(error, values);
+  }
+  return done();
+}
+
+export async function deactivateInventoryIdentifierAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  const ctx = await requireClinicContext();
+  const values = formValues(formData);
+  const parsed = deactivateInventoryIdentifierSchema.safeParse(values);
+  if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values };
+  try {
+    await deactivateInventoryIdentifier(ctx, parsed.data.identifierId);
   } catch (error) {
     return fail(error, values);
   }

@@ -1422,6 +1422,15 @@
     "noLots": "No lot has been received.",
     "available": "Available",
     "lowBadge": "Minimum: {minimum}",
+    "scan": {
+      "title": "Scan an item", "hint": "Use the camera, a USB/Bluetooth scanner, or enter the code. GS1 codes prefill the lot and expiry date.",
+      "code": "Scanned code", "placeholder": "Scan or enter a barcode / QR code", "openCamera": "Open camera", "stopCamera": "Stop camera", "cameraPreview": "Camera preview",
+      "cameraUnavailable": "Camera scanning is not available in this browser. Use a scanner or manual entry.", "cameraDenied": "The camera could not be opened. Check its permission and the HTTPS connection.",
+      "recognized": "Item recognized", "unknown": "Unknown code", "unknownHint": "Assign this code to an item. It will then be recognized on every clinic device.", "empty": "Scan a package to find the item and update its stock.",
+      "gtin": "GTIN", "assignItem": "Assign to item", "format": "Format", "register": "Register identifier", "registered": "Active identifiers: {count}", "deactivate": "Deactivate",
+      "quickReceipt": "Quick receipt", "quickConsumption": "Quick consumption",
+      "formats": { "ean13": "EAN-13", "gtin": "GTIN / GS1", "code128": "Code 128", "qr": "QR / Data Matrix", "other": "Other" }
+    },
     "orders": {
       "title": "Supplier purchase orders", "hint": "Track every ordered quantity through its actual lot receipt.", "empty": "No supplier purchase orders yet.",
       "create": "Create purchase order", "createHint": "Add one or more items, then receive them as deliveries arrive.",
@@ -1439,7 +1448,8 @@
       "quantity": "Quantity must be a positive whole number.",
       "minimum": "The minimum must be a non-negative whole number.",
       "orderLines": "Add at least one valid item to the order.", "unitCost": "A unit cost is invalid.", "expectedDate": "Expected delivery cannot be before the order date.",
-      "invalidOrderLines": "Each item may only appear once in an order.", "orderLineUnavailable": "This order line is no longer available.", "orderClosed": "This order is already closed.", "quantityExceedsOrder": "The received quantity exceeds the amount still expected."
+      "invalidOrderLines": "Each item may only appear once in an order.", "orderLineUnavailable": "This order line is no longer available.", "orderClosed": "This order is already closed.", "quantityExceedsOrder": "The received quantity exceeds the amount still expected.",
+      "duplicateScanCode": "This code is already assigned to an item.", "invalidScanCode": "This scanned code is invalid.", "identifierUnavailable": "This identifier is no longer active."
     }
   },
   "health": {

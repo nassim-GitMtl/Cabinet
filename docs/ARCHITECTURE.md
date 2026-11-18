@@ -186,7 +186,7 @@ never summed. "Paid to date" is as of generation time.
 - No inference: alerts are created only by a clinician from an answer (`promoteToAlertAction`, label built server-side).
 - The starter questionnaire is generic wording flagged "to be approved by a clinician" until approved.
 
-## Inventory (`src/features/inventory`, migrations 0024–0025)
+## Inventory (`src/features/inventory`, migrations 0024–0026)
 
 - `inventory_items` is the tenant catalog; stock is never stored as a mutable total. The balance is always derived from
   append-only `inventory_movements`, grouped by immutable `inventory_lots` and branch.
@@ -200,3 +200,8 @@ never summed. "Paid to date" is as of generation time.
   optional unit costs are immutable order lines; only the header status advances `ordered → partially_received → received`.
   A receipt movement references its exact order line and immutable lot. The database locks that line/order and rejects
   cross-tenant, cross-item, cross-branch, closed-order, non-receipt and over-quantity inserts even if services are bypassed.
+- An item may have multiple scan identifiers (EAN-13, GTIN/GS1, Code 128, QR/Data Matrix or clinic-specific). Codes are
+  unique per tenant and cannot be rewritten, deleted or reassigned; an incorrect code is deactivated once with actor/time.
+  Camera scanning uses the browser's local `BarcodeDetector` when available and always retains manual/USB-scanner input.
+  GS1 application identifiers `01`, `17` and `10` populate the product lookup, expiry date and lot without sending images
+  or scan payloads off the clinic server.

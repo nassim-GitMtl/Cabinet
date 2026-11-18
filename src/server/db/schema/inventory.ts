@@ -1,4 +1,4 @@
-import { bigint, boolean, check, date, index, integer, pgEnum, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createdAt, id, organizationId } from "./_shared";
 import { suppliers } from "./cash";
@@ -30,6 +30,14 @@ export const inventoryPurchaseOrderStatus = pgEnum("inventory_purchase_order_sta
   "cancelled",
 ]);
 
+export const inventoryIdentifierFormat = pgEnum("inventory_identifier_format", [
+  "ean13",
+  "gtin",
+  "code128",
+  "qr",
+  "other",
+]);
+
 export const inventoryItems = pgTable(
   "inventory_items",
   {
@@ -47,6 +55,28 @@ export const inventoryItems = pgTable(
     uniqueIndex("inventory_items_org_sku_uq").on(t.organizationId, sql`lower(${t.sku})`),
     index("inventory_items_org_name_idx").on(t.organizationId, t.name),
     check("inventory_items_minimum_nonnegative", sql`${t.minimumStock} >= 0`),
+  ],
+);
+
+/** Scan codes are retained for history; incorrect codes are deactivated, never deleted or reassigned. */
+export const inventoryItemIdentifiers = pgTable(
+  "inventory_item_identifiers",
+  {
+    id: id(),
+    organizationId: organizationId().references(() => organizations.id),
+    itemId: uuid("item_id").notNull().references(() => inventoryItems.id),
+    code: text("code").notNull(),
+    format: inventoryIdentifierFormat("format").notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    createdByUserId: uuid("created_by_user_id").notNull().references(() => users.id),
+    deactivatedByUserId: uuid("deactivated_by_user_id").references(() => users.id),
+    deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("inventory_item_identifiers_org_code_uq").on(t.organizationId, t.code),
+    index("inventory_item_identifiers_item_idx").on(t.organizationId, t.itemId, t.isActive),
+    check("inventory_item_identifiers_deactivation_complete", sql`(${t.isActive} and ${t.deactivatedAt} is null and ${t.deactivatedByUserId} is null) or (not ${t.isActive} and ${t.deactivatedAt} is not null and ${t.deactivatedByUserId} is not null)`),
   ],
 );
 

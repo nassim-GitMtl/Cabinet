@@ -1422,6 +1422,15 @@
     "noLots": "Aucun lot réceptionné.",
     "available": "Disponible",
     "lowBadge": "Minimum : {minimum}",
+    "scan": {
+      "title": "Scanner un article", "hint": "Utilisez la caméra, un lecteur USB/Bluetooth ou saisissez le code. Les codes GS1 préremplissent le lot et la péremption.",
+      "code": "Code scanné", "placeholder": "Scanner ou saisir un code-barres / QR", "openCamera": "Ouvrir la caméra", "stopCamera": "Arrêter la caméra", "cameraPreview": "Aperçu de la caméra",
+      "cameraUnavailable": "La lecture caméra n’est pas disponible dans ce navigateur. Utilisez un lecteur ou la saisie manuelle.", "cameraDenied": "La caméra n’a pas pu être ouverte. Vérifiez son autorisation et la connexion HTTPS.",
+      "recognized": "Article reconnu", "unknown": "Code non reconnu", "unknownHint": "Associez ce code à un article. Il sera ensuite reconnu sur tous les appareils du cabinet.", "empty": "Scannez un emballage pour retrouver l’article et agir sur son stock.",
+      "gtin": "GTIN", "assignItem": "Associer à l’article", "format": "Format", "register": "Enregistrer l’identifiant", "registered": "Identifiants actifs : {count}", "deactivate": "Désactiver",
+      "quickReceipt": "Réception rapide", "quickConsumption": "Consommation rapide",
+      "formats": { "ean13": "EAN-13", "gtin": "GTIN / GS1", "code128": "Code 128", "qr": "QR / Data Matrix", "other": "Autre" }
+    },
     "orders": {
       "title": "Bons de commande fournisseurs", "hint": "Suivez chaque quantité commandée jusqu’à sa réception réelle par lot.", "empty": "Aucun bon de commande fournisseur.",
       "create": "Créer un bon de commande", "createHint": "Ajoutez un ou plusieurs articles, puis réceptionnez-les au fil des livraisons.",
@@ -1439,7 +1448,8 @@
       "quantity": "La quantité doit être un nombre entier positif.",
       "minimum": "Le seuil doit être un nombre entier positif ou nul.",
       "orderLines": "Ajoutez au moins un article valide à la commande.", "unitCost": "Un prix unitaire est invalide.", "expectedDate": "La livraison prévue ne peut pas précéder la date de commande.",
-      "invalidOrderLines": "Chaque article ne peut apparaître qu’une fois dans la commande.", "orderLineUnavailable": "Cette ligne de commande n’est plus disponible.", "orderClosed": "Cette commande est déjà fermée.", "quantityExceedsOrder": "La quantité reçue dépasse la quantité encore attendue."
+      "invalidOrderLines": "Chaque article ne peut apparaître qu’une fois dans la commande.", "orderLineUnavailable": "Cette ligne de commande n’est plus disponible.", "orderClosed": "Cette commande est déjà fermée.", "quantityExceedsOrder": "La quantité reçue dépasse la quantité encore attendue.",
+      "duplicateScanCode": "Ce code est déjà associé à un article.", "invalidScanCode": "Ce code scanné est invalide.", "identifierUnavailable": "Cet identifiant n’est plus actif."
     }
   },
   "health": {

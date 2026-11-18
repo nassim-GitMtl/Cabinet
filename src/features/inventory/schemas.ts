@@ -6,6 +6,7 @@ const quantity = z.coerce.number().int().min(1, "inventory.errors.quantity").max
 const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "invalidDate");
 
 export const inventoryUnits = ["piece", "box", "pack", "bottle", "cartridge", "milliliter", "gram"] as const;
+export const inventoryIdentifierFormats = ["ean13", "gtin", "code128", "qr", "other"] as const;
 
 export const createInventoryItemSchema = z.object({
   sku: required.max(40, "tooLong"),
@@ -54,8 +55,17 @@ export const receivePurchaseOrderLineSchema = z.object({
   reference: z.string().trim().max(160, "tooLong").optional().transform((v) => v || null),
 });
 
+export const registerInventoryIdentifierSchema = z.object({
+  itemId: uuid,
+  code: required.max(512, "tooLong"),
+  format: z.enum(inventoryIdentifierFormats),
+});
+
+export const deactivateInventoryIdentifierSchema = z.object({ identifierId: uuid });
+
 export type CreateInventoryItemInput = z.infer<typeof createInventoryItemSchema>;
 export type ReceiveInventoryInput = z.infer<typeof receiveInventorySchema>;
 export type ConsumeInventoryInput = z.infer<typeof consumeInventorySchema>;
 export type CreatePurchaseOrderInput = z.infer<typeof createPurchaseOrderSchema>;
 export type ReceivePurchaseOrderLineInput = z.infer<typeof receivePurchaseOrderLineSchema>;
+export type RegisterInventoryIdentifierInput = z.infer<typeof registerInventoryIdentifierSchema>;

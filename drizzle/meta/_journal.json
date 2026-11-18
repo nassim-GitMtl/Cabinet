@@ -183,6 +183,13 @@
       "when": 1795031451080,
       "tag": "0025_inventory_purchase_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1795043081438,
+      "tag": "0026_inventory_identifiers",
+      "breakpoints": true
     }
   ]
 }
