@@ -68,6 +68,7 @@ export const PERMISSIONS = [
   "lab.manage",
   "inventory.manage",
   "sterilization.manage",
+  "sterilization.release",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -120,6 +121,7 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "payment.read",
       "payment.receive",
       "report.operational",
+      "sterilization.release",
     ],
   },
   hygienist: { name: "Hygiéniste", permissions: [...CLINICAL, "clinical.sign", "treatment_plan.convert"] },

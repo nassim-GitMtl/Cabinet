@@ -6,6 +6,18 @@ alternate on this repo; this file is the shared memory between them.
 
 Last updated: 2026-11-18 by Claude (session 20 — consumables per procedure, lot recall, reorder suggestions).
 
+> **In progress (Claude, session 21 — sterilization traceability, Next step 1).** Done: schema
+> `src/server/db/schema/sterilization.ts` (sterilizers, instrument_sets, sterilization_cycles, sterilization_packs,
+> sterilization_pack_uses), migrations 0029 (tables) + 0030 (no-delete registration, same-clinic link checks, cycle state
+> machine pending_release → released|failed, released → recalled; a failed indicator blocks release; pending biological
+> indicator resolved once; packs added only to pending cycles; pack use only from released, non-discarded, non-expired
+> packs, one active use per pack, void once with reason), applied to the main DB. New permission `sterilization.release`
+> (owner, dentist; backfilled for existing system roles in 0030). Left: `src/features/sterilization/server.ts` (setup,
+> recordCycle with ST-YYYY-NNNNNN pack codes via nextCounter, release/fail/recall/biological result, discard, pack lookup,
+> link pack to patient/procedure, void, cycle trace), integration tests (incl. cross-tenant + grants NO_DELETE list),
+> Code 128 label encoder + print page, pages `/sterilization`, `/sterilization/cycles/[id]`,
+> `/patients/[id]/sterilization`, nav entry, FR/EN/AR strings, checks, STATUS. Typecheck green; tests not yet written.
+
 ## How to verify the current state
 
 ```bash
