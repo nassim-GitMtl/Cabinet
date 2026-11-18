@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Fragment } from "react";
 import { getTranslations } from "next-intl/server";
+import { FileSpreadsheetIcon } from "lucide-react";
 import { ForbiddenState } from "@/components/app/page-header";
 import { PrintButton } from "@/components/print/print-button";
 import { Button } from "@/components/ui/button";
@@ -83,6 +84,20 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
             )}
           </label>
           <Button type="submit" variant="outline">{t("reports.show")}</Button>
+          {can(ctx, "report.export") ? (
+            <>
+              <a href={`/api/exports/report?${view === "monthly" ? `view=monthly&month=${month}` : `date=${date}`}`} className="inline-flex h-10 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium hover:bg-muted md:h-9">
+                <FileSpreadsheetIcon className="size-4" aria-hidden />
+                Excel
+              </a>
+              <a href={`/api/exports/report?format=csv&sheet=1&${view === "monthly" ? `view=monthly&month=${month}` : `date=${date}`}`} className="inline-flex h-10 items-center rounded-lg border px-3 text-sm font-medium hover:bg-muted md:h-9" title={t("reports.export.csvHint")}>
+                CSV
+              </a>
+            </>
+          ) : null}
+          {can(ctx, "report.financial") ? (
+            <Link href="/reports/aging" className="inline-flex h-10 items-center rounded-lg border px-3 text-sm font-medium hover:bg-muted md:h-9">{t("aging.title")}</Link>
+          ) : null}
           <PrintButton />
         </form>
       </div>

@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Claude (session 11 — clinic server, works without internet).
+Last updated: 2026-11-18 by Claude (session 12 — exports, receivables aging, statements; slim migrate image).
 
 ## How to verify the current state
 
@@ -100,6 +100,16 @@ after verifying it (88/88). Results: 89/89 tests, typecheck, lint, `next build` 
 Connection banner verified (appears within ~30 s when the server stops answering, clears on recovery).
 Browser pane cannot open the stack's HTTPS (local CA not trusted on this machine — expected; devices install `ca.crt`).
 
+Session 12 (Claude): 96/96 tests (+4 export unit, +3 integration), typecheck, lint, build green. Excel (.xlsx,
+dependency-light writer on fflate: inline strings never evaluated, numeric money, real dates, frozen header) and CSV
+(French Excel: `;`, decimal comma, UTF-8 BOM, OWASP formula-injection guard) exports of daily/monthly reports
+(`/api/exports/report`, sheets: summary with metric bases, procedures, invoices, payments, refunds, credit notes)
+and aging (`/api/exports/aging`); `report.export` required, every export audited (filters/format only).
+Receivables aging as of any date (`/reports/aging`, 0–30/31–60/61–90/90+ from due date). Printable patient account
+statement (`/print/statements/[id]`, browser "Save as PDF") reconciled in tests with the account
+(closing = amount due − unapplied credit). Migrate image slimmed 1.55 GB → 242 MB (esbuild bundle). Browser-checked
+downloads (xlsx "PK", CSV French format), aging page, statement.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -139,13 +149,12 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 
 ## Next steps (in order)
 
-0. Clinic server follow-ups: slim the migrate image (production deps + tsx only); optional internet sync to a cloud
+0. Clinic server follow-ups: optional internet sync to a cloud
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. **Reports: CSV/Excel export (formula-injection safe), receivables aging, patient statement PDF.**
-2. Portal expansion: appointments, accepted estimates, invoices/payments and account recovery.
-3. Odontogram foundation: FDI chart state, findings and treatment linkage.
+1. Portal expansion: appointments, accepted estimates, invoices/payments and account recovery.
+2. Odontogram foundation: FDI chart state, findings and treatment linkage.
 
 ## Known gaps / decisions to revisit
 

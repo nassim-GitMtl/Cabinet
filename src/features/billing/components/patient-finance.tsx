@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { BanknoteIcon, FileTextIcon, PiggyBankIcon } from "lucide-react";
+import { BanknoteIcon, FileTextIcon, PiggyBankIcon, ScrollTextIcon } from "lucide-react";
 import { ButtonLink } from "@/components/button-link";
 import { formatDateOnly, todayInZone } from "@/lib/dates";
 import { can, type ClinicContext } from "@/server/auth/context";
@@ -50,6 +50,12 @@ export async function PatientFinance({ ctx, patientId, canBill }: { ctx: ClinicC
             variant="outline"
             icon={<BanknoteIcon aria-hidden />}
           />
+        ) : null}
+        {can(ctx, "payment.read") ? (
+          <a href={`/print/statements/${patientId}`} target="_blank" rel="noopener" className="inline-flex h-10 items-center gap-1.5 rounded-lg border px-3 text-sm font-medium hover:bg-muted md:h-9">
+            <ScrollTextIcon className="size-4" aria-hidden />
+            {t("statement")}
+          </a>
         ) : null}
         {canReceive ? (
           <ReceivePaymentButton

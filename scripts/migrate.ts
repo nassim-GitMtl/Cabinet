@@ -15,7 +15,8 @@ export async function runMigrations(url: string) {
   }
 }
 
-if (process.argv[1]?.endsWith("migrate.ts")) {
+// Runs when executed directly (tsx in dev, bundled migrate.mjs in the Docker image).
+if (/migrate\.(ts|mjs)$/.test(process.argv[1] ?? "")) {
   const useTest = process.argv.includes("--test");
   const url = useTest ? process.env.TEST_DATABASE_URL_ADMIN : process.env.DATABASE_URL_ADMIN;
   if (!url) throw new Error("Admin database URL is not set");

@@ -733,7 +733,8 @@
       "refundTooLarge": "The refund exceeds the unapplied amount.",
       "paymentReversed": "This payment is already reversed.",
       "hasRefunds": "This payment has been refunded and can no longer be reversed."
-    }
+    },
+    "statement": "Account statement"
   },
   "reports": {
     "title": "Reports",
@@ -782,7 +783,19 @@
     "noData": "No data for this period.",
     "financeHidden": "Financial sections require the “financial reports” permission.",
     "paidToDateNote": "“Paid to date” reflects payments recorded up to when the report was generated.",
-    "draft": "draft"
+    "draft": "draft",
+    "export": {
+      "summary": "Summary",
+      "metric": "Metric",
+      "basis": "Basis",
+      "procedures": "Procedures",
+      "invoices": "Invoices",
+      "payments": "Payments",
+      "refunds": "Refunds",
+      "type": "Type",
+      "invoice": "Invoice",
+      "csvHint": "Procedures CSV (semicolon separator, Excel-compatible)"
+    }
   },
   "cash": {
     "title": "Cash drawer",
@@ -1169,5 +1182,40 @@
   },
   "offline": {
     "banner": "Clinic server unreachable — changes are not being saved. Check the clinic Wi-Fi."
+  },
+  "aging": {
+    "title": "Receivables aging",
+    "asOf": "As of {date}",
+    "asOfLabel": "As-of date",
+    "basis": "Invoices issued by that date, less credit notes and payments recorded by that date. Age is counted from the due date, or the invoice date when there is none.",
+    "empty": "No receivables at that date.",
+    "days": "{n} d",
+    "buckets": {
+      "current": "0–30 days",
+      "d31_60": "31–60 days",
+      "d61_90": "61–90 days",
+      "over90": "Over 90 days"
+    }
+  },
+  "statement": {
+    "title": "Account statement",
+    "period": "From {from} to {to}",
+    "document": "Document",
+    "detail": "Detail",
+    "debit": "Debit",
+    "credit": "Credit",
+    "balance": "Balance",
+    "opening": "Opening balance",
+    "closing": "Totals and closing balance",
+    "owes": "Balance due from the patient: {amount}.",
+    "credit_balance": "Credit held for the patient: {amount}.",
+    "settled": "Account settled.",
+    "basis": "Debit: issued invoices and refunds paid out. Credit: credit notes and payments received. Reversed payments and void invoices are not shown.",
+    "kinds": {
+      "invoice": "Invoice",
+      "credit_note": "Credit note",
+      "payment": "Payment",
+      "refund": "Refund"
+    }
   }
 }

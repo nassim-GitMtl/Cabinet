@@ -15,12 +15,21 @@ ENV NEXT_TELEMETRY_DISABLED=1 \
     DATABASE_URL=postgres://build:build@127.0.0.1:1/build
 RUN npx next build
 
-# One-shot job that applies database migrations, then exits.
-FROM deps AS migrate
-COPY drizzle ./drizzle
+# Migration runner bundled into one file (drizzle + postgres driver), so the
+# one-shot migrate image needs no node_modules.
+FROM deps AS migrate-build
 COPY scripts/migrate.ts ./scripts/migrate.ts
-COPY tsconfig.json ./
-CMD ["npx", "tsx", "scripts/migrate.ts"]
+RUN npx esbuild scripts/migrate.ts --bundle --platform=node --format=esm --target=node22 \
+      --banner:js="import { createRequire } from 'module'; const require = createRequire(import.meta.url);" \
+      --outfile=dist/migrate.mjs
+
+# One-shot job that applies database migrations, then exits.
+FROM node:24-alpine AS migrate
+WORKDIR /app
+COPY --from=migrate-build /app/dist/migrate.mjs ./scripts/migrate.mjs
+COPY drizzle ./drizzle
+USER node
+CMD ["node", "scripts/migrate.mjs"]
 
 FROM node:24-alpine AS runtime
 WORKDIR /app

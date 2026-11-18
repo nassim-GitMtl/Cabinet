@@ -733,7 +733,8 @@
       "refundTooLarge": "Le remboursement dépasse le montant non affecté.",
       "paymentReversed": "Ce paiement est déjà annulé.",
       "hasRefunds": "Ce paiement a déjà été remboursé : il ne peut plus être annulé."
-    }
+    },
+    "statement": "Relevé de compte"
   },
   "reports": {
     "title": "Rapports",
@@ -782,7 +783,19 @@
     "noData": "Aucune donnée pour cette période.",
     "financeHidden": "Les sections financières nécessitent l'autorisation « rapports financiers ».",
     "paidToDateNote": "« Payé à date » reflète les paiements enregistrés jusqu'à la génération du rapport.",
-    "draft": "brouillon"
+    "draft": "brouillon",
+    "export": {
+      "summary": "Synthèse",
+      "metric": "Indicateur",
+      "basis": "Base de calcul",
+      "procedures": "Actes",
+      "invoices": "Factures",
+      "payments": "Paiements",
+      "refunds": "Remboursements",
+      "type": "Type",
+      "invoice": "Facture",
+      "csvHint": "CSV des actes (séparateur point-virgule, compatible Excel)"
+    }
   },
   "cash": {
     "title": "Caisse du jour",
@@ -1169,5 +1182,40 @@
   },
   "offline": {
     "banner": "Serveur du cabinet injoignable — les modifications ne sont pas enregistrées. Vérifiez le Wi-Fi du cabinet."
+  },
+  "aging": {
+    "title": "Créances clients (ancienneté)",
+    "asOf": "Situation au {date}",
+    "asOfLabel": "Date de situation",
+    "basis": "Factures émises à cette date, moins avoirs et paiements enregistrés à cette date. Ancienneté calculée depuis l'échéance, ou la date de facture sans échéance.",
+    "empty": "Aucune créance à cette date.",
+    "days": "{n} j",
+    "buckets": {
+      "current": "0–30 jours",
+      "d31_60": "31–60 jours",
+      "d61_90": "61–90 jours",
+      "over90": "Plus de 90 jours"
+    }
+  },
+  "statement": {
+    "title": "Relevé de compte",
+    "period": "Du {from} au {to}",
+    "document": "Document",
+    "detail": "Détail",
+    "debit": "Débit",
+    "credit": "Crédit",
+    "balance": "Solde",
+    "opening": "Solde au début de la période",
+    "closing": "Totaux et solde de fin de période",
+    "owes": "Reste dû par le patient : {amount}.",
+    "credit_balance": "Crédit en faveur du patient : {amount}.",
+    "settled": "Compte soldé.",
+    "basis": "Débit : factures émises et remboursements versés. Crédit : avoirs et paiements reçus. Les paiements annulés et les factures annulées ne figurent pas.",
+    "kinds": {
+      "invoice": "Facture",
+      "credit_note": "Avoir",
+      "payment": "Paiement",
+      "refund": "Remboursement"
+    }
   }
 }
