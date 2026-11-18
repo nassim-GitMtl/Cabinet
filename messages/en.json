@@ -1422,6 +1422,13 @@
     "noLots": "No lot has been received.",
     "available": "Available",
     "lowBadge": "Minimum: {minimum}",
+    "orders": {
+      "title": "Supplier purchase orders", "hint": "Track every ordered quantity through its actual lot receipt.", "empty": "No supplier purchase orders yet.",
+      "create": "Create purchase order", "createHint": "Add one or more items, then receive them as deliveries arrive.",
+      "supplier": "Supplier", "orderedOn": "Ordered on", "expectedOn": "Expected delivery", "expectedShort": "expected {date}", "unitCost": "Unit cost ({currency})", "notes": "Internal notes",
+      "addLine": "Add item", "removeLine": "Remove item", "receiveRemaining": "Receive — {count} remaining",
+      "status": { "ordered": "Ordered", "partially_received": "Partially received", "received": "Fully received", "cancelled": "Cancelled" }
+    },
     "units": { "piece": "piece(s)", "box": "box(es)", "pack": "pack(s)", "bottle": "bottle(s)", "cartridge": "cartridge(s)", "milliliter": "ml", "gram": "g" },
     "errors": {
       "duplicateSku": "This reference is already in use.",
@@ -1430,7 +1437,9 @@
       "lotConflict": "This lot number already exists with a different expiry date.",
       "insufficientStock": "Not enough usable stock. Expired lots cannot be consumed.",
       "quantity": "Quantity must be a positive whole number.",
-      "minimum": "The minimum must be a non-negative whole number."
+      "minimum": "The minimum must be a non-negative whole number.",
+      "orderLines": "Add at least one valid item to the order.", "unitCost": "A unit cost is invalid.", "expectedDate": "Expected delivery cannot be before the order date.",
+      "invalidOrderLines": "Each item may only appear once in an order.", "orderLineUnavailable": "This order line is no longer available.", "orderClosed": "This order is already closed.", "quantityExceedsOrder": "The received quantity exceeds the amount still expected."
     }
   },
   "health": {

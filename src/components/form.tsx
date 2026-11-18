@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ComponentProps, type ReactNode } from "react";
+import { useId, type ChangeEventHandler, type ComponentProps, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { useTranslations } from "next-intl";
 import { AlertCircleIcon, Loader2Icon } from "lucide-react";
@@ -28,11 +28,12 @@ type FieldShellProps = {
   hint?: ReactNode;
   required?: boolean;
   optionalLabel?: boolean;
+  hideLabel?: boolean;
   className?: string;
   children: (ids: { id: string; describedBy?: string; invalid: boolean }) => ReactNode;
 };
 
-function FieldShell({ label, error, hint, required, optionalLabel, className, children }: FieldShellProps) {
+function FieldShell({ label, error, hint, required, optionalLabel, hideLabel, className, children }: FieldShellProps) {
   const id = useId();
   const t = useTranslations("common");
   const errorText = useErrorText()(error);
@@ -40,7 +41,7 @@ function FieldShell({ label, error, hint, required, optionalLabel, className, ch
   const errorId = errorText ? `${id}-error` : undefined;
   return (
     <div className={cn("grid gap-1.5", className)}>
-      <Label htmlFor={id} className="text-sm font-medium">
+      <Label htmlFor={id} className={cn("text-sm font-medium", hideLabel && "sr-only")}>
         {label}
         {required ? <span aria-hidden className="text-destructive"> *</span> : null}
         {optionalLabel ? <span className="font-normal text-muted-foreground"> ({t("optional")})</span> : null}
@@ -67,12 +68,13 @@ type TextFieldProps = Omit<ComponentProps<typeof Input>, "id"> & {
   error?: string;
   hint?: ReactNode;
   optionalLabel?: boolean;
+  hideLabel?: boolean;
   fieldClassName?: string;
 };
 
-export function TextField({ label, error, hint, required, optionalLabel, fieldClassName, ...props }: TextFieldProps) {
+export function TextField({ label, error, hint, required, optionalLabel, hideLabel, fieldClassName, ...props }: TextFieldProps) {
   return (
-    <FieldShell label={label} error={error} hint={hint} required={required} optionalLabel={optionalLabel} className={fieldClassName}>
+    <FieldShell label={label} error={error} hint={hint} required={required} optionalLabel={optionalLabel} hideLabel={hideLabel} className={fieldClassName}>
       {({ id, describedBy, invalid }) => (
         <Input id={id} required={required} aria-invalid={invalid || undefined} aria-describedby={describedBy} {...props} />
       )}
@@ -104,23 +106,28 @@ type SelectFieldProps = {
   name: string;
   options: { value: string; label: string }[];
   defaultValue?: string;
+  value?: string;
+  onChange?: ChangeEventHandler<HTMLSelectElement>;
   error?: string;
   hint?: ReactNode;
   required?: boolean;
   optionalLabel?: boolean;
+  hideLabel?: boolean;
   placeholder?: string;
   fieldClassName?: string;
 };
 
 /** Native select: best touch UX on iOS/Android and works with FormData. */
-export function SelectField({ label, name, options, defaultValue, error, hint, required, optionalLabel, placeholder, fieldClassName }: SelectFieldProps) {
+export function SelectField({ label, name, options, defaultValue, value, onChange, error, hint, required, optionalLabel, hideLabel, placeholder, fieldClassName }: SelectFieldProps) {
   return (
-    <FieldShell label={label} error={error} hint={hint} required={required} optionalLabel={optionalLabel} className={fieldClassName}>
+    <FieldShell label={label} error={error} hint={hint} required={required} optionalLabel={optionalLabel} hideLabel={hideLabel} className={fieldClassName}>
       {({ id, describedBy, invalid }) => (
         <NativeSelect
           id={id}
           name={name}
-          defaultValue={defaultValue ?? ""}
+          defaultValue={value === undefined ? defaultValue ?? "" : undefined}
+          value={value}
+          onChange={onChange}
           required={required}
           aria-invalid={invalid || undefined}
           aria-describedby={describedBy}

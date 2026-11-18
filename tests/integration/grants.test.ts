@@ -6,8 +6,8 @@ import { describe, expect, it } from "vitest";
  * and append-only ledgers that must never be updated. Checked directly in the
  * catalog so a future migration re-running apply_security() cannot reopen them.
  */
-const NO_DELETE = ["payments", "cash_sessions", "expenses", "appointments", "booking_requests", "treatment_plans", "clinical_notes", "questionnaire_versions", "inventory_items"];
-const APPEND_ONLY = ["service_prices", "credit_notes", "payment_allocations", "refunds", "cash_movements", "clinical_note_versions", "questionnaire_responses", "health_history_reviews", "odontogram_findings", "inventory_lots", "inventory_movements", "audit_events"];
+const NO_DELETE = ["payments", "cash_sessions", "expenses", "appointments", "booking_requests", "treatment_plans", "clinical_notes", "questionnaire_versions", "inventory_items", "inventory_purchase_orders"];
+const APPEND_ONLY = ["service_prices", "credit_notes", "payment_allocations", "refunds", "cash_movements", "clinical_note_versions", "questionnaire_responses", "health_history_reviews", "odontogram_findings", "inventory_lots", "inventory_movements", "inventory_purchase_order_lines", "audit_events"];
 
 describe("database privileges of the runtime role", () => {
   it("cannot delete protected rows or modify append-only ledgers", async () => {

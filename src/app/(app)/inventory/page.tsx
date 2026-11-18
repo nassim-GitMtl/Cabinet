@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { AlertTriangleIcon, BoxesIcon, CalendarClockIcon, PackageCheckIcon } from "lucide-react";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { InventoryForms } from "@/features/inventory/components/inventory-forms";
-import { getInventory } from "@/features/inventory/server";
+import { PurchaseOrderForm, PurchaseOrderReceiptForm } from "@/features/inventory/components/purchase-orders";
+import { getInventory, getPurchaseOrders } from "@/features/inventory/server";
 import { formatDateOnly, todayInZone } from "@/lib/dates";
+import { formatMoney } from "@/lib/money";
 import { can, requireClinicContext } from "@/server/auth/context";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -29,7 +31,7 @@ export default async function InventoryPage() {
   const t = await getTranslations("inventory");
   if (!can(ctx, "inventory.manage")) return <ForbiddenState message={(await getTranslations("errors"))("forbiddenPage")} />;
   const today = todayInZone(ctx.organization.timezone);
-  const data = await getInventory(ctx, today);
+  const [data, orders, locale] = await Promise.all([getInventory(ctx, today), getPurchaseOrders(ctx), getLocale()]);
   const options = data.items.map((item) => ({ id: item.id, label: `${item.sku} · ${item.name}` }));
   const branchOptions = data.branches.filter((branch) => branch.active).map((branch) => ({ id: branch.id, label: branch.name }));
 
@@ -62,6 +64,33 @@ export default async function InventoryPage() {
       ) : null}
 
       <InventoryForms items={options} branches={branchOptions} today={today} />
+      <PurchaseOrderForm items={options} branches={branchOptions} today={today} currency={ctx.organization.defaultCurrency} />
+
+      <section className="mb-5 overflow-hidden rounded-2xl border bg-card shadow-sm">
+        <div className="border-b px-4 py-3">
+          <h2 className="font-semibold">{t("orders.title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("orders.hint")}</p>
+        </div>
+        {orders.length === 0 ? <p className="p-8 text-center text-sm text-muted-foreground">{t("orders.empty")}</p> : (
+          <ul className="divide-y">{orders.map((order) => {
+            const totalMinor = order.lines.reduce((sum, line) => sum + (line.unitCostMinor ?? 0) * line.quantityOrdered, 0);
+            return (
+              <li key={order.id} className="p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div><p className="font-semibold"><bdi>{order.number}</bdi> · <bdi>{order.supplierName}</bdi></p><p className="text-xs text-muted-foreground"><bdi>{order.branchName}</bdi> · {formatDateOnly(order.orderedOn)}{order.expectedOn ? ` · ${t("orders.expectedShort", { date: formatDateOnly(order.expectedOn) })}` : ""}</p></div>
+                  <div className="text-end"><Badge variant={order.status === "received" ? "secondary" : order.status === "cancelled" ? "destructive" : "outline"}>{t(`orders.status.${order.status}`)}</Badge>{totalMinor > 0 ? <p className="mt-1 text-sm font-medium tabular-nums" dir="auto">{formatMoney(totalMinor, ctx.organization.defaultCurrency, locale)}</p> : null}</div>
+                </div>
+                <div className="mt-3 grid gap-2 lg:grid-cols-2">{order.lines.map((line) => (
+                  <div key={line.id} className="rounded-xl border p-3">
+                    <div className="flex items-start justify-between gap-3 text-sm"><div><p className="font-medium"><bdi>{line.itemName}</bdi></p><p className="text-xs text-muted-foreground"><bdi>{line.sku}</bdi>{line.unitCostMinor !== null ? ` · ${formatMoney(line.unitCostMinor, line.currency, locale)}` : ""}</p></div><p className="text-end font-medium tabular-nums">{line.received}/{line.quantityOrdered} {t(`units.${line.unit}`)}</p></div>
+                    {line.remaining > 0 && order.status !== "cancelled" ? <PurchaseOrderReceiptForm lineId={line.id} remaining={line.remaining} today={today} /> : null}
+                  </div>
+                ))}</div>
+              </li>
+            );
+          })}</ul>
+        )}
+      </section>
 
       <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
         <div className="border-b px-4 py-3">

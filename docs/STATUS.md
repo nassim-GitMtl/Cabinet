@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Codex (session 17 — inventory, lots, expiry alerts and FEFO consumption).
+Last updated: 2026-11-18 by Codex (session 18 — supplier purchase orders and tracked receiving).
 
 ## How to verify the current state
 
@@ -153,6 +153,14 @@ expiry exclusion, immutable movements, privilege grants and cross-tenant denial.
 green; `npx next build --webpack` is green and includes `/inventory` after the unchanged runner-only Turbopack
 helper-port restriction. Browser-checked the responsive French inventory empty state without creating demo data.
 
+Session 18 (Codex): inventory purchasing phase 2. Added multi-line supplier purchase orders with per-year `BC-…`
+numbering, optional integer-minor-unit costs, delivery expectations, partial deliveries and automatic ordered → partially
+received → received progression. Each delivery creates or reuses an immutable lot and links its append-only stock movement
+to the exact order line. Database guards reject cross-tenant references, mutation, closed-order receipts and over-receipt;
+audits stay in the same transaction. FR/EN/AR and responsive forms are complete. 115/115 tests, typecheck and lint green;
+the standard Turbopack build still hits the known runner-only helper-port `EPERM`, while `npx next build --webpack` is
+green and includes `/inventory`. Browser-checked the French mobile inventory and purchase-order form without creating data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -185,7 +193,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, and assisted single-use account recovery ✅. Health records and online payment provider integration ⏳ |
-| Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts and FEFO usage. Purchasing, procedure recipes, barcode scanning, recall traceability, forecasting, lab and sterilization ⏳ |
+| Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders and partial/complete receiving. Procedure recipes, barcode scanning, recall traceability, forecasting, lab and sterilization ⏳ |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
 | Backups/restore exercise (§27, scenario 32) | ⏳ | |
 | Platform operations console (§25) | ⏳ | |
@@ -196,8 +204,8 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Inventory phase 2: supplier purchase orders and receiving, barcode/QR scanning, procedure consumable recipes with
-   automatic stock use, patient-to-lot recall traceability, and explainable reorder forecasts from actual usage + agenda.
+1. Inventory phase 2 continued: barcode/QR scanning, procedure consumable recipes with automatic stock use,
+   patient-to-lot recall traceability, and explainable reorder forecasts from actual usage + agenda.
 2. Sterilization traceability: instrument sets, cycle/indicator records, chairside scan and exact patient/procedure linkage.
 3. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
 4. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.

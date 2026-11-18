@@ -1422,6 +1422,13 @@
     "noLots": "Aucun lot réceptionné.",
     "available": "Disponible",
     "lowBadge": "Minimum : {minimum}",
+    "orders": {
+      "title": "Bons de commande fournisseurs", "hint": "Suivez chaque quantité commandée jusqu’à sa réception réelle par lot.", "empty": "Aucun bon de commande fournisseur.",
+      "create": "Créer un bon de commande", "createHint": "Ajoutez un ou plusieurs articles, puis réceptionnez-les au fil des livraisons.",
+      "supplier": "Fournisseur", "orderedOn": "Commandé le", "expectedOn": "Livraison prévue", "expectedShort": "prévu le {date}", "unitCost": "Prix unitaire ({currency})", "notes": "Notes internes",
+      "addLine": "Ajouter un article", "removeLine": "Retirer l’article", "receiveRemaining": "Réceptionner — {count} restant(s)",
+      "status": { "ordered": "Commandé", "partially_received": "Reçu partiellement", "received": "Reçu intégralement", "cancelled": "Annulé" }
+    },
     "units": { "piece": "pièce(s)", "box": "boîte(s)", "pack": "paquet(s)", "bottle": "flacon(s)", "cartridge": "cartouche(s)", "milliliter": "ml", "gram": "g" },
     "errors": {
       "duplicateSku": "Cette référence est déjà utilisée.",
@@ -1430,7 +1437,9 @@
       "lotConflict": "Ce numéro de lot existe déjà avec une autre date de péremption.",
       "insufficientStock": "Stock utilisable insuffisant. Les lots expirés ne peuvent pas être consommés.",
       "quantity": "La quantité doit être un nombre entier positif.",
-      "minimum": "Le seuil doit être un nombre entier positif ou nul."
+      "minimum": "Le seuil doit être un nombre entier positif ou nul.",
+      "orderLines": "Ajoutez au moins un article valide à la commande.", "unitCost": "Un prix unitaire est invalide.", "expectedDate": "La livraison prévue ne peut pas précéder la date de commande.",
+      "invalidOrderLines": "Chaque article ne peut apparaître qu’une fois dans la commande.", "orderLineUnavailable": "Cette ligne de commande n’est plus disponible.", "orderClosed": "Cette commande est déjà fermée.", "quantityExceedsOrder": "La quantité reçue dépasse la quantité encore attendue."
     }
   },
   "health": {

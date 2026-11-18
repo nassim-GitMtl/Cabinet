@@ -186,7 +186,7 @@ never summed. "Paid to date" is as of generation time.
 - No inference: alerts are created only by a clinician from an answer (`promoteToAlertAction`, label built server-side).
 - The starter questionnaire is generic wording flagged "to be approved by a clinician" until approved.
 
-## Inventory (`src/features/inventory`, migration 0024)
+## Inventory (`src/features/inventory`, migrations 0024–0025)
 
 - `inventory_items` is the tenant catalog; stock is never stored as a mutable total. The balance is always derived from
   append-only `inventory_movements`, grouped by immutable `inventory_lots` and branch.
@@ -196,3 +196,7 @@ never summed. "Paid to date" is as of generation time.
   derived balance; service-level advisory locks give concurrent users a clear, serialized FEFO result.
 - Routine use is FEFO (first-expiring, first-out), with non-expiring lots last. Expired lots remain visible for quarantine
   and traceability but are never eligible for routine consumption.
+- Supplier purchase orders use tenant/year counters (`inventory_po:<year>` → `BC-2026-00001`). Their item quantities and
+  optional unit costs are immutable order lines; only the header status advances `ordered → partially_received → received`.
+  A receipt movement references its exact order line and immutable lot. The database locks that line/order and rejects
+  cross-tenant, cross-item, cross-branch, closed-order, non-receipt and over-quantity inserts even if services are bypassed.

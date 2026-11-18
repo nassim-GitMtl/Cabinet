@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, eq, gte, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
 import {
@@ -8,8 +8,12 @@ import {
   inventoryItems,
   inventoryLots,
   inventoryMovements,
+  inventoryPurchaseOrderLines,
+  inventoryPurchaseOrders,
+  suppliers,
 } from "@/server/db/schema";
-import type { ConsumeInventoryInput, CreateInventoryItemInput, ReceiveInventoryInput } from "./schemas";
+import { nextCounter } from "@/server/db/tenant";
+import type { ConsumeInventoryInput, CreateInventoryItemInput, CreatePurchaseOrderInput, ReceiveInventoryInput, ReceivePurchaseOrderLineInput } from "./schemas";
 
 export class InventoryError extends Error {
   constructor(public readonly code: string) {
@@ -55,6 +59,37 @@ export async function getInventory(ctx: ClinicContext, today: string) {
       expired: stockedLots.filter((lot) => lot.expiresOn && lot.expiresOn < today),
       expiring: stockedLots.filter((lot) => lot.expiresOn && lot.expiresOn >= today && lot.expiresOn <= expiryLimit),
     };
+  });
+}
+
+export async function getPurchaseOrders(ctx: ClinicContext) {
+  requirePermission(ctx, "inventory.manage");
+  return tenantTx(ctx, async (tx) => {
+    const [orders, lines, receipts] = await Promise.all([
+      tx.select({ order: inventoryPurchaseOrders, supplierName: suppliers.name, branchName: branches.name })
+        .from(inventoryPurchaseOrders)
+        .innerJoin(suppliers, eq(suppliers.id, inventoryPurchaseOrders.supplierId))
+        .innerJoin(branches, eq(branches.id, inventoryPurchaseOrders.branchId))
+        .orderBy(desc(inventoryPurchaseOrders.orderedOn), desc(inventoryPurchaseOrders.createdAt)),
+      tx.select({ line: inventoryPurchaseOrderLines, itemName: inventoryItems.name, sku: inventoryItems.sku, unit: inventoryItems.unit })
+        .from(inventoryPurchaseOrderLines)
+        .innerJoin(inventoryItems, eq(inventoryItems.id, inventoryPurchaseOrderLines.itemId))
+        .orderBy(asc(inventoryItems.name)),
+      tx.select({ lineId: inventoryMovements.purchaseOrderLineId, received: sql<number>`coalesce(sum(${inventoryMovements.quantityDelta}), 0)::int` })
+        .from(inventoryMovements)
+        .where(isNotNull(inventoryMovements.purchaseOrderLineId))
+        .groupBy(inventoryMovements.purchaseOrderLineId),
+    ]);
+    const receivedByLine = new Map(receipts.map((row) => [row.lineId!, Number(row.received)]));
+    return orders.map(({ order, supplierName, branchName }) => ({
+      ...order,
+      supplierName,
+      branchName,
+      lines: lines.filter((row) => row.line.purchaseOrderId === order.id).map((row) => {
+        const received = receivedByLine.get(row.line.id) ?? 0;
+        return { ...row.line, itemName: row.itemName, sku: row.sku, unit: row.unit, received, remaining: row.line.quantityOrdered - received };
+      }),
+    }));
   });
 }
 
@@ -118,6 +153,106 @@ export async function receiveInventory(ctx: ClinicContext, input: ReceiveInvento
       createdByUserId: ctx.userId,
     }).returning({ id: inventoryMovements.id });
     await audit(tx, { ...actor(ctx), action: "inventory.received", entityType: "inventory_movement", entityId: movement!.id, metadata: { itemId: input.itemId, lotId, branchId: input.branchId, quantity: input.quantity } });
+    return movement!.id;
+  });
+}
+
+export async function createPurchaseOrder(ctx: ClinicContext, input: CreatePurchaseOrderInput) {
+  requirePermission(ctx, "inventory.manage");
+  return tenantTx(ctx, async (tx) => {
+    const uniqueItemIds = [...new Set(input.lines.map((line) => line.itemId))];
+    if (!uniqueItemIds.length || uniqueItemIds.length !== input.lines.length) throw new InventoryError("invalidOrderLines");
+    const [[branch], items] = await Promise.all([
+      tx.select({ id: branches.id }).from(branches).where(and(eq(branches.id, input.branchId), eq(branches.isActive, true))).limit(1),
+      tx.select({ id: inventoryItems.id }).from(inventoryItems).where(and(inArray(inventoryItems.id, uniqueItemIds), eq(inventoryItems.isActive, true))),
+    ]);
+    if (!branch) throw new InventoryError("branchUnavailable");
+    if (items.length !== uniqueItemIds.length) throw new InventoryError("itemUnavailable");
+
+    const supplierName = input.supplierName.trim();
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`supplier:${supplierName.toLowerCase()}`}, 0))`);
+    let [supplier] = await tx.select({ id: suppliers.id }).from(suppliers).where(sql`lower(${suppliers.name}) = lower(${supplierName})`).limit(1);
+    if (!supplier) {
+      [supplier] = await tx.insert(suppliers).values({ organizationId: ctx.organizationId, name: supplierName }).returning({ id: suppliers.id });
+    }
+    const year = input.orderedOn.slice(0, 4);
+    const sequence = await nextCounter(tx, ctx.organizationId, `inventory_po:${year}`);
+    const number = `BC-${year}-${String(sequence).padStart(5, "0")}`;
+    const [order] = await tx.insert(inventoryPurchaseOrders).values({
+      organizationId: ctx.organizationId,
+      number,
+      supplierId: supplier!.id,
+      branchId: input.branchId,
+      orderedOn: input.orderedOn,
+      expectedOn: input.expectedOn,
+      notes: input.notes,
+      createdByUserId: ctx.userId,
+    }).returning({ id: inventoryPurchaseOrders.id });
+    await tx.insert(inventoryPurchaseOrderLines).values(input.lines.map((line) => ({
+      organizationId: ctx.organizationId,
+      purchaseOrderId: order!.id,
+      itemId: line.itemId,
+      quantityOrdered: line.quantity,
+      unitCostMinor: line.unitCostMinor,
+      currency: ctx.organization.defaultCurrency,
+    })));
+    await audit(tx, { ...actor(ctx), action: "inventory.purchase_order_created", entityType: "inventory_purchase_order", entityId: order!.id, metadata: { number, branchId: input.branchId, lineCount: input.lines.length } });
+    return order!.id;
+  });
+}
+
+export async function receivePurchaseOrderLine(ctx: ClinicContext, input: ReceivePurchaseOrderLineInput) {
+  requirePermission(ctx, "inventory.manage");
+  return tenantTx(ctx, async (tx) => {
+    const lineId = input.lineId;
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`purchase-order-line:${lineId}`}, 0))`);
+    const [record] = await tx.select({ line: inventoryPurchaseOrderLines, order: inventoryPurchaseOrders })
+      .from(inventoryPurchaseOrderLines)
+      .innerJoin(inventoryPurchaseOrders, eq(inventoryPurchaseOrders.id, inventoryPurchaseOrderLines.purchaseOrderId))
+      .where(eq(inventoryPurchaseOrderLines.id, lineId)).limit(1);
+    if (!record) throw new InventoryError("orderLineUnavailable");
+    if (record.order.status === "cancelled" || record.order.status === "received") throw new InventoryError("orderClosed");
+    const [total] = await tx.select({ received: sql<number>`coalesce(sum(${inventoryMovements.quantityDelta}), 0)::int` })
+      .from(inventoryMovements).where(eq(inventoryMovements.purchaseOrderLineId, lineId));
+    const remaining = record.line.quantityOrdered - Number(total?.received ?? 0);
+    if (input.quantity > remaining) throw new InventoryError("quantityExceedsOrder");
+
+    const lotNumber = input.lotNumber.trim();
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`${record.line.itemId}:${record.order.branchId}:${lotNumber.toLowerCase()}`}, 0))`);
+    const [existing] = await tx.select().from(inventoryLots).where(and(
+      eq(inventoryLots.itemId, record.line.itemId),
+      eq(inventoryLots.branchId, record.order.branchId),
+      sql`lower(${inventoryLots.lotNumber}) = lower(${lotNumber})`,
+    )).limit(1);
+    if (existing && existing.expiresOn !== input.expiresOn) throw new InventoryError("lotConflict");
+    let lotId = existing?.id;
+    if (!lotId) {
+      const [lot] = await tx.insert(inventoryLots).values({ organizationId: ctx.organizationId, itemId: record.line.itemId, branchId: record.order.branchId, lotNumber, expiresOn: input.expiresOn, receivedOn: input.receivedOn }).returning({ id: inventoryLots.id });
+      lotId = lot!.id;
+    }
+    const [movement] = await tx.insert(inventoryMovements).values({
+      organizationId: ctx.organizationId,
+      itemId: record.line.itemId,
+      lotId,
+      branchId: record.order.branchId,
+      kind: "receipt",
+      purchaseOrderLineId: lineId,
+      quantityDelta: input.quantity,
+      occurredOn: input.receivedOn,
+      reference: input.reference ?? record.order.number,
+      createdByUserId: ctx.userId,
+    }).returning({ id: inventoryMovements.id });
+
+    const orderLines = await tx.select({ id: inventoryPurchaseOrderLines.id, ordered: inventoryPurchaseOrderLines.quantityOrdered })
+      .from(inventoryPurchaseOrderLines).where(eq(inventoryPurchaseOrderLines.purchaseOrderId, record.order.id));
+    const receiptTotals = await tx.select({ lineId: inventoryMovements.purchaseOrderLineId, received: sql<number>`sum(${inventoryMovements.quantityDelta})::int` })
+      .from(inventoryMovements)
+      .where(and(inArray(inventoryMovements.purchaseOrderLineId, orderLines.map((line) => line.id)), isNotNull(inventoryMovements.purchaseOrderLineId)))
+      .groupBy(inventoryMovements.purchaseOrderLineId);
+    const byLine = new Map(receiptTotals.map((row) => [row.lineId!, Number(row.received)]));
+    const complete = orderLines.every((line) => (byLine.get(line.id) ?? 0) >= line.ordered);
+    await tx.update(inventoryPurchaseOrders).set({ status: complete ? "received" : "partially_received" }).where(eq(inventoryPurchaseOrders.id, record.order.id));
+    await audit(tx, { ...actor(ctx), action: "inventory.purchase_order_received", entityType: "inventory_movement", entityId: movement!.id, metadata: { purchaseOrderId: record.order.id, purchaseOrderLineId: lineId, lotId, quantity: input.quantity } });
     return movement!.id;
   });
 }

@@ -1,6 +1,7 @@
-import { boolean, check, date, index, integer, pgEnum, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, check, date, index, integer, pgEnum, pgTable, text, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { createdAt, id, organizationId } from "./_shared";
+import { suppliers } from "./cash";
 import { branches, organizations, users } from "./platform";
 
 export const inventoryUnit = pgEnum("inventory_unit", [
@@ -22,6 +23,13 @@ export const inventoryMovementKind = pgEnum("inventory_movement_kind", [
   "waste",
 ]);
 
+export const inventoryPurchaseOrderStatus = pgEnum("inventory_purchase_order_status", [
+  "ordered",
+  "partially_received",
+  "received",
+  "cancelled",
+]);
+
 export const inventoryItems = pgTable(
   "inventory_items",
   {
@@ -39,6 +47,48 @@ export const inventoryItems = pgTable(
     uniqueIndex("inventory_items_org_sku_uq").on(t.organizationId, sql`lower(${t.sku})`),
     index("inventory_items_org_name_idx").on(t.organizationId, t.name),
     check("inventory_items_minimum_nonnegative", sql`${t.minimumStock} >= 0`),
+  ],
+);
+
+export const inventoryPurchaseOrders = pgTable(
+  "inventory_purchase_orders",
+  {
+    id: id(),
+    organizationId: organizationId().references(() => organizations.id),
+    number: text("number").notNull(),
+    supplierId: uuid("supplier_id").notNull().references(() => suppliers.id),
+    branchId: uuid("branch_id").notNull().references(() => branches.id),
+    status: inventoryPurchaseOrderStatus("status").notNull().default("ordered"),
+    orderedOn: date("ordered_on", { mode: "string" }).notNull(),
+    expectedOn: date("expected_on", { mode: "string" }),
+    notes: text("notes"),
+    createdByUserId: uuid("created_by_user_id").notNull().references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("inventory_purchase_orders_org_number_uq").on(t.organizationId, t.number),
+    index("inventory_purchase_orders_status_idx").on(t.organizationId, t.status, t.orderedOn),
+  ],
+);
+
+/** Ordered quantities and prices are immutable; corrections use a replacement order. */
+export const inventoryPurchaseOrderLines = pgTable(
+  "inventory_purchase_order_lines",
+  {
+    id: id(),
+    organizationId: organizationId().references(() => organizations.id),
+    purchaseOrderId: uuid("purchase_order_id").notNull().references(() => inventoryPurchaseOrders.id),
+    itemId: uuid("item_id").notNull().references(() => inventoryItems.id),
+    quantityOrdered: integer("quantity_ordered").notNull(),
+    unitCostMinor: bigint("unit_cost_minor", { mode: "number" }),
+    currency: text("currency").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("inventory_purchase_order_lines_item_uq").on(t.purchaseOrderId, t.itemId),
+    index("inventory_purchase_order_lines_org_order_idx").on(t.organizationId, t.purchaseOrderId),
+    check("inventory_purchase_order_lines_quantity_positive", sql`${t.quantityOrdered} > 0`),
+    check("inventory_purchase_order_lines_cost_nonnegative", sql`${t.unitCostMinor} is null or ${t.unitCostMinor} >= 0`),
   ],
 );
 
@@ -71,6 +121,7 @@ export const inventoryMovements = pgTable(
     lotId: uuid("lot_id").notNull().references(() => inventoryLots.id),
     branchId: uuid("branch_id").notNull().references(() => branches.id),
     kind: inventoryMovementKind("kind").notNull(),
+    purchaseOrderLineId: uuid("purchase_order_line_id").references(() => inventoryPurchaseOrderLines.id),
     quantityDelta: integer("quantity_delta").notNull(),
     occurredOn: date("occurred_on").notNull(),
     reference: text("reference"),
@@ -81,6 +132,7 @@ export const inventoryMovements = pgTable(
   (t) => [
     index("inventory_movements_lot_idx").on(t.organizationId, t.lotId, t.createdAt),
     index("inventory_movements_item_idx").on(t.organizationId, t.itemId, t.branchId, t.occurredOn),
+    index("inventory_movements_purchase_order_line_idx").on(t.organizationId, t.purchaseOrderLineId),
     check("inventory_movements_nonzero", sql`${t.quantityDelta} <> 0`),
   ],
 );
