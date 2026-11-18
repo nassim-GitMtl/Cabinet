@@ -120,6 +120,13 @@
       "when": 1794958538563,
       "tag": "0016_registration_mode",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1794990879041,
+      "tag": "0017_portal_expansion",
+      "breakpoints": true
     }
   ]
 }

@@ -4,7 +4,7 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { FormError, SubmitButton, TextField } from "@/components/form";
 import { Button } from "@/components/ui/button";
-import { activatePortalAction, decideConsentRequestAction, patientLoginAction, patientLogoutAction, revokeConsentGrantAction } from "@/features/consent/portal-actions";
+import { activatePortalAction, decideConsentRequestAction, patientLoginAction, patientLogoutAction, resetPortalPasswordAction, revokeConsentGrantAction } from "@/features/consent/portal-actions";
 import { initialActionState } from "@/lib/action-state";
 
 export function PortalLoginForm() {
@@ -26,6 +26,17 @@ export function PortalActivationForm({ token }: { token: string }) {
     <TextField label={t("password")} name="password" type="password" autoComplete="new-password" required hint={t("passwordHint")} error={state.fieldErrors?.password} />
     <TextField label={t("confirmPassword")} name="confirmPassword" type="password" autoComplete="new-password" required error={state.fieldErrors?.confirmPassword} />
     <SubmitButton className="w-full" size="lg">{t("activate")}</SubmitButton>
+  </form>;
+}
+
+export function PortalRecoveryForm({ token }: { token: string }) {
+  const t = useTranslations("portal");
+  const [state, action] = useActionState(resetPortalPasswordAction.bind(null, token), initialActionState);
+  return <form action={action} className="space-y-4" noValidate>
+    <FormError error={state.error} />
+    <TextField label={t("password")} name="password" type="password" autoComplete="new-password" required hint={t("passwordHint")} error={state.fieldErrors?.password} />
+    <TextField label={t("confirmPassword")} name="confirmPassword" type="password" autoComplete="new-password" required error={state.fieldErrors?.confirmPassword} />
+    <SubmitButton className="w-full" size="lg">{t("resetPassword")}</SubmitButton>
   </form>;
 }
 

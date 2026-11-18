@@ -7,13 +7,14 @@ import { FormError, SubmitButton, TextAreaField, TextField } from "@/components/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { createConsentRequestAction, createPortalInvitationAction } from "@/features/consent/actions";
+import { createConsentRequestAction, createPortalInvitationAction, createPortalRecoveryAction } from "@/features/consent/actions";
 import { initialActionState } from "@/lib/action-state";
 import { formatDateTime } from "@/lib/dates";
 import { SHARE_CATEGORIES, type ConsentScope, type ShareCategory } from "@/server/db/schema";
 
 type Overview = {
   networkPatientId: string | null;
+  hasPortalAccount: boolean;
   invitations: { email: string; expiresAt: Date; usedAt: Date | null; createdAt: Date }[];
   requests: { id: string; purpose: string; requestedScope: ConsentScope; status: string; expiresAt: Date; createdAt: Date }[];
   grants: { id: string; categories: ShareCategory[]; status: string; grantedAt: Date; revokedAt: Date | null }[];
@@ -23,8 +24,10 @@ export function ConsentPanel({ patientId, overview, timezone, defaultEmail }: { 
   const t = useTranslations("consent");
   const [copied, setCopied] = useState(false);
   const [inviteState, inviteAction] = useActionState(createPortalInvitationAction.bind(null, patientId), initialActionState);
+  const [recoveryState, recoveryAction] = useActionState(createPortalRecoveryAction.bind(null, patientId), initialActionState);
   const [requestState, requestAction] = useActionState(createConsentRequestAction.bind(null, patientId), initialActionState);
   const invite = inviteState.data as { activationPath: string; expiresAt: string } | undefined;
+  const recovery = recoveryState.data as { recoveryPath: string; expiresAt: string } | undefined;
 
   return (
     <section className="rounded-xl border bg-card p-4">
@@ -34,7 +37,7 @@ export function ConsentPanel({ patientId, overview, timezone, defaultEmail }: { 
       </h2>
       <p className="mb-4 text-xs text-muted-foreground">{t("description")}</p>
 
-      <details className="group rounded-lg border p-3" open={!overview.networkPatientId}>
+      {!overview.hasPortalAccount ? <details className="group rounded-lg border p-3" open={!overview.networkPatientId}>
         <summary className="cursor-pointer text-sm font-medium">{t("inviteTitle")}</summary>
         <form action={inviteAction} className="mt-3 space-y-3" noValidate>
           <FormError error={inviteState.error} />
@@ -54,7 +57,29 @@ export function ConsentPanel({ patientId, overview, timezone, defaultEmail }: { 
             </div>
           </div>
         ) : null}
-      </details>
+      </details> : null}
+
+      {overview.hasPortalAccount ? (
+        <details className="mt-3 rounded-lg border p-3">
+          <summary className="cursor-pointer text-sm font-medium">{t("recoveryTitle")}</summary>
+          <p className="mt-2 text-xs text-muted-foreground">{t("recoveryDescription")}</p>
+          <form action={recoveryAction} className="mt-3 space-y-3" noValidate>
+            <FormError error={recoveryState.error} />
+            <TextField label={t("email")} name="email" type="email" inputMode="email" required defaultValue={recoveryState.values?.email ?? defaultEmail ?? ""} error={recoveryState.fieldErrors?.email} />
+            <TextField label={t("evidenceRef")} name="evidenceRef" required hint={t("evidenceHint")} defaultValue={recoveryState.values?.evidenceRef} error={recoveryState.fieldErrors?.evidenceRef} />
+            <SubmitButton className="w-full" variant="outline">{t("createRecovery")}</SubmitButton>
+          </form>
+          {recovery ? (
+            <div className="mt-3 rounded-md bg-primary/5 p-3 text-xs">
+              <p className="font-medium text-primary">{t("recoveryLink")}</p>
+              <code className="mt-1 block break-all" dir="ltr">{recovery.recoveryPath}</code>
+              <Button type="button" size="sm" variant="outline" className="mt-2" onClick={async () => { await navigator.clipboard.writeText(`${location.origin}${recovery.recoveryPath}`); setCopied(true); }}>
+                {copied ? <CheckIcon /> : <CopyIcon />}{copied ? t("copied") : t("copyLink")}
+              </Button>
+            </div>
+          ) : null}
+        </details>
+      ) : null}
 
       {overview.networkPatientId ? (
         <details className="mt-3 rounded-lg border p-3">

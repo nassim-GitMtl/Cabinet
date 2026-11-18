@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { fieldErrorsOf, formValues, type ActionState } from "@/lib/action-state";
-import { activatePortalAccount, authenticatePatient } from "@/server/portal/auth";
+import { activatePortalAccount, authenticatePatient, resetPortalPassword } from "@/server/portal/auth";
 import { createPatientSession, requirePatientSession, revokePatientSession } from "@/server/portal/session";
 import { portalLoginSchema, portalPasswordSchema } from "./schemas";
 import { decideConsentRequest, PatientConsentError, revokeConsentGrant } from "./portal";
@@ -17,6 +17,15 @@ export async function activatePortalAction(token: string, _state: ActionState, f
   catch { return { error: "portalInviteUnavailable" }; }
   await createPatientSession(identity);
   redirect("/portal");
+}
+
+export async function resetPortalPasswordAction(token: string, _state: ActionState, formData: FormData): Promise<ActionState> {
+  const values = formValues(formData);
+  const parsed = portalPasswordSchema.safeParse(values);
+  if (!parsed.success) return { error: "fixErrors", fieldErrors: fieldErrorsOf(parsed.error) };
+  try { await resetPortalPassword(token, parsed.data.password); }
+  catch { return { error: "portalRecoveryUnavailable" }; }
+  redirect("/portal/login?recovered=1");
 }
 
 export async function patientLoginAction(_state: ActionState, formData: FormData): Promise<ActionState> {

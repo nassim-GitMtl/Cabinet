@@ -6,6 +6,8 @@ export const portalInvitationSchema = z.object({
   evidenceRef: z.string().trim().min(3, "required").max(200),
 });
 
+export const portalRecoverySchema = portalInvitationSchema;
+
 export const consentRequestSchema = z.object({
   purpose: z.string().trim().min(3, "required").max(500),
   categories: z.array(z.enum(SHARE_CATEGORIES)).min(1, "required"),

@@ -5,6 +5,7 @@ import { networkPatients, patients } from "./patients";
 import { organizations, users } from "./platform";
 
 export const patientAccountStatus = pgEnum("patient_account_status", ["active", "disabled"]);
+export const portalInvitationKind = pgEnum("portal_invitation_kind", ["activation", "recovery"]);
 
 /** Global patient login, deliberately separate from staff users. */
 export const patientAccounts = pgTable("patient_accounts", {
@@ -41,6 +42,7 @@ export const portalInvitations = pgTable("portal_invitations", {
   patientId: uuid("patient_id").notNull().references(() => patients.id),
   networkPatientId: uuid("network_patient_id").notNull().references(() => networkPatients.id),
   email: text("email").notNull(),
+  kind: portalInvitationKind("kind").notNull().default("activation"),
   tokenHash: text("token_hash").notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   usedAt: timestamp("used_at", { withTimezone: true }),

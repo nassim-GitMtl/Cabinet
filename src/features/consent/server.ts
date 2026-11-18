@@ -13,6 +13,10 @@ import type { ConsentRequestInput } from "./schemas";
 const sha256 = (value: string) => createHash("sha256").update(value).digest("hex");
 export class ConsentFlowError extends Error { constructor(public readonly code: "patientUnavailable" | "identityRequired") { super(code); } }
 
+export class PortalRecoveryError extends Error {
+  constructor(public readonly code: "patientUnavailable" | "portalAccountRequired") { super(code); }
+}
+
 export async function createPortalInvitation(ctx: ClinicContext, patientId: string, email: string, evidenceRef: string) {
   requirePermission(ctx, "shared_profile.request");
   return tenantTx(ctx, async (tx) => {
@@ -46,6 +50,34 @@ export async function createPortalInvitation(ctx: ClinicContext, patientId: stri
   });
 }
 
+export async function createPortalRecovery(ctx: ClinicContext, patientId: string, email: string, evidenceRef: string) {
+  requirePermission(ctx, "shared_profile.request");
+  return tenantTx(ctx, async (tx) => {
+    const [patient] = await tx.select({ networkPatientId: patients.networkPatientId, status: patients.status })
+      .from(patients).where(eq(patients.id, patientId)).limit(1);
+    if (!patient || patient.status === "archived" || patient.status === "deceased") {
+      throw new PortalRecoveryError("patientUnavailable");
+    }
+    if (!patient.networkPatientId) throw new PortalRecoveryError("portalAccountRequired");
+    const [account] = await tx.execute<{ exists: boolean }>(
+      sql`select app_private.patient_portal_account_exists(${patient.networkPatientId}) as exists`,
+    );
+    if (!account?.exists) throw new PortalRecoveryError("portalAccountRequired");
+    const token = randomBytes(32).toString("base64url");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60_000);
+    await tx.insert(portalInvitations).values({
+      organizationId: ctx.organizationId, patientId, networkPatientId: patient.networkPatientId,
+      email, kind: "recovery", tokenHash: sha256(token), expiresAt, createdByUserId: ctx.userId,
+    });
+    await audit(tx, {
+      organizationId: ctx.organizationId, actorType: "staff", actorUserId: ctx.userId,
+      action: "patient_portal.recovery_created", entityType: "patient", entityId: patientId, patientId,
+      metadata: { identityMethod: "assisted_in_person", evidenceProvided: Boolean(evidenceRef) },
+    });
+    return { token, expiresAt };
+  });
+}
+
 export async function createConsentRequest(ctx: ClinicContext, patientId: string, input: ConsentRequestInput) {
   requirePermission(ctx, "shared_profile.request");
   return tenantTx(ctx, async (tx) => {
@@ -72,14 +104,15 @@ export async function getConsentOverview(ctx: ClinicContext, patientId: string) 
   return tenantTx(ctx, async (tx) => {
     const [patient] = await tx.select({ networkPatientId: patients.networkPatientId }).from(patients).where(eq(patients.id, patientId)).limit(1);
     if (!patient) throw new ConsentFlowError("patientUnavailable");
-    if (!patient.networkPatientId) return { networkPatientId: null, invitations: [], requests: [], grants: [] };
-    const [invitations, requests, grants] = await Promise.all([
+    if (!patient.networkPatientId) return { networkPatientId: null, hasPortalAccount: false, invitations: [], requests: [], grants: [] };
+    const [invitations, requests, grants, account] = await Promise.all([
       tx.select({ email: portalInvitations.email, expiresAt: portalInvitations.expiresAt, usedAt: portalInvitations.usedAt, createdAt: portalInvitations.createdAt })
         .from(portalInvitations).where(eq(portalInvitations.patientId, patientId)).orderBy(desc(portalInvitations.createdAt)).limit(5),
       tx.select().from(consentRequests).where(eq(consentRequests.networkPatientId, patient.networkPatientId)).orderBy(desc(consentRequests.createdAt)).limit(20),
       tx.select().from(consentGrants).where(and(eq(consentGrants.networkPatientId, patient.networkPatientId), eq(consentGrants.receivingOrganizationId, ctx.organizationId))).orderBy(desc(consentGrants.grantedAt)).limit(20),
+      tx.execute<{ exists: boolean }>(sql`select app_private.patient_portal_account_exists(${patient.networkPatientId}) as exists`),
     ]);
-    return { networkPatientId: patient.networkPatientId, invitations, requests, grants };
+    return { networkPatientId: patient.networkPatientId, hasPortalAccount: Boolean(account[0]?.exists), invitations, requests, grants };
   });
 }
 

@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Claude (session 12 — exports, receivables aging, statements; slim migrate image).
+Last updated: 2026-11-18 by Codex (session 13 — patient portal expansion and assisted account recovery).
 
 ## How to verify the current state
 
@@ -110,6 +110,15 @@ statement (`/print/statements/[id]`, browser "Save as PDF") reconciled in tests 
 (closing = amount due − unapplied credit). Migrate image slimmed 1.55 GB → 242 MB (esbuild bundle). Browser-checked
 downloads (xlsx "PK", CSV French format), aging page, statement.
 
+Session 13 (Codex): patient portal expansion end to end. Each patient account now resolves only its active,
+verified clinic identity links, then reads appointments, accepted/completed estimates, issued invoices with derived
+balances, and payment receipts under that clinic's tenant context and exact local patient ID. The portal never
+offers a fake online payment flow; it directs the patient to the clinic. Staff can create a 24-hour, single-use
+password-recovery link only after an assisted identity check; resetting clears lockout state, revokes every existing
+patient session, and consumes the link. FR/EN/AR and RTL copy are complete. 98/98 tests (2 new integration tests),
+typecheck and lint green. The standard Turbopack build still hits the known runner-only helper-port `EPERM`;
+`npx next build --webpack` is green and includes `/portal/recover/[token]`.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -141,7 +150,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
-| Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history and revocation ✅. Health records, appointments, estimates, invoices/payments and account recovery ⏳ |
+| Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, and assisted single-use account recovery ✅. Health records and online payment provider integration ⏳ |
 | Lab, inventory, sterilization (§22, §23) | ⏳ | Release 3 |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
 | Backups/restore exercise (§27, scenario 32) | ⏳ | |
@@ -153,8 +162,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Portal expansion: appointments, accepted estimates, invoices/payments and account recovery.
-2. Odontogram foundation: FDI chart state, findings and treatment linkage.
+1. Odontogram foundation: FDI chart state, findings and treatment linkage.
 
 ## Known gaps / decisions to revisit
 

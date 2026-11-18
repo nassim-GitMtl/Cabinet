@@ -22,6 +22,15 @@ export async function getPortalInvitation(token: string, database: Database = db
   return row ? { email: row.email, locale: row.locale, clinicName: row.clinic_name, expiresAt: row.expires_at } : null;
 }
 
+export async function getPortalRecovery(token: string, database: Database = db) {
+  if (!/^[A-Za-z0-9_-]{32,64}$/.test(token)) return null;
+  const rows = await database.execute<{ email: string; locale: string; clinic_name: string; expires_at: Date }>(
+    sql`select * from app_private.resolve_patient_portal_recovery(${await sha256(token)})`,
+  );
+  const row = rows[0];
+  return row ? { email: row.email, locale: row.locale, clinicName: row.clinic_name, expiresAt: row.expires_at } : null;
+}
+
 export async function activatePortalAccount(token: string, password: string, database: Database = db): Promise<PatientIdentity> {
   const policy = passwordPolicyError(password);
   if (policy) throw new Error(policy);
@@ -42,6 +51,28 @@ export async function activatePortalAccount(token: string, password: string, dat
       action: "patient_portal.activated",
       entityType: "patient_account",
       entityId: row.account_id,
+    });
+    return { accountId: row.account_id, networkPatientId: row.network_patient_id, email: row.email, locale: row.locale };
+  });
+}
+
+export async function resetPortalPassword(token: string, password: string, database: Database = db): Promise<PatientIdentity> {
+  const policy = passwordPolicyError(password);
+  if (policy) throw new Error(policy);
+  const passwordHash = await hashPassword(password);
+  const tokenHash = await sha256(token);
+  return database.transaction(async (tx) => {
+    const rows = await tx.execute<{ account_id: string; network_patient_id: string; email: string; locale: string }>(
+      sql`select * from app_private.reset_patient_portal_password(${tokenHash}, ${passwordHash})`,
+    );
+    const row = rows[0];
+    if (!row) throw new Error("portalRecoveryUnavailable");
+    await tx.execute(sql`select
+      set_config('app.actor_type', 'patient', true),
+      set_config('app.network_patient_id', ${row.network_patient_id}, true)`);
+    await audit(tx, {
+      organizationId: null, actorType: "patient", action: "patient_portal.password_reset",
+      entityType: "patient_account", entityId: row.account_id,
     });
     return { accountId: row.account_id, networkPatientId: row.network_patient_id, email: row.email, locale: row.locale };
   });
