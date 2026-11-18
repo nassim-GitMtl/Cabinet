@@ -31,7 +31,10 @@ Two agents alternate on this repo. The user resumes work by saying **"continue"*
 - Tenant data only through `tenantTx(ctx, …)` / `withDbContext`; never query tenant tables on the bare pool.
 - Every service function checks a permission key (`requirePermission`) — never role names, never UI-only checks.
 - New tenant tables: `organization_id` + migration ending with `SELECT app_private.apply_security();`;
-  append-only tables registered in `app_private.append_only_tables()`. Add a cross-tenant integration test.
+  append-only tables registered in `app_private.append_only_tables()`; tables whose rows must never be deleted
+  registered in `app_private.no_delete_tables()` (redefine the function with the FULL list). Never use a bare
+  `REVOKE DELETE`: the next `apply_security()` re-grants it (bug fixed in 0023; `tests/integration/grants.test.ts`
+  guards it). Add a cross-tenant integration test.
 - Shared-profile reads go through `evaluateSharedAccess()` and are logged in `shared_access_events`.
   No staff/admin/emergency bypass of patient consent.
 - Money: integer minor units + currency; use `src/lib/money.ts`. Dates: date-only strings never pass through timezones.

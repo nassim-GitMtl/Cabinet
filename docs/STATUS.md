@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Claude (session 15 — clinical notes, signing, amendments).
+Last updated: 2026-11-18 by Claude (session 16 — medical history; DELETE-privilege security fix).
 
 ## How to verify the current state
 
@@ -136,6 +136,14 @@ text), assistant "send for signature" → signer review, explicit attestation, s
 SHA-256 hash chain verified on every view ("Intégrité vérifiée"), discard instead of delete, audit of view/sign/amend.
 Browser-checked: template draft → autosave → sign → amendment, integrity badge.
 
+Session 16 (Claude): medical history (§8) + security fix. 111/111 tests (+4 health, +1 privilege guard), typecheck,
+lint, build green; browser-checked fill → header "à revoir" badge → allergy promoted to a critical alert → review.
+**Security fix:** migrations 0006–0022 used bare `REVOKE DELETE`, later undone by `apply_security()`; the app role
+could DELETE payments, cash_sessions, expenses, appointments, booking_requests, treatment_plans, clinical_notes
+(triggers still blocked edits; app code never deleted). Fixed by `app_private.no_delete_tables()` inside
+`apply_security()` (0023) + catalog-level regression test. Observed one unreproduced failing run (4 tests incl.
+procedures reversal) followed by 3 clean full runs — watch for flakiness.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -179,7 +187,8 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Medical questionnaires and structured health history with alert promotion.
+1. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
+2. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
 
 ## Known gaps / decisions to revisit
 

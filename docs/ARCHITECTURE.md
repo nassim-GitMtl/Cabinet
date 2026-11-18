@@ -51,7 +51,8 @@ tests/                    integration tests + support (global setup resets cabin
 ### Adding a table (checklist)
 - Add it in `src/server/db/schema/*.ts` with `organizationId()` if tenant-owned.
 - `npm run db:generate`, then create a custom migration (`npx drizzle-kit generate --custom --name=<x>`) ending with `SELECT app_private.apply_security();`.
-- Append-only tables (ledger, history, audit-like): add the name to `app_private.append_only_tables()` (re-create the function in the new migration) so UPDATE/DELETE are revoked.
+- Append-only tables (ledger, history, audit-like): add the name to `app_private.append_only_tables()` (re-create the function in the new migration with the FULL list) so UPDATE/DELETE are revoked.
+- Rows that must never be deleted (but may be updated under triggers): add to `app_private.no_delete_tables()` (full list). Do NOT write a bare `REVOKE DELETE`: `apply_security()` re-grants DELETE on every other tenant table each time it runs (this happened in migrations 0006–0022; fixed in 0023, guarded by `tests/integration/grants.test.ts`).
 - Tables without `organization_id` need explicit policies (see consent tables) — never leave a table readable by default.
 - Add an integration test proving cross-tenant denial.
 
@@ -177,3 +178,10 @@ never summed. "Paid to date" is as of generation time.
   pages and API responses are never cached; navigations fall back to `/offline.html` when the server is
   unreachable. `ConnectionBanner` polls `/api/health` and warns that nothing is saved while disconnected.
   No patient, clinical or financial data is stored on devices; there is no offline write queue (deliberate).
+
+## Medical history (`src/features/health`, migrations 0021/0022)
+- `questionnaire_versions` (wording immutable; one-time clinician approval), append-only `questionnaire_responses`
+  (every update is a new row) and `health_history_reviews` ("reviewed" / "no_changes" events).
+- Answers: `yes | no | unknown | declined` or text; an unanswered question is ABSENT (never stored as "no").
+- No inference: alerts are created only by a clinician from an answer (`promoteToAlertAction`, label built server-side).
+- The starter questionnaire is generic wording flagged "to be approved by a clinician" until approved.
