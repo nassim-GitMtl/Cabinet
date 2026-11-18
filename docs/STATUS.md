@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Claude (session 16 — medical history; DELETE-privilege security fix).
+Last updated: 2026-11-18 by Codex (session 17 — inventory, lots, expiry alerts and FEFO consumption).
 
 ## How to verify the current state
 
@@ -144,6 +144,15 @@ could DELETE payments, cash_sessions, expenses, appointments, booking_requests, 
 `apply_security()` (0023) + catalog-level regression test. Observed one unreproduced failing run (4 tests incl.
 procedures reversal) followed by 3 clean full runs — watch for flakiness.
 
+Session 17 (Codex): inventory foundation (§22/§23). Added an inventory workspace with tenant-scoped item catalog,
+branch-specific immutable lots, append-only receipt/usage ledger, derived balances, reorder thresholds, 60-day expiry
+alerts and expired-lot quarantine visibility. Routine consumption is atomic FEFO across usable lots and never consumes
+expired stock; database triggers reject mismatched lot references, wrong movement signs and negative balances under
+concurrency. FR/EN/AR, RTL navigation and permission-gated UI are complete. Integration coverage verifies FEFO,
+expiry exclusion, immutable movements, privilege grants and cross-tenant denial. 114/114 tests, typecheck and lint
+green; `npx next build --webpack` is green and includes `/inventory` after the unchanged runner-only Turbopack
+helper-port restriction. Browser-checked the responsive French inventory empty state without creating demo data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -160,7 +169,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Network identity + consent schema (§4A) | ✅ | Assisted in-person verified linking, exact-scope requests, patient-only approval/revocation, immutable grants, guarded + logged shared reads and cross-tenant tests |
 | Patient registration & directory (§6) | ✅ | Numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
 | Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, odontogram, treatment plans, finance tab (account, invoices, payments, deposit). |
-| Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; medical questionnaires ⏳ |
+| Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; structured medical questionnaires, clinician review and explicit alert promotion ✅ |
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; PDFs in Arabic ⏳ |
@@ -169,14 +178,14 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
 | Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Consent capture/signatures ⏳. |
-| Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and same-patient/same-tooth links to planned/completed treatment. Primary visual chart, periodontal chart, encounter notes and signing ⏳. |
+| Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and treatment links. Structured draft notes, review, signing, amendments and hash-chain integrity ✅. Primary visual chart and periodontal chart ⏳. |
 | Images/documents, object storage (§12A, §15) | ⏳ 🔌 | |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, and assisted single-use account recovery ✅. Health records and online payment provider integration ⏳ |
-| Lab, inventory, sterilization (§22, §23) | ⏳ | Release 3 |
+| Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts and FEFO usage. Purchasing, procedure recipes, barcode scanning, recall traceability, forecasting, lab and sterilization ⏳ |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
 | Backups/restore exercise (§27, scenario 32) | ⏳ | |
 | Platform operations console (§25) | ⏳ | |
@@ -187,8 +196,11 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
-2. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
+1. Inventory phase 2: supplier purchase orders and receiving, barcode/QR scanning, procedure consumable recipes with
+   automatic stock use, patient-to-lot recall traceability, and explainable reorder forecasts from actual usage + agenda.
+2. Sterilization traceability: instrument sets, cycle/indicator records, chairside scan and exact patient/procedure linkage.
+3. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
+4. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
 
 ## Known gaps / decisions to revisit
 

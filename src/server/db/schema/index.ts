@@ -12,3 +12,4 @@ export * from "./portal";
 export * from "./odontogram";
 export * from "./notes";
 export * from "./health";
+export * from "./inventory";

@@ -185,3 +185,14 @@ never summed. "Paid to date" is as of generation time.
 - Answers: `yes | no | unknown | declined` or text; an unanswered question is ABSENT (never stored as "no").
 - No inference: alerts are created only by a clinician from an answer (`promoteToAlertAction`, label built server-side).
 - The starter questionnaire is generic wording flagged "to be approved by a clinician" until approved.
+
+## Inventory (`src/features/inventory`, migration 0024)
+
+- `inventory_items` is the tenant catalog; stock is never stored as a mutable total. The balance is always derived from
+  append-only `inventory_movements`, grouped by immutable `inventory_lots` and branch.
+- Receipt and consumption services require `inventory.manage`, run through `tenantTx`, and audit identifiers and quantities
+  in the same transaction. RLS and database triggers reject cross-tenant/cross-item/cross-branch lot references.
+- Outbound movements can never make a lot negative. A privileged trigger locks the immutable lot row before validating the
+  derived balance; service-level advisory locks give concurrent users a clear, serialized FEFO result.
+- Routine use is FEFO (first-expiring, first-out), with non-expiring lots last. Expired lots remain visible for quarantine
+  and traceability but are never eligible for routine consumption.

@@ -169,6 +169,13 @@
       "when": 1795029902072,
       "tag": "0023_no_delete_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795030610710,
+      "tag": "0024_inventory",
+      "breakpoints": true
     }
   ]
 }

@@ -17,6 +17,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   if (can(ctx, "report.operational") || can(ctx, "report.financial")) nav.push("reports");
   if (can(ctx, "cash.manage")) nav.push("cash");
   if (can(ctx, "expense.read")) nav.push("expenses");
+  if (can(ctx, "inventory.manage")) nav.push("inventory");
   if (can(ctx, "catalog.read")) nav.push("catalog");
   if (can(ctx, "org.settings.manage") || can(ctx, "org.staff.manage")) nav.push("settings");
 

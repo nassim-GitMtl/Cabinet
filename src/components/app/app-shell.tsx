@@ -12,6 +12,7 @@ import {
   ClipboardCheckIcon,
   FileTextIcon,
   MenuIcon,
+  PackageSearchIcon,
   ReceiptIcon,
   WalletIcon,
   LayoutDashboardIcon,
@@ -28,7 +29,7 @@ import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
 import { ToothIcon, ToothNumberGuide } from "./tooth-number-guide";
 
-export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "invoices" | "reports" | "cash" | "expenses" | "catalog" | "settings";
+export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "invoices" | "reports" | "cash" | "expenses" | "inventory" | "catalog" | "settings";
 
 /** Shown in the phone bottom bar; everything else goes in the "More" sheet. */
 const MOBILE_PRIMARY: NavKey[] = ["dashboard", "agenda", "patients", "invoices"];
@@ -42,6 +43,7 @@ const NAV: Record<NavKey, { href: string; icon: LucideIcon; label: string; short
   reports: { href: "/reports", icon: BarChart3Icon, label: "reports" },
   cash: { href: "/cash", icon: WalletIcon, label: "cash" },
   expenses: { href: "/expenses", icon: ReceiptIcon, label: "expenses" },
+  inventory: { href: "/inventory", icon: PackageSearchIcon, label: "inventory" },
   catalog: { href: "/catalog", icon: BookOpenIcon, label: "catalog", short: "catalogShort" },
   settings: { href: "/settings", icon: SettingsIcon, label: "settings" },
 };
