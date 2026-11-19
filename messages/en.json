@@ -1879,5 +1879,75 @@
       "referrersEmpty": "No recommendation recorded in the period.",
       "referred": "{count, plural, one {# patient referred} other {# patients referred}}"
     }
+  },
+  "publicPage": {
+    "title": "Clinic public page",
+    "subtitle": "A page to share on Facebook, Instagram, Google Maps or WhatsApp: hours, treatments, contact and online booking.",
+    "saved": "Page saved.",
+    "addressTitle": "Page address",
+    "addressHint": "A short lowercase name without spaces or accents (e.g. cabinet-les-oliviers).",
+    "slug": "Name in the address",
+    "published": "Page published",
+    "publishedHint": "Until this box is ticked, nobody can see the page.",
+    "localOnly": "Note: this address only works on the clinic network. To share it, the server must be reachable from the internet (public address or online version).",
+    "view": "View page",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "poster": {
+      "headline": "Book your appointment online",
+      "scan": "Scan this code with your phone",
+      "call": "Or call"
+    },
+    "downloadQr": "Download QR code",
+    "aboutTitle": "About",
+    "aboutHint": "A few sentences about the clinic (treatments, languages spoken, access, parking). Never any patient information.",
+    "locales": {
+      "fr": "Français",
+      "en": "English",
+      "ar": "العربية"
+    },
+    "contactTitle": "Contact and social media",
+    "whatsapp": "WhatsApp number",
+    "whatsappHint": "Leave empty to use the clinic number.",
+    "mapUrl": "Google Maps link",
+    "mapUrlHint": "In Google Maps: Share › Copy link.",
+    "bookingTitle": "Online booking",
+    "bookingHint": "The “Book an appointment” button opens this link. Every request is still approved by the clinic.",
+    "noBookingLink": "No active booking link: create one to show the “Book an appointment” button.",
+    "bookingLink": "Booking link",
+    "firstActiveLink": "First active link",
+    "createBookingLink": "Create a booking link",
+    "servicesTitle": "Featured treatments",
+    "servicesHint": "Tick up to 24 treatments to show (e.g. scaling, whitening, implant).",
+    "showPrices": "Show “from” prices",
+    "showPricesHint": "Catalogue prices, presented as indicative. Leave unticked to list treatments only.",
+    "save": "Save",
+    "posterUnavailable": "Publish the page or create a booking link to print the poster.",
+    "posterHint": "Print on A4 and put it up in the waiting room or the window.",
+    "errors": {
+      "slug": "3 to 60 characters: lowercase letters, digits and hyphens.",
+      "slugTaken": "This name is already used by another clinic.",
+      "invalidPhone": "Invalid phone number.",
+      "invalidUrl": "Invalid link: it must start with https://",
+      "bookingLinkUnavailable": "This booking link is no longer active.",
+      "serviceUnavailable": "One of the chosen treatments is no longer available.",
+      "tooManyServices": "24 treatments at most."
+    },
+    "public": {
+      "book": "Book an appointment online",
+      "whatsapp": "Message on WhatsApp",
+      "whatsappText": "Hello, I would like to book an appointment at {name}.",
+      "directions": "Directions",
+      "bookingNote": "Your appointment request is confirmed by the clinic.",
+      "hours": "Opening hours",
+      "hoursNote": "By appointment, according to practitioners' hours.",
+      "closed": "Closed",
+      "services": "Treatments",
+      "from": "from {price}",
+      "pricesNote": "Indicative prices: the exact fee depends on your situation and is given to you before any treatment.",
+      "addresses": "Our clinics",
+      "notFound": "Page not found",
+      "defaultDescription": "Book an appointment at {name}."
+    }
   }
 }

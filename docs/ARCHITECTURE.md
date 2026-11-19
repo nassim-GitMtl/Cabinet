@@ -282,3 +282,14 @@ never summed. "Paid to date" is as of generation time.
 - The report counts patients by `created_at` in the clinic time zone over whole months; production is the value of all
   completed procedures of those patients (§18 production basis) and is hidden without `report.financial`.
 
+## Clinic public page (`src/features/public-page`, `/c/[slug]`, migration 0035)
+
+- Public, unauthenticated route (listed in `src/proxy.ts`). Resolution goes only through
+  `app_private.resolve_public_clinic(slug)` (published page + active clinic → organization id); everything else is read with
+  `withDbContext({ actorType: "system" })` selecting public columns only. Never add patient, staff-account or financial data
+  to `getPublicClinicPage`; staff appear nowhere (hours are aggregated per weekday, not per clinician).
+- Slugs are global (unique index) but a clinic cannot list other clinics' profiles (RLS); `public_slug_taken` answers
+  availability without revealing the owner. External links must be `https:` (`safeHttpsUrl`).
+- Shared addresses use `publicOrigin()`: `PUBLIC_APP_URL` when set, else the current host, flagged "local only" for
+  `.local`, private IPs and localhost. QR codes are vector SVG generated server-side (`qrcode`), no external service.
+

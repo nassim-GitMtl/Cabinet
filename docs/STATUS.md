@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-19 by Claude (session 25 — where new patients come from).
+Last updated: 2026-11-19 by Claude (session 26 — clinic public page + QR poster).
 
 ## How to verify the current state
 
@@ -256,6 +256,21 @@ integration + 1 unit added), typecheck, lint, `next build` green. Browser-checke
 and shown on details, report with real demo numbers (13 new, 12 without source → reminder shown), referrer list, public booking
 question. Fixed during the check: report tables overflowed the page (grid items need `min-w-0`).
 
+Session 26 (Claude): clinic public page + QR poster (§9A). Migration 0035: `clinic_public_profiles` (one per clinic;
+globally unique lowercase slug; unpublished by default; about FR/EN/AR, WhatsApp, Google Maps/Facebook/Instagram https
+links, booking link, up to 24 featured catalog services, opt-in "à partir de" prices). Guard: staff editor, same-clinic booking
+link and services. Visitors resolve a published page of an active clinic through `app_private.resolve_public_clinic` (SECURITY
+DEFINER, returns the organization only), then tenant-scoped reads of public fields: name, branches (address/phone), opening
+hours = union of active clinicians' agenda hours per weekday, featured services, active booking link. `/settings/public-page`
+(org.settings.manage): address with availability check (`public_slug_taken`), publish switch, local-network warning,
+view/copy, A4 poster `/print/public-poster` (French + Arabic, vector QR via the `qrcode` package, falls back to the booking
+link when unpublished), SVG QR download `/api/public-page/qr`. `/c/[slug]` is public in `src/proxy.ts`, has Open Graph
+title/description for social previews, works FR/EN/AR. Optional `PUBLIC_APP_URL` (env, clinic compose) sets the internet
+address used in shared links. 154/154 tests (2 integration + 1 helper unit file added), typecheck, lint, `next build` green.
+Browser-checked: demo clinic page saved and published (4 services with prices), phone view, Arabic RTL, anonymous 200 / unknown
+404, no staff or patient names in the HTML, poster with bilingual text + QR + phone, SVG download. Note: npm audit lists 8
+moderate issues, all pre-existing dev tooling (drizzle-kit, shadcn), none from `qrcode`.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -277,7 +292,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; PDFs in Arabic ⏳ |
 | Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, and an always-available FR/EN/AR FDI tooth-number guide. Service worker/offline policy ⏳ (no patient data offline by design) |
-| Scheduler & booking (§9, §9A) | ✅ | Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
+| Scheduler & booking (§9, §9A) | ✅ | Clinic public page `/c/[slug]` + QR poster ✅. Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
 | Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Consent capture/signatures ⏳. |
@@ -300,17 +315,14 @@ Priority: features that bring patients in and make the clinic easy to deal with.
 
 ## Next steps (in order)
 
-1. Clinic public page + QR poster (§9A): `/c/[slug]` with services ("à partir de" prices only if the clinic opts in), hours,
-   address + map link, call/WhatsApp buttons and online booking; printable QR poster (A4/A5) and a share image for social
-   media. Needs the server reachable from the internet (cloud mode, or step 5).
-2. After-visit message, thanks & reviews: one tap after a completed visit sends care instructions (per appointment type,
+1. After-visit message, thanks & reviews: one tap after a completed visit sends care instructions (per appointment type,
    editable) and, if set, the clinic's Google review link; a "Remercier" WhatsApp message for referring patients (from the
-   sources report); both logged in `patient_contacts` (new reasons).
-3. Patient-friendly estimates & payment plans (§13, §16): send the estimate to the patient (portal link or PDF by WhatsApp),
+   sources report); both logged in `patient_contacts` (new reasons). Add the Google review link to the public page settings.
+2. Patient-friendly estimates & payment plans (§13, §16): send the estimate to the patient (portal link or PDF by WhatsApp),
    propose an installment schedule, and show what is due in the follow-ups.
-4. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
+3. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
    détartrage season, children's check-up) only for opted-in patients, using the same WhatsApp/SMS tools.
-5. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
+4. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
 
 Later / on hold: inventory follow-ups (pending consumptions on the patient screen; reorder suggestion → pre-filled order
 form), treatment consent capture (§12A), lab cases (§22).

@@ -44,6 +44,8 @@ services:
     environment:
       DATABASE_URL: postgres://cabinet_app:${DB_APP_PASSWORD}@db:5432/cabinet
       APP_URL: https://${CLINIC_HOST}
+      # Optional public address (domain pointing to this server) for the clinic page and QR posters.
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?run install.sh first}
       CLINICAL_STORAGE_DIR: /data/clinical-files
       # Only the first clinic can self-register; staff join through invitations.

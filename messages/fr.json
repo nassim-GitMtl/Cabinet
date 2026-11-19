@@ -1886,5 +1886,75 @@
       "referrersEmpty": "Aucune recommandation enregistrée sur la période.",
       "referred": "{count, plural, one {# patient recommandé} other {# patients recommandés}}"
     }
+  },
+  "publicPage": {
+    "title": "Page publique du cabinet",
+    "subtitle": "Une page à partager sur Facebook, Instagram, Google Maps ou WhatsApp : horaires, soins, contact et prise de rendez-vous en ligne.",
+    "saved": "Page enregistrée.",
+    "addressTitle": "Adresse de la page",
+    "addressHint": "Un nom court en minuscules, sans espaces ni accents (ex. cabinet-les-oliviers).",
+    "slug": "Nom dans l'adresse",
+    "published": "Page publiée",
+    "publishedHint": "Tant que la case n'est pas cochée, personne ne peut voir la page.",
+    "localOnly": "Attention : cette adresse ne fonctionne que sur le réseau du cabinet. Pour la partager, le serveur doit être accessible depuis internet (adresse publique ou version en ligne).",
+    "view": "Voir la page",
+    "copy": "Copier le lien",
+    "copied": "Lien copié",
+    "poster": {
+      "headline": "Prenez rendez-vous en ligne",
+      "scan": "Scannez ce code avec votre téléphone",
+      "call": "Ou appelez le"
+    },
+    "downloadQr": "Télécharger le QR code",
+    "aboutTitle": "Présentation",
+    "aboutHint": "Quelques phrases sur le cabinet (soins proposés, langues parlées, accès, parking). Jamais d'information sur un patient.",
+    "locales": {
+      "fr": "Français",
+      "en": "English",
+      "ar": "العربية"
+    },
+    "contactTitle": "Contact et réseaux",
+    "whatsapp": "Numéro WhatsApp",
+    "whatsappHint": "Laissez vide pour utiliser le numéro du cabinet.",
+    "mapUrl": "Lien Google Maps",
+    "mapUrlHint": "Dans Google Maps : Partager › Copier le lien.",
+    "bookingTitle": "Prise de rendez-vous en ligne",
+    "bookingHint": "Le bouton « Prendre rendez-vous » ouvre ce lien. Chaque demande reste à valider par le cabinet.",
+    "noBookingLink": "Aucun lien de réservation actif : créez-en un pour afficher le bouton « Prendre rendez-vous ».",
+    "bookingLink": "Lien de réservation",
+    "firstActiveLink": "Premier lien actif",
+    "createBookingLink": "Créer un lien de réservation",
+    "servicesTitle": "Soins mis en avant",
+    "servicesHint": "Cochez jusqu'à 24 soins à afficher (ex. détartrage, blanchiment, implant).",
+    "showPrices": "Afficher les prix « à partir de »",
+    "showPricesHint": "Prix du catalogue, présentés comme indicatifs. Laissez décoché pour ne montrer que la liste des soins.",
+    "save": "Enregistrer",
+    "posterUnavailable": "Publiez la page ou créez un lien de réservation pour imprimer l'affiche.",
+    "posterHint": "Imprimez en A4 et affichez-la en salle d'attente ou en vitrine.",
+    "errors": {
+      "slug": "3 à 60 caractères : lettres minuscules, chiffres et tirets.",
+      "slugTaken": "Ce nom est déjà utilisé par un autre cabinet.",
+      "invalidPhone": "Numéro de téléphone invalide.",
+      "invalidUrl": "Lien invalide : il doit commencer par https://",
+      "bookingLinkUnavailable": "Ce lien de réservation n'est plus actif.",
+      "serviceUnavailable": "Un des soins choisis n'est plus disponible.",
+      "tooManyServices": "24 soins au maximum."
+    },
+    "public": {
+      "book": "Prendre rendez-vous en ligne",
+      "whatsapp": "Écrire sur WhatsApp",
+      "whatsappText": "Bonjour, je souhaite prendre rendez-vous au {name}.",
+      "directions": "Itinéraire",
+      "bookingNote": "Votre demande de rendez-vous est confirmée par le cabinet.",
+      "hours": "Horaires",
+      "hoursNote": "Sur rendez-vous, selon les horaires des praticiens.",
+      "closed": "Fermé",
+      "services": "Soins",
+      "from": "à partir de {price}",
+      "pricesNote": "Prix indicatifs : le tarif exact dépend de votre situation et vous est communiqué avant tout soin.",
+      "addresses": "Nos cabinets",
+      "notFound": "Page introuvable",
+      "defaultDescription": "Prenez rendez-vous au {name}."
+    }
   }
 }

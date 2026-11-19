@@ -12,11 +12,13 @@ n'interrompt rien : agenda, patients, actes, factures, paiements, caisse et rapp
 | Sans internet (réseau du cabinet) | Nécessite internet |
 | --- | --- |
 | Toute l'application du personnel : agenda, accueil, patients, actes, plans de traitement, factures, paiements, caisse, dépenses, rapports, impressions, comptes et rôles, double authentification | Liens de prise de rendez-vous en ligne pour les patients **depuis chez eux** |
-| Sauvegardes automatiques sur le serveur | Portail patient accessible hors du cabinet |
-| | Partage de dossiers entre cabinets différents, SMS/WhatsApp |
+| Sauvegardes automatiques sur le serveur | Portail patient et page publique du cabinet (`/c/…`, affiche QR) accessibles hors du cabinet |
+| Relances : les messages WhatsApp/SMS partent du téléphone du personnel | Partage de dossiers entre cabinets différents, envoi automatique de SMS |
 
 Ces fonctions « internet » nécessiteront une synchronisation avec une copie en ligne (prévue, non incluse).
 Sur le réseau du cabinet, le lien de réservation et le portail fonctionnent pour un appareil connecté au Wi-Fi.
+Si le cabinet dispose d'un nom de domaine pointant vers ce serveur, indiquez-le dans `PUBLIC_APP_URL`
+(fichier `.env`) : la page publique et l'affiche QR utiliseront cette adresse.
 
 ## Matériel conseillé
 
