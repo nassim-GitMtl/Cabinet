@@ -1,11 +1,12 @@
 import "server-only";
 
-import { and, asc, eq, sql, type SQL } from "drizzle-orm";
+import { and, asc, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { safeHttpsUrl } from "@/features/public-page/helpers";
 import { addDays, zonedToUtc } from "@/lib/dates";
 import { normalizePhone } from "@/lib/phone";
 import { audit } from "@/server/audit";
 import { can, requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
-import { appointments, bookingLinks, branches, organizations, patientContacts, patients, treatmentPlans } from "@/server/db/schema";
+import { appointments, bookingLinks, branches, organizations, patientContacts, patients, serviceCategories, treatmentPlans } from "@/server/db/schema";
 import type { ContactChannel, ContactOutcome, FollowUpReason, MessageLocale } from "./messages";
 import { asMessageLocale } from "./messages";
 import type { FollowUpSettingsInput, LogContactInput } from "./schemas";
@@ -16,7 +17,9 @@ export class FollowUpError extends Error {
 
 export const DEFAULT_RECALL_MONTHS = 6;
 /** A patient contacted for the same reason is hidden for this many days (recall: longer). */
-const SNOOZE_DAYS: Record<Exclude<FollowUpReason, "appointment_reminder">, number> = { recall: 30, treatment_followup: 14, estimate_followup: 14, no_show: 14 };
+const SNOOZE_DAYS: Record<Exclude<FollowUpReason, "appointment_reminder" | "after_visit" | "referral_thanks">, number> = { recall: 30, treatment_followup: 14, estimate_followup: 14, no_show: 14 };
+/** Referrers are thanked for patients created within this window. */
+const THANKS_WINDOW_DAYS = 60;
 /** Plans become follow-ups only after this many days without a booked appointment. */
 const PLAN_GRACE_DAYS = 3;
 const LIMIT = 100;
@@ -32,6 +35,8 @@ export type ReminderRow = FollowUpPatient & { appointmentId: string; branchId: s
 export type RecallRow = FollowUpPatient & { lastVisit: string };
 export type PlanRow = FollowUpPatient & { planId: string; since: string; title: string | null; totalMinor: number | null; currency: string; remaining: number };
 export type NoShowRow = FollowUpPatient & { appointmentId: string; branchId: string; date: string; time: string; provider: string };
+export type AfterVisitRow = FollowUpPatient & { visitDate: string; categoryIds: string[] };
+export type ThanksRow = FollowUpPatient & { referredCount: number; latestReferral: string };
 
 type RawPatient = {
   patient_id: string; patient_number: string; first_name: string; last_name: string; first_name_ar: string | null;
@@ -83,7 +88,7 @@ export async function suggestReminderDate(ctx: ClinicContext, today: string) {
   return row?.day ?? addDays(today, 1);
 }
 
-export async function getFollowUps(ctx: ClinicContext, opts: { today: string; reminderDate: string }) {
+export async function getFollowUps(ctx: ClinicContext, opts: { today: string; reminderDate: string; visitDate?: string }) {
   requirePermission(ctx, "patient.followup");
   const tz = ctx.organization.timezone;
   const recallMonths = ctx.organization.settings.followUps?.recallMonths ?? DEFAULT_RECALL_MONTHS;
@@ -145,6 +150,29 @@ export async function getFollowUps(ctx: ClinicContext, opts: { today: string; re
          and ${noFutureAppointment} and ${contactAllowed} and ${notSnoozed(SNOOZE_DAYS.no_show)}
        order by p.id, a.starts_at desc limit ${LIMIT}`);
 
+    // Visits = days with completed procedures (with or without an appointment); one row per patient.
+    const afterVisit = await tx.execute<RawPatient & { visit_date: string; category_ids: string[] }>(sql`
+      select to_char(v.service_date, 'YYYY-MM-DD') as visit_date, v.category_ids, ${patientCols}
+        from (select pp.patient_id, pp.service_date, array_agg(distinct s.category_id::text) as category_ids
+                from performed_procedures pp join services s on s.id = pp.service_id
+               where pp.status = 'completed' and pp.service_date = ${opts.visitDate ?? opts.today}::date
+               group by 1, 2) v
+        join patients p on p.id = v.patient_id
+        ${lastContactJoin(tz, "after_visit", sql`c.visit_date = v.service_date`)}
+       where p.status in ('active', 'inactive')
+       order by p.last_name, p.first_name`);
+
+    // Patients who recommended someone recently; hidden once thanked after their latest referral.
+    const thanks = await tx.execute<RawPatient & { referred_count: number; latest_referral: string }>(sql`
+      select ref.n as referred_count, to_char(ref.latest at time zone ${tz}, 'YYYY-MM-DD') as latest_referral, ${patientCols}
+        from (select referred_by_patient_id as id, count(*)::int as n, max(created_at) as latest from patients
+               where referred_by_patient_id is not null and created_at >= now() - make_interval(days => ${THANKS_WINDOW_DAYS})
+               group by 1) ref
+        join patients p on p.id = ref.id
+        ${lastContactJoin(tz, "referral_thanks", sql`true`)}
+       where p.status = 'active' and ${contactAllowed} and (lc.created is null or lc.created < ref.latest)
+       order by ref.latest desc limit ${LIMIT}`);
+
     const planRow = (r: RawPatient & { plan_id: string; since: string; title: string; total_minor: string; currency: string; remaining: number }): PlanRow => ({
       ...mapPatient(r), planId: r.plan_id, since: r.since, remaining: Number(r.remaining), currency: r.currency,
       title: showPlans ? r.title : null, totalMinor: showPlans ? Number(r.total_minor) : null,
@@ -155,6 +183,8 @@ export async function getFollowUps(ctx: ClinicContext, opts: { today: string; re
       recall: recall.map((r): RecallRow => ({ ...mapPatient(r), lastVisit: r.last_visit })),
       treatments: treatments.map(planRow),
       estimates: estimates.map(planRow),
+      afterVisit: afterVisit.map((r): AfterVisitRow => ({ ...mapPatient(r), visitDate: r.visit_date, categoryIds: r.category_ids ?? [] })),
+      thanks: thanks.map((r): ThanksRow => ({ ...mapPatient(r), referredCount: Number(r.referred_count), latestReferral: r.latest_referral })),
       noShows: noShows
         .map((r): NoShowRow => ({ ...mapPatient(r), appointmentId: r.appointment_id, branchId: r.branch_id, date: r.local_date, time: r.local_time, provider: r.provider }))
         .sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`)),
@@ -189,6 +219,11 @@ export async function logPatientContact(ctx: ClinicContext, input: LogContactInp
         .where(and(eq(appointments.id, input.appointmentId), eq(appointments.patientId, input.patientId))).limit(1);
       if (!a) throw new FollowUpError("referenceUnavailable");
     }
+    if (input.reason === "after_visit") {
+      const [visit] = await tx.execute<{ ok: number }>(sql`select 1 as ok from performed_procedures
+        where patient_id = ${input.patientId} and service_date = ${input.visitDate}::date and status = 'completed' limit 1`);
+      if (!visit) throw new FollowUpError("referenceUnavailable");
+    }
     if (input.treatmentPlanId) {
       const [p] = await tx.select({ id: treatmentPlans.id }).from(treatmentPlans)
         .where(and(eq(treatmentPlans.id, input.treatmentPlanId), eq(treatmentPlans.patientId, input.patientId))).limit(1);
@@ -196,7 +231,7 @@ export async function logPatientContact(ctx: ClinicContext, input: LogContactInp
     }
     const [row] = await tx.insert(patientContacts).values({
       organizationId: ctx.organizationId, patientId: input.patientId, reason: input.reason, channel: input.channel,
-      outcome: input.outcome, appointmentId: input.appointmentId, treatmentPlanId: input.treatmentPlanId, note: input.note,
+      outcome: input.outcome, appointmentId: input.appointmentId, treatmentPlanId: input.treatmentPlanId, visitDate: input.visitDate ?? null, note: input.note,
       createdByUserId: ctx.userId,
     }).returning({ id: patientContacts.id });
     await audit(tx, {
@@ -209,10 +244,15 @@ export async function logPatientContact(ctx: ClinicContext, input: LogContactInp
 
 export async function getFollowUpSettings(ctx: ClinicContext) {
   requirePermission(ctx, "org.settings.manage");
-  const branchRows = await tenantTx(ctx, (tx) =>
-    tx.select({ id: branches.id, name: branches.name, phone: branches.phone }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)));
+  const [branchRows, categories] = await tenantTx(ctx, (tx) => Promise.all([
+    tx.select({ id: branches.id, name: branches.name, phone: branches.phone }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)),
+    tx.select({ id: serviceCategories.id, name: serviceCategories.name }).from(serviceCategories).where(eq(serviceCategories.isActive, true)).orderBy(asc(serviceCategories.sortOrder)),
+  ]));
   const saved = ctx.organization.settings.followUps;
-  return { recallMonths: saved?.recallMonths ?? DEFAULT_RECALL_MONTHS, templates: saved?.templates ?? {}, branches: branchRows };
+  return {
+    recallMonths: saved?.recallMonths ?? DEFAULT_RECALL_MONTHS, templates: saved?.templates ?? {}, branches: branchRows,
+    reviewUrl: saved?.reviewUrl ?? "", aftercare: saved?.aftercare ?? {}, categories,
+  };
 }
 
 export async function saveFollowUpSettings(ctx: ClinicContext, input: FollowUpSettingsInput) {
@@ -226,8 +266,18 @@ export async function saveFollowUpSettings(ctx: ClinicContext, input: FollowUpSe
   const templates = Object.fromEntries(Object.entries(input.templates).map(([reason, byLocale]) => [
     reason, Object.fromEntries(Object.entries(byLocale).filter(([, text]) => text.trim())),
   ]).filter(([, byLocale]) => Object.keys(byLocale as object).length));
-  const followUps = { recallMonths: input.recallMonths, templates };
+  const reviewUrl = input.reviewUrl ? safeHttpsUrl(input.reviewUrl) : null;
+  if (input.reviewUrl && !reviewUrl) throw new FollowUpError("invalidUrl", { reviewUrl: "followUps.errors.invalidUrl" });
+  const aftercare = Object.fromEntries(input.aftercare
+    .map((a) => [a.categoryId, Object.fromEntries((["fr", "en", "ar"] as const).filter((l) => a[l]).map((l) => [l, a[l]]))] as const)
+    .filter(([, texts]) => Object.keys(texts).length));
+  const followUps = { recallMonths: input.recallMonths, templates, reviewUrl, aftercare };
   return tenantTx(ctx, async (tx) => {
+    const categoryIds = Object.keys(aftercare);
+    if (categoryIds.length) {
+      const found = await tx.select({ id: serviceCategories.id }).from(serviceCategories).where(inArray(serviceCategories.id, categoryIds));
+      if (found.length !== categoryIds.length) throw new FollowUpError("categoryUnavailable");
+    }
     for (const b of phones) {
       const [updated] = await tx.update(branches).set({ phone: b.phone }).where(eq(branches.id, b.branchId)).returning({ id: branches.id });
       if (!updated) throw new FollowUpError("branchUnavailable");

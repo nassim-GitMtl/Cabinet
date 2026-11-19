@@ -15,6 +15,7 @@ async function setup(name: string, slug: string) {
   const input = (extra: Partial<PublicProfileInput> = {}): PublicProfileInput => ({
     slug, isPublished: true, about: { fr: "Soins dentaires pour toute la famille.", en: "", ar: "" },
     whatsappPhone: "0661 11 22 33", mapUrl: "https://maps.app.goo.gl/abc", facebookUrl: "", instagramUrl: "",
+    reviewUrl: "https://g.page/r/cabinet-demo/review",
     bookingLinkId: null, featuredServiceIds: [all[0]!.id, all[1]!.id], showPrices: true, ...extra,
   });
   return { ctx, all, input };
@@ -42,7 +43,10 @@ describe("clinic public page", () => {
     // A deactivated booking link is never shown.
     await setBookingLinkActive(f.ctx, linkId, false);
     expect((await getPublicClinicPage("cabinet-vitrine-a"))!.bookingToken).toBeNull();
-    expect((await getPublicPageSettings(f.ctx)).profile).toMatchObject({ slug: "cabinet-vitrine-a", showPrices: false });
+    expect(await getPublicPageSettings(f.ctx)).toMatchObject({
+      profile: { slug: "cabinet-vitrine-a", showPrices: false },
+      reviewUrl: "https://g.page/r/cabinet-demo/review",
+    });
 
     await savePublicProfile(f.ctx, f.input({ isPublished: false }));
     expect(await getPublicClinicPage("cabinet-vitrine-a")).toBeNull();
@@ -57,6 +61,7 @@ describe("clinic public page", () => {
     await expect(savePublicProfile(b.ctx, b.input({ slug: "cabinet-vitrine-b" }))).rejects.toMatchObject({ code: "slugTaken" });
     await expect(savePublicProfile(b.ctx, b.input({ slug: "Cabinet B!" }))).rejects.toMatchObject({ code: "slug" });
     await expect(savePublicProfile(b.ctx, b.input({ mapUrl: "http://maps.example.com" }))).rejects.toMatchObject({ code: "invalidUrl", field: "mapUrl" });
+    await expect(savePublicProfile(b.ctx, b.input({ reviewUrl: "http://reviews.example.com" }))).rejects.toMatchObject({ code: "invalidUrl", field: "reviewUrl" });
     await expect(savePublicProfile(b.ctx, b.input({ whatsappPhone: "12" }))).rejects.toBeInstanceOf(PublicPageError);
     await expect(savePublicProfile(b.ctx, b.input({ featuredServiceIds: [a.all[0]!.id] }))).rejects.toMatchObject({ code: "serviceUnavailable" });
     await expect(savePublicProfile(contextFor(b.ctx, "receptionist"), b.input())).rejects.toBeInstanceOf(ForbiddenError);

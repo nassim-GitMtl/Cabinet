@@ -39,7 +39,7 @@ async function setup(name: string) {
   const service = picker.categories.flatMap((c) => c.services).find((s) => s.code === "CONS-01")!;
   const today = todayInZone(ctx.organization.timezone);
   const day = nextWorkday(today);
-  const patient = async (firstName: string, extra: Partial<typeof blank> & { phone?: string | null; messagesOptOut?: boolean } = {}) => {
+  const patient = async (firstName: string, extra: Partial<typeof blank> & { phone?: string | null; messagesOptOut?: boolean; referredByPatientId?: string } = {}) => {
     const r = await createPatient(ctx, { ...blank, firstName, lastName: "Relance", phone: "0550 12 34 56", ...extra }, { confirmNotDuplicate: true });
     if (r.status !== "created") throw new Error("fixture");
     return r.id;
@@ -54,7 +54,7 @@ async function setup(name: string) {
       patientId, providerId: agenda.providers[0]!.id, chairId: agenda.chairs[0]!.id, appointmentTypeId: agenda.types[0]!.id,
       date: day, time, durationMin: 30, notes: null, outsideHoursOverride: false,
     });
-  return { ctx, service, today, day, patient, visit, book };
+  return { ctx, service, picker, today, day, patient, visit, book };
 }
 
 describe("patient follow-ups", () => {
@@ -163,9 +163,9 @@ describe("patient follow-ups", () => {
   it("saves the recall delay, clinic phone and custom wording (owner only)", async () => {
     const f = await setup("Cabinet Relances E");
     const settings = await getFollowUpSettings(f.ctx);
-    const templates = Object.fromEntries((["appointment_reminder", "recall", "treatment_followup", "estimate_followup", "no_show"] as const)
+    const templates = Object.fromEntries((["appointment_reminder", "recall", "treatment_followup", "estimate_followup", "no_show", "after_visit", "referral_thanks"] as const)
       .map((r) => [r, { fr: r === "recall" ? "Salut {firstName}, contrôle au {clinic} ({clinicPhone})." : "", en: "", ar: "" }])) as never;
-    const input = { recallMonths: 9, templates, branchPhones: [{ branchId: settings.branches[0]!.id, phone: "0661 22 33 44" }] };
+    const input = { recallMonths: 9, templates, branchPhones: [{ branchId: settings.branches[0]!.id, phone: "0661 22 33 44" }], reviewUrl: "", aftercare: [] };
 
     await expect(saveFollowUpSettings(contextFor(f.ctx, "receptionist"), input)).rejects.toBeInstanceOf(ForbiddenError);
     await expect(saveFollowUpSettings(f.ctx, { ...input, branchPhones: [{ branchId: settings.branches[0]!.id, phone: "12" }] })).rejects.toMatchObject({ code: "invalidPhone" });
@@ -175,7 +175,7 @@ describe("patient follow-ups", () => {
     expect(context.defaultPhone).toBe("+213661223344");
     let saved: unknown;
     await asOwner(async (sql) => { [saved] = await sql`select settings->'followUps' as v from organizations where id = ${f.ctx.organizationId}`; });
-    expect((saved as { v: unknown }).v).toEqual({ recallMonths: 9, templates: { recall: { fr: "Salut {firstName}, contrôle au {clinic} ({clinicPhone})." } } });
+    expect((saved as { v: unknown }).v).toEqual({ recallMonths: 9, templates: { recall: { fr: "Salut {firstName}, contrôle au {clinic} ({clinicPhone})." } }, reviewUrl: null, aftercare: {} });
 
     const ctx = { ...f.ctx, organization: { ...f.ctx.organization, settings: { followUps: { recallMonths: 9, templates: { recall: { fr: "Salut {firstName}, contrôle au {clinic} ({clinicPhone})." } } } } } };
     const resolved = resolveTemplates(ctx);
@@ -183,5 +183,53 @@ describe("patient follow-ups", () => {
     expect(resolved.recall.en).toContain("Hello"); // untouched languages keep the default
     const patientRow = { patientId: "x", patientNumber: "P-1", firstName: "Sara", lastName: "R", firstNameAr: null, phone: null, locale: "fr" as const, contactAllowed: true, lastContact: null };
     expect(composeMessage(resolved, "recall", patientRow, { ...context, recallMonths: 9, bookingUrl: null })).toBe("Salut Sara, contrôle au Cabinet Relances E (0661 22 33 44).");
+  });
+
+  it("prepares after-visit messages with the clinic's care advice and review link, and thanks referrers", async () => {
+    const f = await setup("Cabinet Relances F");
+    const amina = await f.patient("Amina");
+    await f.visit(amina, 0);
+    const reviewUrl = "https://g.page/r/cabinet-demo/review";
+    const settings = await getFollowUpSettings(f.ctx);
+    const empty = Object.fromEntries((["appointment_reminder", "recall", "treatment_followup", "estimate_followup", "no_show", "after_visit", "referral_thanks"] as const)
+      .map((r) => [r, { fr: "", en: "", ar: "" }])) as never;
+    const base = { recallMonths: 6, templates: empty, branchPhones: [], reviewUrl, aftercare: [{ categoryId: f.service.categoryId, fr: "Évitez de manger pendant une heure.", en: "", ar: "" }] };
+    await expect(saveFollowUpSettings(f.ctx, { ...base, reviewUrl: "http://avis.example" })).rejects.toMatchObject({ code: "invalidUrl" });
+    const other = await setup("Cabinet Relances G");
+    await expect(saveFollowUpSettings(f.ctx, { ...base, aftercare: [{ categoryId: other.service.categoryId, fr: "x", en: "", ar: "" }] })).rejects.toMatchObject({ code: "categoryUnavailable" });
+    await saveFollowUpSettings(f.ctx, base);
+    expect(settings.categories.some((c) => c.id === f.service.categoryId)).toBe(true);
+    const ctx = { ...f.ctx, organization: { ...f.ctx.organization, settings: { followUps: { reviewUrl, aftercare: { [f.service.categoryId]: { fr: "Évitez de manger pendant une heure." } } } } } };
+
+    let lists = await getFollowUps(ctx, { today: f.today, reminderDate: f.day, visitDate: f.today });
+    expect(lists.afterVisit).toMatchObject([{ patientId: amina, visitDate: f.today, categoryIds: [f.service.categoryId], lastContact: null }]);
+    const message = composeMessage(resolveTemplates(ctx), "after_visit", lists.afterVisit[0]!, {
+      ...(await getMessageContext(ctx)), recallMonths: 6, bookingUrl: null, reviewUrl, aftercare: ctx.organization.settings.followUps.aftercare,
+    });
+    expect(message).toContain("Évitez de manger pendant une heure.");
+    expect(message).toContain(reviewUrl);
+
+    const contact = { patientId: amina, reason: "after_visit" as const, channel: "whatsapp" as const, outcome: "message_prepared" as const, appointmentId: null, treatmentPlanId: null, note: null };
+    await expect(logPatientContact(f.ctx, { ...contact, visitDate: addDays(f.today, -1) })).rejects.toMatchObject({ code: "referenceUnavailable" });
+    await logPatientContact(f.ctx, { ...contact, visitDate: f.today });
+    lists = await getFollowUps(ctx, { today: f.today, reminderDate: f.day, visitDate: f.today });
+    expect(lists.afterVisit[0]!.lastContact).toMatchObject({ channel: "whatsapp", outcome: "message_prepared" });
+    // The database itself requires the visit day for after-visit contacts.
+    await expectDbError(withDbContext({ organizationId: f.ctx.organizationId, userId: f.ctx.userId, actorType: "staff" }, (tx) =>
+      tx.insert(patientContacts).values({ organizationId: f.ctx.organizationId, patientId: amina, reason: "after_visit", channel: "sms", outcome: "message_prepared", createdByUserId: f.ctx.userId })),
+      /patient_contacts_reference/);
+
+    // Thanks: listed after a recommendation, hidden once thanked, back after the next one.
+    await f.patient("Bilal", { referredByPatientId: amina });
+    expect((await getFollowUps(f.ctx, { today: f.today, reminderDate: f.day })).thanks).toMatchObject([{ patientId: amina, referredCount: 1 }]);
+    await logPatientContact(f.ctx, { ...contact, reason: "referral_thanks", visitDate: null });
+    expect((await getFollowUps(f.ctx, { today: f.today, reminderDate: f.day })).thanks).toEqual([]);
+    await f.patient("Chafia", { referredByPatientId: amina });
+    expect((await getFollowUps(f.ctx, { today: f.today, reminderDate: f.day })).thanks).toMatchObject([{ patientId: amina, referredCount: 2 }]);
+    const thanks = composeMessage(resolveTemplates(f.ctx), "referral_thanks", (await getFollowUps(f.ctx, { today: f.today, reminderDate: f.day })).thanks[0]!, {
+      ...(await getMessageContext(f.ctx)), recallMonths: 6, bookingUrl: null,
+    });
+    expect(thanks).not.toContain("Bilal");
+    expect(thanks).not.toContain("Chafia");
   });
 });

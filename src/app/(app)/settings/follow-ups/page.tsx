@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ButtonLink } from "@/components/button-link";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { defaultTemplates } from "@/features/follow-ups/compose";
@@ -16,7 +16,7 @@ export default async function FollowUpSettingsPage() {
   const ctx = await requireClinicContext();
   const t = await getTranslations("followUps");
   if (!can(ctx, "org.settings.manage")) return <ForbiddenState message={(await getTranslations("errors"))("forbiddenPage")} />;
-  const settings = await getFollowUpSettings(ctx);
+  const [settings, locale] = await Promise.all([getFollowUpSettings(ctx), getLocale()]);
   return (
     <>
       <PageHeader
@@ -29,6 +29,9 @@ export default async function FollowUpSettingsPage() {
         branches={settings.branches.map((b) => ({ id: b.id, name: b.name, phone: b.phone ? formatPhone(b.phone) : "" }))}
         custom={settings.templates}
         defaults={defaultTemplates()}
+        reviewUrl={settings.reviewUrl ?? ""}
+        aftercare={settings.aftercare}
+        categories={settings.categories.map((c) => ({ id: c.id, name: (c.name as Record<string, string | undefined>)[locale] || c.name.fr }))}
       />
     </>
   );

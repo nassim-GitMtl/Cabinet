@@ -21,6 +21,8 @@ export type PublicProfileInput = {
   mapUrl: string;
   facebookUrl: string;
   instagramUrl: string;
+  /** Review destination reused by the after-visit follow-up workflow. */
+  reviewUrl: string;
   bookingLinkId: string | null;
   featuredServiceIds: string[];
   showPrices: boolean;
@@ -41,7 +43,15 @@ export async function getPublicPageSettings(ctx: ClinicContext) {
       .where(eq(services.isActive, true))
       .orderBy(asc(serviceCategories.sortOrder), asc(services.code));
     const [branch] = await tx.select({ phone: branches.phone }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)).limit(1);
-    return { profile: profile ?? null, suggestedSlug: slugify(ctx.organization.name), links, services: serviceRows, branchPhone: branch?.phone ?? null };
+    const [org] = await tx.select({ settings: organizations.settings }).from(organizations).limit(1);
+    return {
+      profile: profile ?? null,
+      suggestedSlug: slugify(ctx.organization.name),
+      links,
+      services: serviceRows,
+      branchPhone: branch?.phone ?? null,
+      reviewUrl: org?.settings.followUps?.reviewUrl ?? "",
+    };
   });
 }
 
@@ -53,6 +63,8 @@ export async function savePublicProfile(ctx: ClinicContext, input: PublicProfile
   if (input.whatsappPhone.trim() && !whatsappPhone) throw new PublicPageError("invalidPhone", "whatsappPhone");
   const urls = { mapUrl: input.mapUrl, facebookUrl: input.facebookUrl, instagramUrl: input.instagramUrl };
   for (const [field, value] of Object.entries(urls)) if (value.trim() && !safeHttpsUrl(value)) throw new PublicPageError("invalidUrl", field);
+  const reviewUrl = input.reviewUrl.trim() ? safeHttpsUrl(input.reviewUrl) : null;
+  if (input.reviewUrl.trim() && !reviewUrl) throw new PublicPageError("invalidUrl", "reviewUrl");
   const featured = [...new Set(input.featuredServiceIds)];
   if (featured.length > 24) throw new PublicPageError("tooManyServices", "featuredServiceIds");
   const about = Object.fromEntries(Object.entries(input.about).map(([k, v]) => [k, v.trim()]).filter(([, v]) => v));
@@ -82,7 +94,19 @@ export async function savePublicProfile(ctx: ClinicContext, input: PublicProfile
       if ((error as { cause?: { code?: string } }).cause?.code === "23505") throw new PublicPageError("slugTaken", "slug");
       throw error;
     }
-    await audit(tx, { ...staff(ctx), action: "org.public_page_saved", entityType: "organization", entityId: ctx.organizationId, metadata: { slug, published: input.isPublished } });
+    // Merge only this shared key so saving the public page cannot overwrite follow-up templates or care instructions.
+    await tx.update(organizations).set({
+      settings: sql`jsonb_set(
+        ${organizations.settings},
+        '{followUps}',
+        coalesce(${organizations.settings}->'followUps', '{}'::jsonb) || jsonb_build_object('reviewUrl', ${reviewUrl}),
+        true
+      )`,
+    }).where(eq(organizations.id, ctx.organizationId));
+    await audit(tx, {
+      ...staff(ctx), action: "org.public_page_saved", entityType: "organization", entityId: ctx.organizationId,
+      metadata: { slug, published: input.isPublished, reviewLinkConfigured: Boolean(reviewUrl) },
+    });
   });
 }
 

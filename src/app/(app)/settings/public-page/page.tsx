@@ -38,6 +38,7 @@ export default async function PublicPageSettings() {
           mapUrl: p?.mapUrl ?? "",
           facebookUrl: p?.facebookUrl ?? "",
           instagramUrl: p?.instagramUrl ?? "",
+          reviewUrl: data.reviewUrl,
           bookingLinkId: p?.bookingLinkId ?? "",
           featuredServiceIds: p?.featuredServiceIds ?? [],
           showPrices: p?.showPrices ?? false,

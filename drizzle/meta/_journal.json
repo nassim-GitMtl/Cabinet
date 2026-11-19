@@ -253,6 +253,13 @@
       "when": 1795095793865,
       "tag": "0035_public_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1795097251064,
+      "tag": "0036_after_visit",
+      "breakpoints": true
     }
   ]
 }

@@ -269,8 +269,13 @@ never summed. "Paid to date" is as of generation time.
 - Templates: built-in defaults live in `messages/*.json` → `followUps.templates` and are read from all three files on the
   server (`compose.ts`), because a message follows the patient's language, not the user's. Clinic overrides are stored in
   `organizations.settings.followUps.templates` (empty = default). `{placeholders}` are filled by `fillTemplate`, not ICU.
-- Messages never include clinical content (no procedure names, teeth or diagnoses); plan titles/amounts are shown to staff
-  only with `treatment_plan.read`.
+- Messages never include diagnoses, procedure names or teeth; plan titles/amounts are shown to staff only with
+  `treatment_plan.read`. Exception by design: after-visit messages may carry the clinic's own care advice (per catalog
+  category, written by the clinic, none by default), sent to the patient's own number and visible to staff before sending.
+- After-visit rows come from completed `performed_procedures` of one day (appointments optional); contacts reference
+  `visit_date`. Referral thanks never name the referred patient (that would disclose someone else's care).
+- New `follow_up_reason` values: add them to the enum and to `FOLLOW_UP_REASONS`, and write any SQL that compares them as
+  `reason::text` in the same migration (Postgres refuses new enum values inside the transaction that added them).
 
 ## Patient acquisition (`src/lib/acquisition.ts`, `src/features/reports/acquisition.ts`, migration 0034)
 

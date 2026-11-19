@@ -23,6 +23,8 @@ export type FollowUpItem = {
   message: string;
   appointmentId: string | null;
   planId: string | null;
+  /** After-visit messages refer to the day of the visit. */
+  visitDate: string | null;
   details: string[];
   lastContact: string | null;
   confirmation: { status: string; label: string; canConfirm: boolean } | null;
@@ -45,7 +47,7 @@ export function FollowUpCard({ item }: { item: FollowUpItem }) {
       setError(undefined);
       const res = await logContactAction({
         patientId: item.patientId, reason: item.reason, channel: usedChannel, outcome: result,
-        appointmentId: item.appointmentId, treatmentPlanId: item.planId,
+        appointmentId: item.appointmentId, treatmentPlanId: item.planId, visitDate: item.visitDate,
       });
       if (res.error) setError(res.error);
     });

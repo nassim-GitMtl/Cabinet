@@ -11,6 +11,9 @@ import type { FollowUpPatient, getMessageContext } from "./server";
 const DEFAULTS: Record<MessageLocale, Record<FollowUpReason, string>> = {
   fr: fr.followUps.templates, en: en.followUps.templates, ar: ar.followUps.templates,
 };
+const REVIEW_SENTENCE: Record<MessageLocale, string> = {
+  fr: fr.followUps.reviewSentence, en: en.followUps.reviewSentence, ar: ar.followUps.reviewSentence,
+};
 
 export type Templates = Record<FollowUpReason, Record<MessageLocale, string>>;
 
@@ -29,17 +32,33 @@ export function defaultTemplates(): Templates {
 }
 
 type MessageContext = Awaited<ReturnType<typeof getMessageContext>>;
+export type ComposeContext = MessageContext & {
+  bookingUrl: string | null;
+  recallMonths: number;
+  /** Clinic settings: review page and care instructions per catalog category (after-visit messages). */
+  reviewUrl?: string | null;
+  aftercare?: Record<string, Partial<Record<MessageLocale, string>>>;
+};
 
-/** The text staff will send, in the patient's language. Contains no clinical details. */
+/** Care instructions the clinic wrote for the categories of treatments done that day, in the patient's language. */
+export function careInstructionsFor(categoryIds: string[], locale: MessageLocale, aftercare: ComposeContext["aftercare"] = {}): string {
+  return categoryIds.map((id) => aftercare[id]?.[locale]?.trim()).filter(Boolean).join(" ");
+}
+
+/**
+ * The text staff will send, in the patient's language. No diagnoses or procedure names; the only clinical text is
+ * the clinic's own aftercare advice in after-visit messages, sent to the patient's own number and reviewed before sending.
+ */
 export function composeMessage(
   templates: Templates,
   reason: FollowUpReason,
-  row: FollowUpPatient & { branchId?: string; date?: string; time?: string; provider?: string },
-  context: MessageContext & { bookingUrl: string | null; recallMonths: number },
+  row: FollowUpPatient & { branchId?: string; date?: string; time?: string; provider?: string; categoryIds?: string[] },
+  context: ComposeContext,
 ): string {
   const locale = row.locale;
   const phone = (row.branchId ? context.phones.get(row.branchId) : null) ?? context.defaultPhone;
-  return fillTemplate(templates[reason][locale], {
+  const template = templates[reason][locale];
+  const text = fillTemplate(template, {
     firstName: locale === "ar" && row.firstNameAr ? row.firstNameAr : row.firstName,
     lastName: row.lastName,
     clinic: context.clinicName,
@@ -49,5 +68,12 @@ export function composeMessage(
     clinicPhone: phone ? formatPhone(phone) : "",
     months: String(context.recallMonths),
     bookingLink: context.bookingUrl ?? "",
+    careInstructions: reason === "after_visit" ? careInstructionsFor(row.categoryIds ?? [], locale, context.aftercare) : "",
+    reviewLink: context.reviewUrl ?? "",
   });
+  // After a visit, ask for a review when the clinic set a link (unless its own wording already places it).
+  if (reason === "after_visit" && context.reviewUrl && !template.includes("{reviewLink}")) {
+    return `${text} ${fillTemplate(REVIEW_SENTENCE[locale], { reviewLink: context.reviewUrl })}`;
+  }
+  return text;
 }

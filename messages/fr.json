@@ -1718,7 +1718,9 @@
       "recall": "Contrôles",
       "treatments": "Traitements",
       "estimates": "Devis",
-      "noShows": "Absents"
+      "noShows": "Absents",
+      "afterVisit": "Après visite",
+      "thanks": "Remerciements"
     },
     "hints": {
       "reminders": "Rendez-vous du {date}. Envoyez le rappel, puis marquez le rendez-vous confirmé quand le patient répond.",
@@ -1726,14 +1728,19 @@
       "treatments": "Plans de traitement acceptés mais pas terminés, sans prochain rendez-vous.",
       "estimates": "Devis proposés depuis plus de 3 jours, toujours sans réponse du patient.",
       "noShows": "Absences des 30 derniers jours, sans nouveau rendez-vous.",
-      "snooze": "Un patient contacté sort de la liste pendant {days} jours ; s'il refuse, pendant 6 mois."
+      "snooze": "Un patient contacté sort de la liste pendant {days} jours ; s'il refuse, pendant 6 mois.",
+      "afterVisit": "Patients soignés le {date} : remerciez-les, envoyez vos conseils après soins et, si vous le souhaitez, demandez un avis.",
+      "thanks": "Patients qui ont recommandé le cabinet ces 60 derniers jours. Le message ne cite jamais la personne recommandée.",
+      "thanksSnooze": "Un patient remercié sort de la liste jusqu'à sa prochaine recommandation."
     },
     "empty": {
       "reminders": "Aucun rendez-vous ce jour-là.",
       "recall": "Aucun contrôle à proposer pour le moment.",
       "treatments": "Aucun traitement à relancer.",
       "estimates": "Aucun devis en attente de réponse.",
-      "noShows": "Aucune absence à relancer."
+      "noShows": "Aucune absence à relancer.",
+      "afterVisit": "Aucun soin réalisé ce jour-là.",
+      "thanks": "Aucune recommandation à remercier pour le moment."
     },
     "previousDay": "Jour précédent",
     "nextDay": "Jour suivant",
@@ -1791,7 +1798,11 @@
         "fr": "Français",
         "en": "English",
         "ar": "العربية"
-      }
+      },
+      "reviewUrl": "Lien pour laisser un avis (Google)",
+      "reviewUrlHint": "Fiche Google de votre cabinet › « Demander des avis » › copier le lien. Il est ajouté aux messages après visite.",
+      "aftercareTitle": "Conseils après soins",
+      "aftercareHint": "Facultatif. Vos conseils par famille de soins (par ex. après une extraction), rédigés et validés par le cabinet : ils sont ajoutés au message après visite quand le patient a reçu un soin de cette famille."
     },
     "errors": {
       "patientUnavailable": "Ce patient n'est pas disponible.",
@@ -1799,15 +1810,21 @@
       "recallMonths": "Choisissez entre 3 et 24 mois.",
       "invalidPhone": "Numéro de téléphone invalide.",
       "branchUnavailable": "Ce site n'est plus disponible.",
-      "appointmentChanged": "Ce rendez-vous a changé entre-temps ; actualisez la page."
+      "appointmentChanged": "Ce rendez-vous a changé entre-temps ; actualisez la page.",
+      "invalidUrl": "Lien invalide : il doit commencer par https://",
+      "categoryUnavailable": "Cette famille de soins n'est plus disponible."
     },
     "templates": {
       "appointment_reminder": "Bonjour {firstName}, nous vous rappelons votre rendez-vous au {clinic} le {date} à {time} avec {provider}. Merci de confirmer votre présence en répondant à ce message. En cas d'empêchement, appelez-nous au {clinicPhone}.",
       "recall": "Bonjour {firstName}, votre dernière visite au {clinic} remonte à plus de {months} mois. Un contrôle régulier permet d'éviter bien des problèmes dentaires. Répondez à ce message ou appelez le {clinicPhone} pour prendre rendez-vous.",
       "treatment_followup": "Bonjour {firstName}, votre traitement au {clinic} n'est pas encore terminé. Pour fixer votre prochaine séance, répondez à ce message ou appelez le {clinicPhone}.",
       "estimate_followup": "Bonjour {firstName}, avez-vous pu étudier le devis remis par le {clinic} ? Nous sommes à votre disposition pour répondre à vos questions au {clinicPhone}.",
-      "no_show": "Bonjour {firstName}, nous ne vous avons pas vu à votre rendez-vous du {date} au {clinic}. Souhaitez-vous en fixer un nouveau ? Répondez à ce message ou appelez le {clinicPhone}."
-    }
+      "no_show": "Bonjour {firstName}, nous ne vous avons pas vu à votre rendez-vous du {date} au {clinic}. Souhaitez-vous en fixer un nouveau ? Répondez à ce message ou appelez le {clinicPhone}.",
+      "after_visit": "Bonjour {firstName}, merci pour votre visite au {clinic}. {careInstructions} En cas de douleur ou pour toute question, appelez-nous au {clinicPhone}.",
+      "referral_thanks": "Bonjour {firstName}, merci d'avoir recommandé notre cabinet à vos proches : votre confiance nous touche beaucoup. À bientôt, l'équipe du {clinic}."
+    },
+    "careIncluded": "Conseils après soins inclus",
+    "reviewSentence": "Si vous êtes satisfait(e), votre avis nous aiderait beaucoup : {reviewLink}"
   },
   "acquisition": {
     "question": "Comment nous a-t-il connu ?",

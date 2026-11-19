@@ -9,11 +9,15 @@ import { FOLLOW_UP_REASONS, MAX_TEMPLATE_LENGTH, MESSAGE_LOCALES, TEMPLATE_PLACE
 
 const REASON_TAB: Record<FollowUpReason, string> = {
   appointment_reminder: "reminders", recall: "recall", treatment_followup: "treatments", estimate_followup: "estimates", no_show: "noShows",
+  after_visit: "afterVisit", referral_thanks: "thanks",
 };
 
-export function FollowUpSettingsForm({ recallMonths, branches, custom, defaults }: {
+export function FollowUpSettingsForm({ recallMonths, branches, custom, defaults, reviewUrl, categories, aftercare }: {
   recallMonths: number;
   branches: { id: string; name: string; phone: string }[];
+  reviewUrl: string;
+  categories: { id: string; name: string }[];
+  aftercare: Record<string, Partial<Record<MessageLocale, string>>>;
   custom: Partial<Record<FollowUpReason, Partial<Record<MessageLocale, string>>>>;
   defaults: Record<FollowUpReason, Record<MessageLocale, string>>;
 }) {
@@ -33,6 +37,31 @@ export function FollowUpSettingsForm({ recallMonths, branches, custom, defaults 
             <TextField key={b.id} name={`branchPhone.${b.id}`} type="tel" inputMode="tel" dir="ltr" label={t("settings.branchPhone", { branch: b.name })}
               placeholder="0550 00 00 00" defaultValue={value(`branchPhone.${b.id}`, b.phone)} error={state.fieldErrors?.[`branchPhones.${index}`]} />
           ))}
+        </div>
+      </section>
+
+      <section className="grid gap-4 rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
+        <TextField name="reviewUrl" type="url" dir="ltr" label={t("settings.reviewUrl")} optionalLabel placeholder="https://g.page/r/…"
+          hint={t("settings.reviewUrlHint")} defaultValue={value("reviewUrl", reviewUrl)} error={state.fieldErrors?.reviewUrl} />
+        <div>
+          <h2 className="font-semibold">{t("settings.aftercareTitle")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("settings.aftercareHint")}</p>
+        </div>
+        <div className="grid gap-2">
+          {categories.map((c) => {
+            const filled = MESSAGE_LOCALES.some((l) => aftercare[c.id]?.[l]);
+            return (
+              <details key={c.id} className="rounded-xl border p-3" open={filled}>
+                <summary className="cursor-pointer text-sm font-medium"><bdi>{c.name}</bdi>{filled ? " ✓" : ""}</summary>
+                <div className="mt-3 grid gap-3 lg:grid-cols-3">
+                  {MESSAGE_LOCALES.map((locale) => (
+                    <TextAreaField key={locale} name={`aftercare.${c.id}.${locale}`} label={t(`settings.locales.${locale}`)} optionalLabel rows={3} maxLength={500}
+                      dir={locale === "ar" ? "rtl" : "ltr"} defaultValue={value(`aftercare.${c.id}.${locale}`, aftercare[c.id]?.[locale] ?? "")} />
+                  ))}
+                </div>
+              </details>
+            );
+          })}
         </div>
       </section>
 

@@ -48,7 +48,9 @@ export async function saveFollowUpSettingsAction(_previous: ActionState, formDat
     reason, Object.fromEntries(MESSAGE_LOCALES.map((locale) => [locale, values[`templates.${reason}.${locale}`] ?? ""])),
   ]));
   const branchPhones = Object.keys(values).filter((k) => k.startsWith("branchPhone.")).map((k) => ({ branchId: k.slice("branchPhone.".length), phone: values[k] ?? "" }));
-  const parsed = followUpSettingsSchema.safeParse({ recallMonths: values.recallMonths, templates, branchPhones });
+  const aftercare = [...new Set(Object.keys(values).filter((k) => k.startsWith("aftercare.")).map((k) => k.split(".")[1]!))]
+    .map((categoryId) => ({ categoryId, fr: values[`aftercare.${categoryId}.fr`] ?? "", en: values[`aftercare.${categoryId}.en`] ?? "", ar: values[`aftercare.${categoryId}.ar`] ?? "" }));
+  const parsed = followUpSettingsSchema.safeParse({ recallMonths: values.recallMonths, templates, branchPhones, reviewUrl: values.reviewUrl ?? "", aftercare });
   if (!parsed.success) return { fieldErrors: fieldErrorsOf(parsed.error), values };
   try {
     await saveFollowUpSettings(ctx, parsed.data);

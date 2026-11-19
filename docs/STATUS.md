@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-19 by Claude (session 26 — clinic public page + QR poster).
+Last updated: 2026-11-19 by Claude (session 27 — after-visit messages, reviews, referral thanks).
 
 ## How to verify the current state
 
@@ -271,6 +271,18 @@ Browser-checked: demo clinic page saved and published (4 services with prices), 
 404, no staff or patient names in the HTML, poster with bilingual text + QR + phone, SVG download. Note: npm audit lists 8
 moderate issues, all pre-existing dev tooling (drizzle-kit, shadcn), none from `qrcode`.
 
+Session 27 (Claude): after-visit messages, reviews and referral thanks. Migration 0036 adds follow-up reasons
+`after_visit` and `referral_thanks` and `patient_contacts.visit_date` (reference CHECK compares `reason::text`, since a
+migration cannot use enum values added in the same transaction). Relances gets two tabs: "Après visite" (patients with
+completed procedures on a day, default today, day navigation; message = thanks + the clinic's own care advice for the
+catalog categories treated that day + clinic phone, plus the Google review sentence when a review link is set; logging checks
+the patient really had a completed procedure that day) and "Remerciements" (patients who referred someone in the last 60 days;
+hidden once thanked until their next referral; the message never names who was referred). `/settings/follow-ups` gains the
+review link (https) and optional care advice per catalog category in FR/EN/AR — none shipped by default (clinical wording is
+the clinic's). 155/155 tests (1 integration test added), typecheck, lint, `next build` green. Browser-checked on the demo
+clinic: settings saved, after-visit card for BENSAID Karim with review link (no advice for his category, as configured), WhatsApp
+click logged with the visit day, Arabic thank-you to HAMDI Nour without naming the referred patient.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -301,7 +313,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Acquisition report ✅ (sources, treated share, production, booking funnel, referrers). `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
-| Messaging/reminders (§20) | 🟡 | Relances ✅: reminders, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic sending through an SMS/WhatsApp Business provider ⏳ 🔌 |
+| Messaging/reminders (§20) | 🟡 | Relances ✅: reminders, after-visit care + review requests, referral thanks, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic sending through an SMS/WhatsApp Business provider ⏳ 🔌 |
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
 | Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
@@ -315,14 +327,12 @@ Priority: features that bring patients in and make the clinic easy to deal with.
 
 ## Next steps (in order)
 
-1. After-visit message, thanks & reviews: one tap after a completed visit sends care instructions (per appointment type,
-   editable) and, if set, the clinic's Google review link; a "Remercier" WhatsApp message for referring patients (from the
-   sources report); both logged in `patient_contacts` (new reasons). Add the Google review link to the public page settings.
-2. Patient-friendly estimates & payment plans (§13, §16): send the estimate to the patient (portal link or PDF by WhatsApp),
-   propose an installment schedule, and show what is due in the follow-ups.
-3. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
+1. Patient-friendly estimates & payment plans (§13, §16): send the estimate to the patient (portal link or PDF by WhatsApp),
+   propose an installment schedule (amounts + due dates, linked to the accepted plan), show upcoming/overdue installments in
+   Relances and on the patient finance tab.
+2. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
    détartrage season, children's check-up) only for opted-in patients, using the same WhatsApp/SMS tools.
-4. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
+3. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
 
 Later / on hold: inventory follow-ups (pending consumptions on the patient screen; reorder suggestion → pre-filled order
 form), treatment consent capture (§12A), lab cases (§22).

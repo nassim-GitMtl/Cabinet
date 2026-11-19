@@ -12,7 +12,7 @@ import { savePublicProfileAction } from "../actions";
 
 type Saved = {
   slug: string; isPublished: boolean; about: { fr?: string; en?: string; ar?: string }; whatsappPhone: string; mapUrl: string;
-  facebookUrl: string; instagramUrl: string; bookingLinkId: string; featuredServiceIds: string[]; showPrices: boolean;
+  facebookUrl: string; instagramUrl: string; reviewUrl: string; bookingLinkId: string; featuredServiceIds: string[]; showPrices: boolean;
 };
 type ServiceOption = { id: string; name: string; category: string; price: string };
 
@@ -91,6 +91,8 @@ export function PublicPageForm({ saved, origin, localOnly, links, services, bran
             defaultValue={v?.facebookUrl ?? saved.facebookUrl} error={fe.facebookUrl} />
           <TextField name="instagramUrl" type="url" dir="ltr" label="Instagram" optionalLabel placeholder="https://instagram.com/…"
             defaultValue={v?.instagramUrl ?? saved.instagramUrl} error={fe.instagramUrl} />
+          <TextField name="reviewUrl" type="url" dir="ltr" label={t("reviewUrl")} optionalLabel placeholder="https://g.page/r/…"
+            hint={t("reviewUrlHint")} defaultValue={v?.reviewUrl ?? saved.reviewUrl} error={fe.reviewUrl} />
         </div>
       </Panel>
 

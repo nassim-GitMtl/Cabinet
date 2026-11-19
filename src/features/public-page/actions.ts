@@ -23,6 +23,7 @@ export async function savePublicProfileAction(_previous: ActionState, formData: 
       mapUrl: values.mapUrl ?? "",
       facebookUrl: values.facebookUrl ?? "",
       instagramUrl: values.instagramUrl ?? "",
+      reviewUrl: values.reviewUrl ?? "",
       bookingLinkId: values.bookingLinkId && UUID.test(values.bookingLinkId) ? values.bookingLinkId : null,
       featuredServiceIds: featured,
       showPrices: values.showPrices === "on",

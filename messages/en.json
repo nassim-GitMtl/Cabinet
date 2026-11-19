@@ -1711,7 +1711,9 @@
       "recall": "Check-ups",
       "treatments": "Treatments",
       "estimates": "Estimates",
-      "noShows": "No-shows"
+      "noShows": "No-shows",
+      "afterVisit": "After visit",
+      "thanks": "Thanks"
     },
     "hints": {
       "reminders": "Appointments on {date}. Send the reminder, then mark the appointment confirmed when the patient replies.",
@@ -1719,14 +1721,19 @@
       "treatments": "Accepted treatment plans not finished yet, with no next appointment.",
       "estimates": "Estimates proposed more than 3 days ago with no answer from the patient.",
       "noShows": "Missed appointments in the last 30 days, with no new appointment.",
-      "snooze": "A contacted patient leaves the list for {days} days; if they decline, for 6 months."
+      "snooze": "A contacted patient leaves the list for {days} days; if they decline, for 6 months.",
+      "afterVisit": "Patients treated on {date}: thank them, send your aftercare advice and, if you wish, ask for a review.",
+      "thanks": "Patients who recommended the clinic in the last 60 days. The message never names who was recommended.",
+      "thanksSnooze": "A thanked patient leaves the list until their next recommendation."
     },
     "empty": {
       "reminders": "No appointments on that day.",
       "recall": "No check-ups to offer right now.",
       "treatments": "No treatment to follow up.",
       "estimates": "No estimate awaiting an answer.",
-      "noShows": "No missed appointment to follow up."
+      "noShows": "No missed appointment to follow up.",
+      "afterVisit": "No treatment done that day.",
+      "thanks": "No recommendation to thank for right now."
     },
     "previousDay": "Previous day",
     "nextDay": "Next day",
@@ -1784,7 +1791,11 @@
         "fr": "Français",
         "en": "English",
         "ar": "العربية"
-      }
+      },
+      "reviewUrl": "Review link (Google)",
+      "reviewUrlHint": "Your clinic's Google profile › “Ask for reviews” › copy the link. It is added to after-visit messages.",
+      "aftercareTitle": "Aftercare advice",
+      "aftercareHint": "Optional. Your advice per treatment family (e.g. after an extraction), written and approved by the clinic: added to the after-visit message when the patient had a treatment of that family."
     },
     "errors": {
       "patientUnavailable": "This patient is unavailable.",
@@ -1792,15 +1803,21 @@
       "recallMonths": "Choose between 3 and 24 months.",
       "invalidPhone": "Invalid phone number.",
       "branchUnavailable": "This site is no longer available.",
-      "appointmentChanged": "This appointment has changed in the meantime; refresh the page."
+      "appointmentChanged": "This appointment has changed in the meantime; refresh the page.",
+      "invalidUrl": "Invalid link: it must start with https://",
+      "categoryUnavailable": "This treatment family is no longer available."
     },
     "templates": {
       "appointment_reminder": "Hello {firstName}, this is a reminder of your appointment at {clinic} on {date} at {time} with {provider}. Please reply to this message to confirm. If you cannot come, call us on {clinicPhone}.",
       "recall": "Hello {firstName}, your last visit to {clinic} was more than {months} months ago. Regular check-ups prevent many dental problems. Reply to this message or call {clinicPhone} to book an appointment.",
       "treatment_followup": "Hello {firstName}, your treatment at {clinic} is not finished yet. To book your next session, reply to this message or call {clinicPhone}.",
       "estimate_followup": "Hello {firstName}, have you had a chance to review the estimate from {clinic}? We are happy to answer your questions on {clinicPhone}.",
-      "no_show": "Hello {firstName}, we missed you at your appointment on {date} at {clinic}. Would you like to book a new one? Reply to this message or call {clinicPhone}."
-    }
+      "no_show": "Hello {firstName}, we missed you at your appointment on {date} at {clinic}. Would you like to book a new one? Reply to this message or call {clinicPhone}.",
+      "after_visit": "Hello {firstName}, thank you for your visit to {clinic}. {careInstructions} If you have any pain or questions, call us on {clinicPhone}.",
+      "referral_thanks": "Hello {firstName}, thank you for recommending our clinic to people close to you: your trust means a lot to us. See you soon, the {clinic} team."
+    },
+    "careIncluded": "Aftercare advice included",
+    "reviewSentence": "If you were happy with your visit, a review would help us a lot: {reviewLink}"
   },
   "acquisition": {
     "question": "How did they hear of us?",
