@@ -4,19 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-18 by Claude (session 20 — consumables per procedure, lot recall, reorder suggestions).
-
-> **In progress (Claude, session 21 — sterilization traceability, Next step 1).** Done: schema
-> `src/server/db/schema/sterilization.ts` (sterilizers, instrument_sets, sterilization_cycles, sterilization_packs,
-> sterilization_pack_uses), migrations 0029 (tables) + 0030 (no-delete registration, same-clinic link checks, cycle state
-> machine pending_release → released|failed, released → recalled; a failed indicator blocks release; pending biological
-> indicator resolved once; packs added only to pending cycles; pack use only from released, non-discarded, non-expired
-> packs, one active use per pack, void once with reason), applied to the main DB. New permission `sterilization.release`
-> (owner, dentist; backfilled for existing system roles in 0030). Left: `src/features/sterilization/server.ts` (setup,
-> recordCycle with ST-YYYY-NNNNNN pack codes via nextCounter, release/fail/recall/biological result, discard, pack lookup,
-> link pack to patient/procedure, void, cycle trace), integration tests (incl. cross-tenant + grants NO_DELETE list),
-> Code 128 label encoder + print page, pages `/sterilization`, `/sterilization/cycles/[id]`,
-> `/patients/[id]/sterilization`, nav entry, FR/EN/AR strings, checks, STATUS. Typecheck green; tests not yet written.
+Last updated: 2026-11-19 by Codex (session 21 — sterilization traceability).
 
 ## How to verify the current state
 
@@ -193,6 +181,18 @@ server: item + lot created, recipe REST-01 → 2 capsules, auto mode, composite 
 the patient with 18 left, export headers translated, Arabic RTL page. Note: a long-running `next dev` served stale
 message JSON to a route handler until restarted.
 
+Session 21 (Claude + Codex): sterilization traceability (§23). Added clinic/branch-scoped sterilizers and instrument sets,
+immutable cycle facts and indicators, an explicit authorized pending → released/failed decision, released → recalled flow,
+and one-time biological results that automatically recall a released load when non-conforming. Every pouch receives a
+tenant/year `ST-YYYY-NNNNNN` code and printable local Code 128 label; only released, unexpired, non-discarded pouches may
+be scanned/entered and linked once to the exact patient and optional completed procedure. Wrong links are voided with a
+reason, never deleted. Database guards enforce same-clinic references, actors, transitions, immutability and no-delete
+privileges; service actions are permission-checked and audited in the same transaction. `/sterilization`, cycle detail,
+label print and `/patients/[id]/sterilization` are complete in FR/EN/AR with RTL. 129/129 tests (2 encoder unit + 3
+sterilization integration tests added), typecheck and lint green. The standard Turbopack build hit the documented
+runner-only helper-port restriction; `npx next build --webpack` is green with all four new routes. Browser-checked the
+responsive French empty/setup state without creating product data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -225,7 +225,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, and assisted single-use account recovery ✅. Health records and online payment provider integration ⏳ |
-| Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Lab and sterilization ⏳ |
+| Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
 | Backups/restore exercise (§27, scenario 32) | ⏳ | |
 | Platform operations console (§25) | ⏳ | |
@@ -236,10 +236,9 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Sterilization traceability: instrument sets, cycle/indicator records, chairside scan and exact patient/procedure linkage.
-2. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
-3. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
-4. Inventory follow-ups: show pending consumptions on the procedure/patient screen for chairside confirmation; turn a
+1. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
+2. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
+3. Inventory follow-ups: show pending consumptions on the procedure/patient screen for chairside confirmation; turn a
    reorder suggestion into a draft purchase order.
 
 ## Known gaps / decisions to revisit

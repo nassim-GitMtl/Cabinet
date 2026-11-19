@@ -45,7 +45,8 @@
     "dashboardShort": "Home",
     "cash": "Cash drawer",
     "expenses": "Expenses",
-    "inventory": "Inventory"
+    "inventory": "Inventory",
+    "sterilization": "Sterilization"
   },
   "toothGuide": {
     "open": "Tooth numbering",
@@ -1576,6 +1577,28 @@
       "tooth": "Tooth",
       "provider": "Provider"
     }
+  },
+  "sterilization": {
+    "title": "Sterilization traceability",
+    "subtitle": "Record cycles, release loads after review, and link every pack to the patient.",
+    "choose": "Choose…",
+    "setup": { "addSterilizer": "Add sterilizer", "addSet": "Add instrument set" },
+    "record": { "title": "Record a cycle", "hint": "Recording does not release the load: an authorized person must approve the cycle.", "setupFirst": "Add an active sterilizer before recording a cycle." },
+    "cycles": { "title": "Recent cycles", "hint": "Packs can only be used after the cycle is released.", "empty": "No cycles recorded.", "cycle": "Cycle" },
+    "status": { "pending_release": "Awaiting release", "released": "Released", "failed": "Failed", "recalled": "Recalled" },
+    "indicator": { "not_used": "Not used", "pending": "Pending", "pass": "Pass", "fail": "Fail" },
+    "fields": {
+      "sterilizerName": "Sterilizer name", "branch": "Branch", "serialNumber": "Serial number", "setCode": "Set code", "setName": "Set name", "contents": "Contents",
+      "sterilizer": "Sterilizer", "instrumentSet": "Instrument set", "reference": "Machine reference", "program": "Program", "startedDate": "Start date", "startedTime": "Start time", "startedAt": "Cycle start",
+      "temperature": "Temperature (°C)", "pressure": "Pressure (bar)", "hold": "Hold (minutes)", "chemicalIndicator": "Chemical indicator", "airRemovalTest": "Air removal test", "biologicalIndicator": "Biological indicator",
+      "notes": "Notes", "packLabel": "Pack description", "expiresOn": "Expiry", "quantity": "Quantity", "status": "Status", "parameters": "Parameters", "decisionNote": "Decision note", "recallReason": "Recall reason",
+      "reason": "Reason", "note": "Note", "biologicalResult": "Biological result", "usedOn": "Use date", "procedure": "Related procedure"
+    },
+    "packs": { "title": "Packs and sets", "hint": "A unique ST-YYYY-NNNNNN code will be created for every pack.", "add": "Add row", "remove": "Remove row {number}", "loose": "Loose pack", "count": "{count, plural, one {# pack} other {# packs}}", "expires": "Expires: {date}", "noExpiry": "No expiry date", "discarded": "Discarded", "used": "Used", "available": "Available", "usedBy": "Used for" },
+    "actions": { "add": "Add", "record": "Record cycle", "release": "Release load", "fail": "Mark failed", "recall": "Recall load", "recordBiological": "Record result", "discard": "Discard pack", "printLabels": "Print labels", "lookup": "Look up", "linkPack": "Link to patient", "voidUse": "Void link" },
+    "patient": { "title": "Patient sterilization", "shortTitle": "Sterilization", "back": "Back to patient", "scanTitle": "Scan or enter a pack", "scanHint": "A USB/Bluetooth scanner works like a keyboard. Verify status before linking the pack.", "code": "Pack code", "notFound": "No pack matches this code.", "unavailable": "Unavailable", "cycle": "Cycle {reference} · {date}", "cycleRef": "Cycle {reference}", "voided": "Link voided", "noProcedure": "No related procedure", "history": "Pack history", "empty": "No packs are linked to this patient." },
+    "print": { "title": "Sterilization labels" },
+    "errors": { "packQuantity": "Invalid pack quantity.", "packDescription": "Choose a set or describe the pack.", "packsRequired": "Add at least one pack.", "tooManyPacks": "Too many packs in this cycle.", "duplicateSterilizer": "That sterilizer name already exists.", "duplicateSet": "That set code already exists.", "sterilizerUnavailable": "That sterilizer is not available at this branch.", "setupUnavailable": "That equipment is no longer available.", "cycleNotPending": "This cycle is no longer awaiting a decision.", "failedIndicator": "A failed indicator prevents release.", "cycleNotReleased": "Only a released cycle can be recalled.", "biologicalNotPending": "The biological result is no longer pending.", "biologicalFailureReason": "A reason is required to recall a load after a failed biological result.", "packUnavailable": "This pack is unavailable.", "packAlreadyUsed": "This pack is already linked to a patient.", "patientUnavailable": "Patient not found.", "procedureUnavailable": "The procedure does not belong to this patient.", "useUnavailable": "This link has already been voided." }
   },
   "health": {
     "formTitle": "Medical history questionnaire",

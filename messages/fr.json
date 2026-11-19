@@ -45,7 +45,8 @@
     "dashboardShort": "Accueil",
     "cash": "Caisse",
     "expenses": "Dépenses",
-    "inventory": "Inventaire"
+    "inventory": "Inventaire",
+    "sterilization": "Stérilisation"
   },
   "toothGuide": {
     "open": "Numérotation dentaire",
@@ -1576,6 +1577,28 @@
       "tooth": "Dent",
       "provider": "Praticien"
     }
+  },
+  "sterilization": {
+    "title": "Traçabilité de la stérilisation",
+    "subtitle": "Enregistrez les cycles, libérez les charges après contrôle et reliez chaque sachet au patient.",
+    "choose": "Choisir…",
+    "setup": { "addSterilizer": "Ajouter un stérilisateur", "addSet": "Ajouter un jeu d'instruments" },
+    "record": { "title": "Enregistrer un cycle", "hint": "L'enregistrement ne libère pas la charge : une personne autorisée doit valider le cycle.", "setupFirst": "Ajoutez d'abord un stérilisateur actif pour enregistrer un cycle." },
+    "cycles": { "title": "Cycles récents", "hint": "Les sachets ne sont utilisables qu'après libération du cycle.", "empty": "Aucun cycle enregistré.", "cycle": "Cycle" },
+    "status": { "pending_release": "À libérer", "released": "Libéré", "failed": "Échec", "recalled": "Rappelé" },
+    "indicator": { "not_used": "Non utilisé", "pending": "En attente", "pass": "Conforme", "fail": "Non conforme" },
+    "fields": {
+      "sterilizerName": "Nom du stérilisateur", "branch": "Site", "serialNumber": "Numéro de série", "setCode": "Code du jeu", "setName": "Nom du jeu", "contents": "Contenu",
+      "sterilizer": "Stérilisateur", "instrumentSet": "Jeu d'instruments", "reference": "Référence machine", "program": "Programme", "startedDate": "Date de début", "startedTime": "Heure de début", "startedAt": "Début du cycle",
+      "temperature": "Température (°C)", "pressure": "Pression (bar)", "hold": "Palier (minutes)", "chemicalIndicator": "Indicateur chimique", "airRemovalTest": "Test d'extraction d'air", "biologicalIndicator": "Indicateur biologique",
+      "notes": "Notes", "packLabel": "Description du sachet", "expiresOn": "Péremption", "quantity": "Quantité", "status": "État", "parameters": "Paramètres", "decisionNote": "Note de décision", "recallReason": "Motif du rappel",
+      "reason": "Motif", "note": "Note", "biologicalResult": "Résultat biologique", "usedOn": "Date d'utilisation", "procedure": "Acte associé"
+    },
+    "packs": { "title": "Sachets et jeux", "hint": "Un code unique ST-AAAA-NNNNNN sera créé pour chaque sachet.", "add": "Ajouter une ligne", "remove": "Retirer la ligne {number}", "loose": "Sachet libre", "count": "{count, plural, one {# sachet} other {# sachets}}", "expires": "Péremption : {date}", "noExpiry": "Sans date de péremption", "discarded": "Écarté", "used": "Utilisé", "available": "Disponible", "usedBy": "Utilisé pour" },
+    "actions": { "add": "Ajouter", "record": "Enregistrer le cycle", "release": "Libérer la charge", "fail": "Déclarer l'échec", "recall": "Rappeler la charge", "recordBiological": "Enregistrer le résultat", "discard": "Écarter le sachet", "printLabels": "Imprimer les étiquettes", "lookup": "Rechercher", "linkPack": "Associer au patient", "voidUse": "Annuler le lien" },
+    "patient": { "title": "Stérilisation du patient", "shortTitle": "Stérilisation", "back": "Retour au dossier", "scanTitle": "Scanner ou saisir un sachet", "scanHint": "Le scanner USB/Bluetooth fonctionne comme un clavier. Vérifiez l'état avant d'associer le sachet.", "code": "Code du sachet", "notFound": "Aucun sachet ne correspond à ce code.", "unavailable": "Non utilisable", "cycle": "Cycle {reference} · {date}", "cycleRef": "Cycle {reference}", "voided": "Lien annulé", "noProcedure": "Sans acte associé", "history": "Historique des sachets", "empty": "Aucun sachet associé à ce patient." },
+    "print": { "title": "Étiquettes de stérilisation" },
+    "errors": { "packQuantity": "Quantité de sachets invalide.", "packDescription": "Choisissez un jeu ou décrivez le sachet.", "packsRequired": "Ajoutez au moins un sachet.", "tooManyPacks": "Trop de sachets dans ce cycle.", "duplicateSterilizer": "Ce nom de stérilisateur existe déjà.", "duplicateSet": "Ce code de jeu existe déjà.", "sterilizerUnavailable": "Ce stérilisateur n'est pas disponible sur ce site.", "setupUnavailable": "Cet équipement n'est plus disponible.", "cycleNotPending": "Ce cycle n'est plus en attente de décision.", "failedIndicator": "Un indicateur non conforme interdit la libération.", "cycleNotReleased": "Seul un cycle libéré peut être rappelé.", "biologicalNotPending": "Le résultat biologique n'est plus en attente.", "biologicalFailureReason": "Un motif est obligatoire pour rappeler une charge après un résultat biologique non conforme.", "packUnavailable": "Ce sachet n'est pas disponible.", "packAlreadyUsed": "Ce sachet est déjà associé à un patient.", "patientUnavailable": "Patient introuvable.", "procedureUnavailable": "L'acte ne correspond pas à ce patient.", "useUnavailable": "Ce lien a déjà été annulé." }
   },
   "health": {
     "formTitle": "Questionnaire médical",

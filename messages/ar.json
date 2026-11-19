@@ -45,7 +45,8 @@
     "dashboardShort": "الرئيسية",
     "cash": "الصندوق",
     "expenses": "المصاريف",
-    "inventory": "المخزون"
+    "inventory": "المخزون",
+    "sterilization": "التعقيم"
   },
   "toothGuide": {
     "open": "ترقيم الأسنان",
@@ -1576,6 +1577,28 @@
       "tooth": "السن",
       "provider": "الطبيب"
     }
+  },
+  "sterilization": {
+    "title": "تتبّع التعقيم",
+    "subtitle": "سجّل الدورات، وحرّر الحمولات بعد المراجعة، واربط كل عبوة بالمريض.",
+    "choose": "اختر…",
+    "setup": { "addSterilizer": "إضافة جهاز تعقيم", "addSet": "إضافة مجموعة أدوات" },
+    "record": { "title": "تسجيل دورة", "hint": "التسجيل لا يحرّر الحمولة؛ يجب أن يعتمد الدورة شخص مخوّل.", "setupFirst": "أضف جهاز تعقيم نشطاً قبل تسجيل دورة." },
+    "cycles": { "title": "الدورات الأخيرة", "hint": "لا يمكن استخدام العبوات إلا بعد تحرير الدورة.", "empty": "لا توجد دورات مسجلة.", "cycle": "الدورة" },
+    "status": { "pending_release": "بانتظار التحرير", "released": "محرّرة", "failed": "فاشلة", "recalled": "مسترجعة" },
+    "indicator": { "not_used": "غير مستخدم", "pending": "قيد الانتظار", "pass": "مطابق", "fail": "غير مطابق" },
+    "fields": {
+      "sterilizerName": "اسم جهاز التعقيم", "branch": "الفرع", "serialNumber": "الرقم التسلسلي", "setCode": "رمز المجموعة", "setName": "اسم المجموعة", "contents": "المحتويات",
+      "sterilizer": "جهاز التعقيم", "instrumentSet": "مجموعة الأدوات", "reference": "مرجع الجهاز", "program": "البرنامج", "startedDate": "تاريخ البدء", "startedTime": "وقت البدء", "startedAt": "بدء الدورة",
+      "temperature": "الحرارة (°م)", "pressure": "الضغط (بار)", "hold": "مدة التثبيت (دقائق)", "chemicalIndicator": "المؤشر الكيميائي", "airRemovalTest": "اختبار إزالة الهواء", "biologicalIndicator": "المؤشر البيولوجي",
+      "notes": "ملاحظات", "packLabel": "وصف العبوة", "expiresOn": "انتهاء الصلاحية", "quantity": "الكمية", "status": "الحالة", "parameters": "المعلمات", "decisionNote": "ملاحظة القرار", "recallReason": "سبب الاسترجاع",
+      "reason": "السبب", "note": "ملاحظة", "biologicalResult": "النتيجة البيولوجية", "usedOn": "تاريخ الاستخدام", "procedure": "الإجراء المرتبط"
+    },
+    "packs": { "title": "العبوات والمجموعات", "hint": "سيُنشأ رمز ST-YYYY-NNNNNN فريد لكل عبوة.", "add": "إضافة سطر", "remove": "حذف السطر {number}", "loose": "عبوة حرة", "count": "{count, plural, one {عبوة واحدة} other {# عبوات}}", "expires": "تنتهي: {date}", "noExpiry": "دون تاريخ انتهاء", "discarded": "مستبعدة", "used": "مستخدمة", "available": "متاحة", "usedBy": "استُخدمت لـ" },
+    "actions": { "add": "إضافة", "record": "تسجيل الدورة", "release": "تحرير الحمولة", "fail": "تسجيل الفشل", "recall": "استرجاع الحمولة", "recordBiological": "تسجيل النتيجة", "discard": "استبعاد العبوة", "printLabels": "طباعة الملصقات", "lookup": "بحث", "linkPack": "ربط بالمريض", "voidUse": "إلغاء الربط" },
+    "patient": { "title": "تعقيم المريض", "shortTitle": "التعقيم", "back": "العودة إلى الملف", "scanTitle": "مسح عبوة أو إدخالها", "scanHint": "يعمل ماسح USB/Bluetooth كلوحة مفاتيح. تحقّق من الحالة قبل ربط العبوة.", "code": "رمز العبوة", "notFound": "لا توجد عبوة مطابقة لهذا الرمز.", "unavailable": "غير متاحة", "cycle": "الدورة {reference} · {date}", "cycleRef": "الدورة {reference}", "voided": "أُلغي الربط", "noProcedure": "دون إجراء مرتبط", "history": "سجل العبوات", "empty": "لا توجد عبوات مرتبطة بهذا المريض." },
+    "print": { "title": "ملصقات التعقيم" },
+    "errors": { "packQuantity": "كمية العبوات غير صالحة.", "packDescription": "اختر مجموعة أو صِف العبوة.", "packsRequired": "أضف عبوة واحدة على الأقل.", "tooManyPacks": "عدد العبوات كبير جداً في هذه الدورة.", "duplicateSterilizer": "اسم جهاز التعقيم موجود مسبقاً.", "duplicateSet": "رمز المجموعة موجود مسبقاً.", "sterilizerUnavailable": "جهاز التعقيم غير متاح في هذا الفرع.", "setupUnavailable": "هذا الجهاز لم يعد متاحاً.", "cycleNotPending": "هذه الدورة لم تعد بانتظار قرار.", "failedIndicator": "المؤشر غير المطابق يمنع التحرير.", "cycleNotReleased": "لا يمكن استرجاع إلا دورة محرّرة.", "biologicalNotPending": "النتيجة البيولوجية لم تعد قيد الانتظار.", "biologicalFailureReason": "السبب مطلوب لاسترجاع الحمولة بعد نتيجة بيولوجية غير مطابقة.", "packUnavailable": "هذه العبوة غير متاحة.", "packAlreadyUsed": "هذه العبوة مرتبطة بمريض مسبقاً.", "patientUnavailable": "المريض غير موجود.", "procedureUnavailable": "الإجراء لا يخص هذا المريض.", "useUnavailable": "تم إلغاء هذا الرابط مسبقاً." }
   },
   "health": {
     "formTitle": "استبيان السوابق الطبية",

@@ -215,3 +215,18 @@ never summed. "Paid to date" is as of generation time.
 - Reorder suggestions are explainable, not a model: max(0, ceil(90-day usage / 90 × 30 × agenda factor) + minimum stock −
   usable on hand − open order quantity). Agenda factor = booked appointments in the next 14 days ÷ the 14-day average of the
   last 90 days, clamped to [0.5, 2]. Expired lots are not counted as on hand.
+
+## Sterilization traceability (`src/features/sterilization`, migrations 0029–0030)
+
+- Sterilizers and instrument sets are tenant-owned setup records. Their identity is immutable; deactivation is the only
+  supported correction. A cycle records machine reference, program, physical parameters and indicator results as immutable
+  facts. Recording always starts at `pending_release`; it never certifies the load as a side effect.
+- `sterilization.release` is separate from `sterilization.manage`. An authorized reviewer explicitly moves a pending cycle
+  to `released` or `failed`; a failed indicator blocks release. A released cycle may only move to `recalled`. Pending
+  biological indicators resolve once; a failed result on an already released load recalls it in the same transaction.
+- Each pouch gets a clinic/year counter code (`sterilization_pack:<year>` → `ST-YYYY-NNNNNN`) and a locally generated Code
+  128 label. A pouch can be used only from a released cycle, before expiry, while not discarded, and has at most one active
+  patient link. The optional procedure must belong to that exact patient. Incorrect links are voided once with a reason.
+- PostgreSQL triggers lock cycle state against concurrent use/recall, validate same-clinic/branch references and actors,
+  freeze recorded facts, and enforce transition rules even when application services are bypassed. All five tables are in
+  `no_delete_tables()`; services use tenant transactions, permission keys and identifier-only audits.
