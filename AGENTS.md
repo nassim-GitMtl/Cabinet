@@ -25,7 +25,8 @@ Two agents alternate on this repo. The user resumes work by saying **"continue"*
 4. Commit at the end of every turn (`git add -A && git commit`), message prefixed with the agent name, e.g.
    `[codex] invoices: issue + payments`. If stopping before the step is finished, add an "In progress" note
    at the top of `docs/STATUS.md` (what's done, what's left, failing checks) and commit anyway as WIP.
-   Never run two agents on this folder at the same time.
+   Then `git push` (remote `origin` = https://github.com/nassim-GitMtl/Cabinet.git, branch `main`); GitHub is the
+   shared copy. Never force-push. Never run two agents on this folder at the same time.
 
 ## Non-negotiable rules
 - Tenant data only through `tenantTx(ctx, …)` / `withDbContext`; never query tenant tables on the bare pool.
