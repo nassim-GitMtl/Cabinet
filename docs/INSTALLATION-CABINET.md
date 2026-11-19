@@ -68,12 +68,13 @@ cd deploy/clinic
 
 - Une sauvegarde complète est faite **chaque jour à 21 h** (réglable : `BACKUP_HOUR`) dans
   `deploy/clinic/backups/`, conservée 30 jours (`BACKUP_KEEP_DAYS`), avec une empreinte `.sha256`.
+  Chaque sauvegarde contient le dump PostgreSQL et une archive assortie des images/documents cliniques privés.
 - Sauvegarde immédiate : `docker compose exec backup sh /backup.sh now`
 - **Copiez régulièrement le dossier `backups/` sur un disque externe** (et gardez une copie hors du cabinet) :
   une sauvegarde sur le même disque ne protège pas contre une panne ou un vol.
 - Restaurer : `./restore.sh backups/cabinet-AAAAMMJJ-HHMMSS.dump` (une sauvegarde de sécurité de l'état
-  actuel est faite avant). Les pièces jointes/images ne sont pas encore gérées par l'application ; quand
-  elles le seront, leur dossier sera inclus dans la sauvegarde.
+  actuel est faite avant). L'archive `cabinet-AAAAMMJJ-HHMMSS-files.tar.gz` correspondante est vérifiée puis
+  restaurée avec la base ; ne séparez pas ces fichiers lors d'une copie externe.
 
 ## Mises à jour
 

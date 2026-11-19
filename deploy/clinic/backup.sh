@@ -1,5 +1,5 @@
 #!/bin/sh
-# Daily PostgreSQL backup (custom format) into /backups, kept BACKUP_KEEP_DAYS days.
+# Daily PostgreSQL + private clinical-file backup into /backups, kept BACKUP_KEEP_DAYS days.
 #   docker compose exec backup sh /backup.sh now   -> immediate backup
 set -eu
 BACKUP_HOUR="${BACKUP_HOUR:-21}"
@@ -8,11 +8,14 @@ BACKUP_KEEP_DAYS="${BACKUP_KEEP_DAYS:-30}"
 backup() {
   ts=$(date +%Y%m%d-%H%M%S)
   f="/backups/cabinet-$ts.dump"
+  files="/backups/cabinet-$ts-files.tar.gz"
   pg_dump -h db -U cabinet_owner -d cabinet -Fc -f "$f.partial"
+  tar -czf "$files.partial" -C /clinical-files .
   mv "$f.partial" "$f"
-  (cd /backups && sha256sum "$(basename "$f")" > "$(basename "$f").sha256")
-  find /backups -name 'cabinet-*.dump*' -mtime +"$BACKUP_KEEP_DAYS" -delete
-  echo "$(date -Iseconds) backup ok: $f ($(du -h "$f" | cut -f1))"
+  mv "$files.partial" "$files"
+  (cd /backups && sha256sum "$(basename "$f")" "$(basename "$files")" > "$(basename "$f").sha256")
+  find /backups -name 'cabinet-*' -mtime +"$BACKUP_KEEP_DAYS" -delete
+  echo "$(date -Iseconds) backup ok: $f + $files ($(du -k "$f" "$files" | awk '{n += $1} END {print n " KiB"}'))"
 }
 
 if [ "${1:-}" = "now" ]; then

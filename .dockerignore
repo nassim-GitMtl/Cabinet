@@ -10,3 +10,5 @@ deploy/clinic/*.tar*
 coverage
 *.log
 .claude
+# Local clinical files (patient images/documents) from dev uploads
+.data

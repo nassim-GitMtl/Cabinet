@@ -34,10 +34,12 @@ CMD ["node", "scripts/migrate.mjs"]
 FROM node:24-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 TZ=Africa/Algiers
-RUN apk add --no-cache tzdata && addgroup -S app && adduser -S app -G app
+RUN apk add --no-cache tzdata && addgroup -S app && adduser -S app -G app \
+    && mkdir -p /data/clinical-files && chown -R app:app /data
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 COPY --from=build --chown=app:app /app/public ./public
+VOLUME ["/data/clinical-files"]
 USER app
 EXPOSE 3000
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 CMD wget -qO- http://127.0.0.1:3000/api/health >/dev/null || exit 1

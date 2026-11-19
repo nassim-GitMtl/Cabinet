@@ -28,6 +28,8 @@ import { listNotes, listNoteTemplates } from "@/features/notes/server";
 import { getAgendaSetup } from "@/features/agenda/server";
 import { HealthPanel } from "@/features/health/components/health-panel";
 import { healthStatus } from "@/features/health/server";
+import { ClinicalFilesPanel } from "@/features/clinical-files/components/clinical-files-panel";
+import { listClinicalFiles } from "@/features/clinical-files/server";
 import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -37,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("patients"))("title") };
 }
 
-const TABS = ["overview", "details", "health", "clinical", "treatments", "finance"] as const;
+const TABS = ["overview", "details", "health", "clinical", "documents", "treatments", "finance"] as const;
 
 function Info({ label, value, dir }: { label: string; value: React.ReactNode; dir?: "ltr" | "rtl" }) {
   return (
@@ -60,7 +62,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   if (!data) notFound();
   const { patient: p, alerts, provider } = data;
   const tabAllowed = (x: (typeof TABS)[number]) =>
-    x === "clinical" || x === "health" ? can(ctx, "clinical.read") : x === "treatments" ? can(ctx, "treatment_plan.read") : x === "finance" ? can(ctx, "invoice.read") : true;
+    x === "clinical" || x === "health" ? can(ctx, "clinical.read") : x === "documents" ? can(ctx, "clinical.images.read") : x === "treatments" ? can(ctx, "treatment_plan.read") : x === "finance" ? can(ctx, "invoice.read") : true;
   const tab = TABS.find((x) => x === sp.tab && tabAllowed(x)) ?? "overview";
   const health = await healthStatus(ctx, id);
   const age = patientAge(p, ctx.organization.timezone);
@@ -72,6 +74,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   const notes = tab === "clinical" ? await listNotes(ctx, p.id) : [];
   const noteTemplates = tab === "clinical" && can(ctx, "clinical.write") ? await listNoteTemplates(ctx) : [];
   const noteProviders = tab === "clinical" && can(ctx, "clinical.write") ? (await getAgendaSetup(ctx)).providers : [];
+  const clinicalFiles = tab === "documents" ? await listClinicalFiles(ctx, p.id) : null;
   const account = tab === "overview" && can(ctx, "invoice.read") ? await getPatientAccount(ctx, p.id) : null;
   const patientAppointments = tab === "overview" && can(ctx, "appointment.read") ? await listPatientAppointments(ctx, p.id) : null;
   const treatmentPlans = (tab === "overview" || tab === "treatments") && can(ctx, "treatment_plan.read") ? await listTreatmentPlans(ctx, p.id) : [];
@@ -291,6 +294,10 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
             </div>
           ) : tab === "health" ? (
             <HealthPanel ctx={ctx} patientId={p.id} editable={can(ctx, "clinical.write") && p.status !== "archived" && p.status !== "deceased"} />
+          ) : tab === "documents" && clinicalFiles ? (
+            <ClinicalFilesPanel patientId={p.id} rows={clinicalFiles.files} comparisons={clinicalFiles.comparisons}
+              canWrite={can(ctx, "clinical.images.write") && p.status !== "archived" && p.status !== "deceased"}
+              today={todayInZone(ctx.organization.timezone)} />
           ) : tab === "finance" ? (
             <PatientFinance ctx={ctx} patientId={p.id} canBill={can(ctx, "invoice.create")} />
           ) : tab === "treatments" ? (

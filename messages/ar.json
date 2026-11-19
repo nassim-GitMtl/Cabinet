@@ -365,6 +365,7 @@
       "overview": "نظرة عامة",
       "details": "المعلومات",
       "clinical": "الملف السريري",
+      "documents": "الصور والمستندات",
       "treatments": "خطط العلاج",
       "finance": "المالية",
       "history": "السجل",
@@ -1604,6 +1605,22 @@
     "patient": { "title": "تعقيم المريض", "shortTitle": "التعقيم", "back": "العودة إلى الملف", "scanTitle": "مسح عبوة أو إدخالها", "scanHint": "يعمل ماسح USB/Bluetooth كلوحة مفاتيح. تحقّق من الحالة قبل ربط العبوة.", "code": "رمز العبوة", "notFound": "لا توجد عبوة مطابقة لهذا الرمز.", "unavailable": "غير متاحة", "cycle": "الدورة {reference} · {date}", "cycleRef": "الدورة {reference}", "voided": "أُلغي الربط", "noProcedure": "دون إجراء مرتبط", "history": "سجل العبوات", "empty": "لا توجد عبوات مرتبطة بهذا المريض." },
     "print": { "title": "ملصقات التعقيم" },
     "errors": { "packQuantity": "كمية العبوات غير صالحة.", "packDescription": "اختر مجموعة أو صِف العبوة.", "packsRequired": "أضف عبوة واحدة على الأقل.", "tooManyPacks": "عدد العبوات كبير جداً في هذه الدورة.", "duplicateSterilizer": "اسم جهاز التعقيم موجود مسبقاً.", "duplicateSet": "رمز المجموعة موجود مسبقاً.", "sterilizerUnavailable": "جهاز التعقيم غير متاح في هذا الفرع.", "setupUnavailable": "هذا الجهاز لم يعد متاحاً.", "cycleNotPending": "هذه الدورة لم تعد بانتظار قرار.", "failedIndicator": "المؤشر غير المطابق يمنع التحرير.", "cycleNotReleased": "لا يمكن استرجاع إلا دورة محرّرة.", "biologicalNotPending": "النتيجة البيولوجية لم تعد قيد الانتظار.", "biologicalFailureReason": "السبب مطلوب لاسترجاع الحمولة بعد نتيجة بيولوجية غير مطابقة.", "packUnavailable": "هذه العبوة غير متاحة.", "packAlreadyUsed": "هذه العبوة مرتبطة بمريض مسبقاً.", "patientUnavailable": "المريض غير موجود.", "procedureUnavailable": "الإجراء لا يخص هذا المريض.", "useUnavailable": "تم إلغاء هذا الرابط مسبقاً." }
+  },
+  "clinicalFiles": {
+    "uploadTitle": "إضافة صورة أو مستند", "uploadHint": "تبقى الملفات على خادم العيادة الخاص وتُضاف إلى السجل بشكل غير قابل للتعديل.",
+    "file": "الملف", "fileHint": "JPEG أو PNG أو WebP أو PDF أو DICOM · بحد أقصى 20 ميغابايت", "takePhoto": "التقاط صورة", "category": "الفئة",
+    "clinicalDate": "التاريخ السريري", "titleField": "العنوان", "teeth": "أسنان FDI", "teethHint": "افصل بين أرقام الأسنان بفواصل.",
+    "compareTo": "المقارنة بصورة سابقة", "noComparison": "دون مقارنة", "compareHint": "عند اختيار صورة، يصبح الملف الجديد صورة «بعد».",
+    "upload": "إضافة إلى السجل", "comparisons": "مقارنات قبل / بعد", "before": "قبل", "after": "بعد", "library": "المكتبة السريرية",
+    "libraryHint": "الملفات الأصلية خاصة ولا تُخزن مؤقتاً على الجهاز.", "empty": "لا توجد صور أو مستندات سريرية.",
+    "teethShort": "الأسنان", "uploadedBy": "أضافه {name}", "open": "فتح", "download": "تنزيل",
+    "categories": { "intraoral_photo": "صورة داخل الفم", "extraoral_photo": "صورة خارج الفم", "radiograph": "صورة شعاعية", "scan": "مسح / طبعة", "referral": "رسالة إحالة", "prescription": "وصفة طبية", "lab_report": "تقرير مختبر", "consent": "موافقة", "other": "أخرى" },
+    "errors": {
+      "emptyFile": "اختر ملفاً.", "tooLarge": "يتجاوز الملف 20 ميغابايت.", "unsupportedType": "نوع الملف غير مدعوم أو محتواه غير صالح.",
+      "futureDate": "لا يمكن أن يكون التاريخ السريري في المستقبل.", "invalidTeeth": "استخدم أرقام أسنان FDI صالحة فقط.", "patientUnavailable": "هذا المريض غير متاح.",
+      "comparisonImagesOnly": "تتطلب مقارنة قبل/بعد صورة.", "comparisonUnavailable": "لم يعد من الممكن استخدام هذه الصورة في المقارنة.",
+      "comparisonDate": "لا يمكن أن تسبق صورة «بعد» صورة «قبل».", "storageMissing": "الملف الأصلي مفقود من التخزين الخاص."
+    }
   },
   "health": {
     "formTitle": "استبيان السوابق الطبية",

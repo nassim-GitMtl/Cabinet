@@ -169,7 +169,7 @@ never summed. "Paid to date" is as of generation time.
 - One machine on the clinic LAN runs Docker Compose: `db` (PostgreSQL 18), `migrate` (one-shot, drizzle migrations),
   `app` (Next.js `output: "standalone"`, non-root, healthcheck), `proxy` (Caddy, HTTPS with its local CA for the LAN IP
   and `cabinet.local`; `http://<host>/ca.crt` serves the root to install on devices), `backup` (daily `pg_dump -Fc`
-  + sha256, retention). HTTPS is mandatory: secure cookies, service worker and `crypto.randomUUID` need a secure context.
+  + clinical-files tar archive, one sha256 file, retention). HTTPS is mandatory: secure cookies, service worker and `crypto.randomUUID` need a secure context.
 - No runtime internet dependency: fonts are vendored in `src/app/fonts` (OFL) and loaded with `next/font/local`;
   no external scripts/APIs. Fully offline installs load images from `cabinet-images.tar.gz` (`export-images.sh`).
 - `REGISTRATION_MODE=first-only` (clinic server default): `/register` works only until the first organization
@@ -238,3 +238,19 @@ never summed. "Paid to date" is as of generation time.
 - PostgreSQL triggers lock cycle state against concurrent use/recall, validate same-clinic/branch references and actors,
   freeze recorded facts, and enforce transition rules even when application services are bypassed. All five tables are in
   `no_delete_tables()`; services use tenant transactions, permission keys and identifier-only audits.
+
+## Clinical images & documents (`src/features/clinical-files`, migration 0032)
+
+- Bytes live on the clinic server's disk (`CLINICAL_STORAGE_DIR`; Docker volume `clinical-files`), never under `/public`.
+  The storage key `<org>/<patient>/<uuid>.<ext>` is generated server-side, validated by regex and confined to the root;
+  it is never accepted from or shown to a client. Files are written with `wx` (no overwrite) and 0600; a failed DB
+  transaction removes the just-written file (the only delete path).
+- Media type comes from magic bytes (JPEG/PNG/WebP → image, PDF/DICOM → document), never from the browser. sha256 and
+  size are stored. `clinical_files` and `clinical_file_comparisons` are append-only; corrections are new uploads.
+- Upload is a route handler (`POST /api/patients/[id]/clinical-files`, multipart) because server actions cap bodies at
+  1 MB. `src/proxy.ts` makes Next buffer request bodies, so `experimental.proxyClientMaxBodySize` must stay above the
+  20 MB limit plus multipart overhead, or larger files are silently truncated.
+- `GET /api/clinical-files/[id]` checks `clinical.images.read`, audits `clinical_file.viewed`, and returns
+  `private, no-store`, `nosniff`; `CSP: sandbox` for images/DICOM (not PDFs: browsers refuse to render them sandboxed).
+- `path.resolve` calls on runtime data carry `/*turbopackIgnore: true*/` so the standalone build doesn't trace the
+  project or stored files; `.data` is in `.gitignore` and `.dockerignore`.

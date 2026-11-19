@@ -225,6 +225,13 @@
       "when": 1795080102767,
       "tag": "0031_questionnaire_completion",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1795084194401,
+      "tag": "0032_clinical_files",
+      "breakpoints": true
     }
   ]
 }

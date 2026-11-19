@@ -45,6 +45,7 @@ services:
       DATABASE_URL: postgres://cabinet_app:${DB_APP_PASSWORD}@db:5432/cabinet
       APP_URL: https://${CLINIC_HOST}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?run install.sh first}
+      CLINICAL_STORAGE_DIR: /data/clinical-files
       # Only the first clinic can self-register; staff join through invitations.
       REGISTRATION_MODE: ${REGISTRATION_MODE:-first-only}
       TZ: ${TZ:-Africa/Algiers}
@@ -52,6 +53,8 @@ services:
       migrate:
         condition: service_completed_successfully
     networks: [internal]
+    volumes:
+      - clinical-files:/data/clinical-files
 
   proxy:
     image: caddy:2-alpine
@@ -71,6 +74,7 @@ services:
   backup:
     image: postgres:18-alpine
     restart: unless-stopped
+    user: "0:0"
     environment:
       PGPASSWORD: ${DB_OWNER_PASSWORD}
       BACKUP_HOUR: ${BACKUP_HOUR:-21}
@@ -78,6 +82,7 @@ services:
       TZ: ${TZ:-Africa/Algiers}
     volumes:
       - ${BACKUP_DIR:-./backups}:/backups
+      - clinical-files:/clinical-files
       - ./backup.sh:/backup.sh:ro
     entrypoint: ["/bin/sh", "/backup.sh"]
     depends_on:
@@ -89,6 +94,7 @@ volumes:
   db-data:
   caddy-data:
   caddy-config:
+  clinical-files:
 
 networks:
   internal:

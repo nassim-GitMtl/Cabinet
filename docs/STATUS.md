@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-19 by Codex (session 22 — questionnaire versions and patient completion).
+Last updated: 2026-11-19 by Claude (session 23 — clinical images & documents).
 
 ## How to verify the current state
 
@@ -205,6 +205,25 @@ helper-port restriction; `npx next build --webpack` is green and includes `/sett
 `/portal/health/[organizationId]` and `/health/tablet/[token]`. Visual browser verification was unavailable because the Mac
 was locked; route compilation and production rendering checks completed in the build.
 
+Session 23 (Codex + Claude): clinical images & documents (§12A, §15). Codex built it and stopped before committing;
+Claude finished, fixed and verified it. Private files on the clinic server (`CLINICAL_STORAGE_DIR`, Docker volume
+`clinical-files`, default `.data/clinical-files` in dev), never under `/public`, never cached by the service worker.
+Upload from the patient "Images et documents" tab (file or camera capture): JPEG/PNG/WebP/PDF/DICOM up to 20 MB, type
+taken from magic bytes (browser type ignored), sha256 + size stored, FDI teeth, clinical date (no future), category,
+optional title. Before/after pairs: the new image becomes "after" for one earlier unpaired image of the same patient.
+Migration 0032: both tables append-only (no update/delete for the runtime role), DB guards for actor, same clinic/patient,
+kind ↔ media type, FDI numbers, after ≥ before date. Every original view is audited (`clinical_file.viewed`). Daily
+backups now write `cabinet-<ts>-files.tar.gz` next to the dump (same sha256 file); `restore.sh` restores both.
+Claude's fixes: (1) a successful upload showed "Une erreur est survenue" (`event.currentTarget` read after `await`);
+(2) uploads over 10 MB were silently truncated because `src/proxy.ts` makes Next buffer bodies (default 10 MB) →
+`experimental.proxyClientMaxBodySize: "21mb"`; (3) PDFs were served with `CSP: sandbox`, which browsers refuse to show
+in their PDF viewer → sandbox kept for images/DICOM only; (4) dynamic storage paths made Turbopack trace the whole project
+(and potentially local patient files) into the standalone output → `turbopackIgnore` hints, `.data` in `.dockerignore`.
+135/135 tests (2 integration + 1 unit added), typecheck, lint and `next build` (no warnings) green. Browser-checked on
+localhost: upload → library, before/after pair, 12.9 MB image round-trips byte-identical, spoofed PNG rejected (400),
+21 MB rejected (413), private/no-store headers, Arabic RTL at 375 px. Inline PDF display not checked (the in-app browser
+downloads PDFs). Fictitious test files were left on P-000012 in the dev database.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -231,7 +250,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
 | Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Consent capture/signatures ⏳. |
 | Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and treatment links. Structured draft notes, review, signing, amendments and hash-chain integrity ✅. Primary visual chart and periodontal chart ⏳. |
-| Images/documents, object storage (§12A, §15) | ⏳ 🔌 | |
+| Images/documents, object storage (§12A, §15) | ✅ | Private clinic-server storage, camera upload, magic-byte type check, sha256, append-only metadata, before/after pairs, audited views, included in backups. DICOM viewer, annotations/measurements, cloud object storage 🔌 ⏳ |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
@@ -239,18 +258,19 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
 | Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
-| Backups/restore exercise (§27, scenario 32) | ⏳ | |
+| Backups/restore exercise (§27, scenario 32) | 🟡 | Daily dump + clinical-files archive with sha256, `restore.sh` restores both. Timed restore exercise on a real clinic server ⏳ |
 | Platform operations console (§25) | ⏳ | |
 
 ## Next steps (in order)
 
-0. Clinic server follow-ups: optional internet sync to a cloud
-   copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
-   file storage exists.
+0. Clinic server follow-up: optional internet sync to a cloud copy for patient booking links/portal/cross-clinic
+   sharing when online.
 
-1. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
-2. Inventory follow-ups: show pending consumptions on the procedure/patient screen for chairside confirmation; turn a
+1. Inventory follow-ups: show pending consumptions on the procedure/patient screen for chairside confirmation; turn a
    reorder suggestion into a draft purchase order.
+2. Treatment consent capture (§12A, §13): consent for an accepted estimate/procedure, signed on the tablet or as a scanned
+   paper form stored as a `consent` clinical file, linked to the plan version.
+3. Lab cases (§22): lab orders per patient/tooth with sent/received/fitted states and lab costs.
 
 ## Known gaps / decisions to revisit
 

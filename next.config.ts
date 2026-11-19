@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Self-contained server bundle for the clinic Docker image (no node_modules at runtime).
   output: "standalone",
+  experimental: {
+    // src/proxy.ts makes Next buffer request bodies, silently truncating them past this size (default 10 MB).
+    // Clinical images/documents go up to 20 MB (MAX_CLINICAL_FILE_BYTES) plus multipart overhead.
+    proxyClientMaxBodySize: "21mb",
+  },
   turbopack: {
     rules: {
       "*.css": {

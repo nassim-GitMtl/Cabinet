@@ -365,6 +365,7 @@
       "overview": "Vue d'ensemble",
       "details": "Informations",
       "clinical": "Dossier clinique",
+      "documents": "Images et documents",
       "treatments": "Plans de traitement",
       "finance": "Finances",
       "history": "Historique",
@@ -1604,6 +1605,22 @@
     "patient": { "title": "Stérilisation du patient", "shortTitle": "Stérilisation", "back": "Retour au dossier", "scanTitle": "Scanner ou saisir un sachet", "scanHint": "Le scanner USB/Bluetooth fonctionne comme un clavier. Vérifiez l'état avant d'associer le sachet.", "code": "Code du sachet", "notFound": "Aucun sachet ne correspond à ce code.", "unavailable": "Non utilisable", "cycle": "Cycle {reference} · {date}", "cycleRef": "Cycle {reference}", "voided": "Lien annulé", "noProcedure": "Sans acte associé", "history": "Historique des sachets", "empty": "Aucun sachet associé à ce patient." },
     "print": { "title": "Étiquettes de stérilisation" },
     "errors": { "packQuantity": "Quantité de sachets invalide.", "packDescription": "Choisissez un jeu ou décrivez le sachet.", "packsRequired": "Ajoutez au moins un sachet.", "tooManyPacks": "Trop de sachets dans ce cycle.", "duplicateSterilizer": "Ce nom de stérilisateur existe déjà.", "duplicateSet": "Ce code de jeu existe déjà.", "sterilizerUnavailable": "Ce stérilisateur n'est pas disponible sur ce site.", "setupUnavailable": "Cet équipement n'est plus disponible.", "cycleNotPending": "Ce cycle n'est plus en attente de décision.", "failedIndicator": "Un indicateur non conforme interdit la libération.", "cycleNotReleased": "Seul un cycle libéré peut être rappelé.", "biologicalNotPending": "Le résultat biologique n'est plus en attente.", "biologicalFailureReason": "Un motif est obligatoire pour rappeler une charge après un résultat biologique non conforme.", "packUnavailable": "Ce sachet n'est pas disponible.", "packAlreadyUsed": "Ce sachet est déjà associé à un patient.", "patientUnavailable": "Patient introuvable.", "procedureUnavailable": "L'acte ne correspond pas à ce patient.", "useUnavailable": "Ce lien a déjà été annulé." }
+  },
+  "clinicalFiles": {
+    "uploadTitle": "Ajouter une image ou un document", "uploadHint": "Les fichiers restent sur le serveur privé du cabinet et sont ajoutés de façon immuable au dossier.",
+    "file": "Fichier", "fileHint": "JPEG, PNG, WebP, PDF ou DICOM · 20 Mo maximum", "takePhoto": "Prendre une photo", "category": "Catégorie",
+    "clinicalDate": "Date clinique", "titleField": "Titre", "teeth": "Dents FDI", "teethHint": "Séparez plusieurs dents par une virgule.",
+    "compareTo": "Comparer à une image antérieure", "noComparison": "Aucun comparatif", "compareHint": "Si une image est choisie, le nouveau fichier devient l’image « après ».",
+    "upload": "Ajouter au dossier", "comparisons": "Comparatifs avant / après", "before": "Avant", "after": "Après", "library": "Bibliothèque clinique",
+    "libraryHint": "Les originaux sont privés et ne sont jamais mis en cache sur l’appareil.", "empty": "Aucune image ni document clinique.",
+    "teethShort": "dents", "uploadedBy": "ajouté par {name}", "open": "Ouvrir", "download": "Télécharger",
+    "categories": { "intraoral_photo": "Photo intra-orale", "extraoral_photo": "Photo extra-orale", "radiograph": "Radiographie", "scan": "Scan / empreinte", "referral": "Lettre d’orientation", "prescription": "Ordonnance", "lab_report": "Rapport de laboratoire", "consent": "Consentement", "other": "Autre" },
+    "errors": {
+      "emptyFile": "Choisissez un fichier.", "tooLarge": "Le fichier dépasse 20 Mo.", "unsupportedType": "Type de fichier non pris en charge ou contenu invalide.",
+      "futureDate": "La date clinique ne peut pas être dans le futur.", "invalidTeeth": "Utilisez uniquement des numéros de dents FDI valides.", "patientUnavailable": "Ce patient n’est pas disponible.",
+      "comparisonImagesOnly": "Un comparatif avant/après nécessite une image.", "comparisonUnavailable": "Cette image ne peut plus être utilisée dans ce comparatif.",
+      "comparisonDate": "L’image « après » ne peut pas être antérieure à l’image « avant ».", "storageMissing": "Le fichier original est absent du stockage privé."
+    }
   },
   "health": {
     "formTitle": "Questionnaire médical",
