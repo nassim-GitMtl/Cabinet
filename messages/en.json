@@ -25,6 +25,7 @@
   },
   "nav": {
     "workspace": "Workspace",
+    "followUps": "Follow-ups",
     "dashboard": "Dashboard",
     "agenda": "Schedule",
     "reception": "Reception",
@@ -316,6 +317,8 @@
       "emergencyName": "Name",
       "emergencyRelationship": "Relationship",
       "emergencyPhone": "Phone",
+      "messagesOptOut": "Does not want reminder messages",
+      "messagesOptOutHint": "The patient will not appear in WhatsApp/SMS follow-ups (check-ups, estimates, no-shows).",
       "referralSource": "How did they hear about us?",
       "referredBy": "Referred by (practitioner)",
       "administrativeNotes": "Administrative notes",
@@ -1698,6 +1701,105 @@
       "tabletExpired": "This tablet link has expired or has already been used.",
       "versionNotFound": "This questionnaire version could not be found.",
       "versionNotDraft": "Only an unapproved draft can be activated."
+    }
+  },
+  "followUps": {
+    "title": "Patient follow-ups",
+    "subtitle": "Appointment reminders, check-ups and follow-ups: the message is ready in the patient's language, you just send it from WhatsApp or by SMS.",
+    "tabs": {
+      "reminders": "Reminders",
+      "recall": "Check-ups",
+      "treatments": "Treatments",
+      "estimates": "Estimates",
+      "noShows": "No-shows"
+    },
+    "hints": {
+      "reminders": "Appointments on {date}. Send the reminder, then mark the appointment confirmed when the patient replies.",
+      "recall": "Patients with no visit for {months} months or more and no upcoming appointment.",
+      "treatments": "Accepted treatment plans not finished yet, with no next appointment.",
+      "estimates": "Estimates proposed more than 3 days ago with no answer from the patient.",
+      "noShows": "Missed appointments in the last 30 days, with no new appointment.",
+      "snooze": "A contacted patient leaves the list for {days} days; if they decline, for 6 months."
+    },
+    "empty": {
+      "reminders": "No appointments on that day.",
+      "recall": "No check-ups to offer right now.",
+      "treatments": "No treatment to follow up.",
+      "estimates": "No estimate awaiting an answer.",
+      "noShows": "No missed appointment to follow up."
+    },
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "whatsapp": "WhatsApp",
+    "sms": "SMS",
+    "call": "Call",
+    "copy": "Copy",
+    "copied": "Copied",
+    "confirm": "Mark confirmed",
+    "openRecord": "Record",
+    "noPhone": "No phone number",
+    "optedOut": "Does not want to receive messages",
+    "message": "Message",
+    "outcomeLabel": "Outcome",
+    "saveOutcome": "Log",
+    "lastContact": "Last contact: {channel} · {outcome} · {at} · {by}",
+    "lastVisit": "Last visit on {date}",
+    "since": "Since {date}",
+    "withProvider": "with {name}",
+    "remaining": "{count, plural, =0 {no procedure left} one {# procedure left} other {# procedures left}}",
+    "outcomes": {
+      "message_prepared": "Message prepared",
+      "reached": "Reached",
+      "no_answer": "No answer",
+      "booked": "Booked",
+      "declined": "Declined"
+    },
+    "channels": {
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "phone": "Phone",
+      "in_person": "In person"
+    },
+    "confirmation": {
+      "pending": "To confirm",
+      "confirmed": "Confirmed",
+      "declined": "Will not come",
+      "reschedule_requested": "Wants to reschedule"
+    },
+    "noClinicPhone": "The clinic phone number is not set: it will be missing from messages.",
+    "addClinicPhone": "Add the number",
+    "settings": {
+      "link": "Messages & follow-ups",
+      "title": "Follow-ups: messages and timing",
+      "subtitle": "Texts sent to patients from the Follow-ups page. They never contain medical details.",
+      "recallMonths": "Offer a check-up after (months without a visit)",
+      "phonesTitle": "Clinic number in messages",
+      "branchPhone": "Phone · {branch}",
+      "templatesTitle": "Message templates",
+      "templatesHint": "Leave a field empty to keep the default text (shown in grey). Available variables:",
+      "bookingLinkHint": "The booking link is only useful if the clinic can be reached from the internet.",
+      "save": "Save",
+      "saved": "Saved",
+      "locales": {
+        "fr": "Français",
+        "en": "English",
+        "ar": "العربية"
+      }
+    },
+    "errors": {
+      "patientUnavailable": "This patient is unavailable.",
+      "referenceUnavailable": "This appointment or plan no longer matches this patient.",
+      "recallMonths": "Choose between 3 and 24 months.",
+      "invalidPhone": "Invalid phone number.",
+      "branchUnavailable": "This site is no longer available.",
+      "appointmentChanged": "This appointment has changed in the meantime; refresh the page."
+    },
+    "templates": {
+      "appointment_reminder": "Hello {firstName}, this is a reminder of your appointment at {clinic} on {date} at {time} with {provider}. Please reply to this message to confirm. If you cannot come, call us on {clinicPhone}.",
+      "recall": "Hello {firstName}, your last visit to {clinic} was more than {months} months ago. Regular check-ups prevent many dental problems. Reply to this message or call {clinicPhone} to book an appointment.",
+      "treatment_followup": "Hello {firstName}, your treatment at {clinic} is not finished yet. To book your next session, reply to this message or call {clinicPhone}.",
+      "estimate_followup": "Hello {firstName}, have you had a chance to review the estimate from {clinic}? We are happy to answer your questions on {clinicPhone}.",
+      "no_show": "Hello {firstName}, we missed you at your appointment on {date} at {clinic}. Would you like to book a new one? Reply to this message or call {clinicPhone}."
     }
   }
 }

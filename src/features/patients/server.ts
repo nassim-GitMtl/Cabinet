@@ -214,7 +214,7 @@ export async function createPatient(
     const patientNumber = `P-${String(n).padStart(6, "0")}`;
     const [created] = await tx
       .insert(patients)
-      .values({ ...row, organizationId: ctx.organizationId, patientNumber, createdByUserId: ctx.userId })
+      .values({ ...row, communicationPrefs: { transactionalAllowed: input.messagesOptOut !== true }, organizationId: ctx.organizationId, patientNumber, createdByUserId: ctx.userId })
       .returning({ id: patients.id });
     await audit(tx, {
       organizationId: ctx.organizationId,
@@ -240,7 +240,15 @@ export async function updatePatient(ctx: ClinicContext, id: string, input: Patie
   return tenantTx(ctx, async (tx) => {
     const updated = await tx
       .update(patients)
-      .set({ ...row, updatedAt: new Date(), version: sql`${patients.version} + 1` })
+      .set({
+        ...row,
+        ...(input.messagesOptOut === undefined ? {} : {
+          // Merge so marketing consent evidence in the same JSON is never lost.
+          communicationPrefs: sql`${patients.communicationPrefs} || ${JSON.stringify({ transactionalAllowed: !input.messagesOptOut })}::jsonb`,
+        }),
+        updatedAt: new Date(),
+        version: sql`${patients.version} + 1`,
+      })
       .where(and(eq(patients.id, id), eq(patients.version, expectedVersion)))
       .returning({ id: patients.id });
     if (!updated.length) throw new ConflictError();

@@ -7,6 +7,7 @@ import { FormError, SelectField, SubmitButton, TextAreaField, TextField } from "
 import { ButtonLink } from "@/components/button-link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { initialActionState, type ActionState } from "@/lib/action-state";
 import { formatDateOnly } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
@@ -134,6 +135,14 @@ export function PatientForm({ action, defaults = {}, providers, submitLabel, can
       <Section title={t("sections.contact")}>
         <TextField label={t("fields.phone")} name="phone" type="tel" inputMode="tel" autoComplete="off" optionalLabel defaultValue={v.phone} error={fe.phone} />
         <TextField label={t("fields.phoneAlt")} name="phoneAlt" type="tel" inputMode="tel" autoComplete="off" optionalLabel defaultValue={v.phoneAlt} error={fe.phoneAlt} />
+        <div className="flex items-start gap-2 sm:col-span-2">
+          <input type="hidden" name="messagesOptOut" value="off" />
+          <Checkbox id="messagesOptOut" name="messagesOptOut" value="on" defaultChecked={v.messagesOptOut === "on"} />
+          <label htmlFor="messagesOptOut" className="text-sm">
+            {t("fields.messagesOptOut")}
+            <span className="block text-xs text-muted-foreground">{t("fields.messagesOptOutHint")}</span>
+          </label>
+        </div>
         <TextField label={t("fields.email")} name="email" type="email" inputMode="email" autoComplete="off" optionalLabel defaultValue={v.email} error={fe.email} />
         <TextField label={t("fields.address")} name="addressLine" autoComplete="off" optionalLabel defaultValue={v.addressLine} error={fe.addressLine} />
         <TextField label={t("fields.city")} name="city" autoComplete="off" optionalLabel defaultValue={v.city} error={fe.city} />

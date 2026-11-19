@@ -20,6 +20,8 @@ export const PERMISSIONS = [
   "patient.export",
   "patient.alerts.read",
   "patient.alerts.manage",
+  /** Contact patients for reminders, recalls and follow-ups (sees phone numbers and visit/estimate status). */
+  "patient.followup",
   // Clinical
   "clinical.read",
   "clinical.write",
@@ -117,6 +119,7 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "shared_profile.read",
       "appointment.manage",
       "booking.approve",
+      "patient.followup",
       "price.override",
       "invoice.read",
       "invoice.create",
@@ -130,7 +133,7 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
   hygienist: { name: "Hygiéniste", permissions: [...CLINICAL, "clinical.sign", "questionnaire.approve", "treatment_plan.convert"] },
   assistant: {
     name: "Assistant(e) dentaire",
-    permissions: [...CLINICAL, "appointment.manage", "booking.approve", "treatment_plan.convert", "sterilization.manage"],
+    permissions: [...CLINICAL, "appointment.manage", "booking.approve", "patient.followup", "treatment_plan.convert", "sterilization.manage"],
   },
   receptionist: {
     name: "Réceptionniste",
@@ -142,6 +145,7 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "appointment.read",
       "appointment.manage",
       "booking.approve",
+      "patient.followup",
       "catalog.read",
       "invoice.read",
       "invoice.create",

@@ -13,6 +13,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const nav: NavKey[] = ["dashboard"];
   if (can(ctx, "appointment.read")) nav.push("agenda", "reception");
   if (can(ctx, "patient.read")) nav.push("patients");
+  if (can(ctx, "patient.followup")) nav.push("followUps");
   if (can(ctx, "invoice.read")) nav.push("invoices");
   if (can(ctx, "report.operational") || can(ctx, "report.financial")) nav.push("reports");
   if (can(ctx, "cash.manage")) nav.push("cash");

@@ -7,20 +7,21 @@ import type { ReactNode } from "react";
 import {
   ArrowLeftRightIcon,
   BarChart3Icon,
+  BellRingIcon,
   BookOpenIcon,
   CalendarDaysIcon,
   ClipboardCheckIcon,
   FileTextIcon,
+  LayoutDashboardIcon,
+  LogOutIcon,
   MenuIcon,
   PackageSearchIcon,
   ReceiptIcon,
-  ShieldCheckIcon,
-  WalletIcon,
-  LayoutDashboardIcon,
-  LogOutIcon,
   SettingsIcon,
+  ShieldCheckIcon,
   UserPlusIcon,
   UsersIcon,
+  WalletIcon,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,7 @@ import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
 import { ToothIcon, ToothNumberGuide } from "./tooth-number-guide";
 
-export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "invoices" | "reports" | "cash" | "expenses" | "inventory" | "sterilization" | "catalog" | "settings";
+export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "followUps" | "invoices" | "reports" | "cash" | "expenses" | "inventory" | "sterilization" | "catalog" | "settings";
 
 /** Shown in the phone bottom bar; everything else goes in the "More" sheet. */
 const MOBILE_PRIMARY: NavKey[] = ["dashboard", "agenda", "patients", "invoices"];
@@ -40,6 +41,7 @@ const NAV: Record<NavKey, { href: string; icon: LucideIcon; label: string; short
   agenda: { href: "/agenda", icon: CalendarDaysIcon, label: "agenda" },
   reception: { href: "/reception", icon: ClipboardCheckIcon, label: "reception" },
   patients: { href: "/patients", icon: UsersIcon, label: "patients" },
+  followUps: { href: "/follow-ups", icon: BellRingIcon, label: "followUps" },
   invoices: { href: "/invoices", icon: FileTextIcon, label: "invoices" },
   reports: { href: "/reports", icon: BarChart3Icon, label: "reports" },
   cash: { href: "/cash", icon: WalletIcon, label: "cash" },

@@ -105,6 +105,11 @@ export type OrganizationSettings = {
    * Planned appointments never reduce stock.
    */
   consumablesMode?: "suggest" | "auto";
+  /** Patient follow-ups: recall delay and per-language message templates (empty = built-in default). */
+  followUps?: {
+    recallMonths?: number;
+    templates?: Partial<Record<"appointment_reminder" | "recall" | "treatment_followup" | "estimate_followup" | "no_show", Partial<Record<"fr" | "en" | "ar", string>>>>;
+  };
 };
 
 export const organizations = pgTable("organizations", {

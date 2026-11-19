@@ -25,6 +25,7 @@
   },
   "nav": {
     "workspace": "Espace de travail",
+    "followUps": "Relances",
     "dashboard": "Tableau de bord",
     "agenda": "Agenda",
     "reception": "Réception",
@@ -316,6 +317,8 @@
       "emergencyName": "Nom",
       "emergencyRelationship": "Lien",
       "emergencyPhone": "Téléphone",
+      "messagesOptOut": "Ne souhaite pas recevoir de rappels par message",
+      "messagesOptOutHint": "Le patient n'apparaîtra pas dans les relances WhatsApp/SMS (contrôles, devis, absences).",
       "referralSource": "Comment nous a-t-il connu ?",
       "referredBy": "Adressé par (praticien)",
       "administrativeNotes": "Notes administratives",
@@ -1705,6 +1708,105 @@
       "tabletExpired": "Ce lien tablette a expiré ou a déjà été utilisé.",
       "versionNotFound": "Cette version du questionnaire est introuvable.",
       "versionNotDraft": "Seul un brouillon non approuvé peut être activé."
+    }
+  },
+  "followUps": {
+    "title": "Relances patients",
+    "subtitle": "Rappels de rendez-vous, contrôles et suivis : le message est prêt dans la langue du patient, il reste à l'envoyer depuis WhatsApp ou par SMS.",
+    "tabs": {
+      "reminders": "Rappels RDV",
+      "recall": "Contrôles",
+      "treatments": "Traitements",
+      "estimates": "Devis",
+      "noShows": "Absents"
+    },
+    "hints": {
+      "reminders": "Rendez-vous du {date}. Envoyez le rappel, puis marquez le rendez-vous confirmé quand le patient répond.",
+      "recall": "Patients sans visite depuis {months} mois ou plus et sans rendez-vous prévu.",
+      "treatments": "Plans de traitement acceptés mais pas terminés, sans prochain rendez-vous.",
+      "estimates": "Devis proposés depuis plus de 3 jours, toujours sans réponse du patient.",
+      "noShows": "Absences des 30 derniers jours, sans nouveau rendez-vous.",
+      "snooze": "Un patient contacté sort de la liste pendant {days} jours ; s'il refuse, pendant 6 mois."
+    },
+    "empty": {
+      "reminders": "Aucun rendez-vous ce jour-là.",
+      "recall": "Aucun contrôle à proposer pour le moment.",
+      "treatments": "Aucun traitement à relancer.",
+      "estimates": "Aucun devis en attente de réponse.",
+      "noShows": "Aucune absence à relancer."
+    },
+    "previousDay": "Jour précédent",
+    "nextDay": "Jour suivant",
+    "whatsapp": "WhatsApp",
+    "sms": "SMS",
+    "call": "Appeler",
+    "copy": "Copier",
+    "copied": "Copié",
+    "confirm": "Marquer confirmé",
+    "openRecord": "Dossier",
+    "noPhone": "Pas de numéro de téléphone",
+    "optedOut": "Ne souhaite pas recevoir de messages",
+    "message": "Message",
+    "outcomeLabel": "Résultat",
+    "saveOutcome": "Noter",
+    "lastContact": "Dernier contact : {channel} · {outcome} · {at} · {by}",
+    "lastVisit": "Dernière visite le {date}",
+    "since": "Depuis le {date}",
+    "withProvider": "avec {name}",
+    "remaining": "{count, plural, =0 {aucun acte restant} one {# acte restant} other {# actes restants}}",
+    "outcomes": {
+      "message_prepared": "Message préparé",
+      "reached": "Joint(e)",
+      "no_answer": "Pas de réponse",
+      "booked": "RDV pris",
+      "declined": "Refuse"
+    },
+    "channels": {
+      "whatsapp": "WhatsApp",
+      "sms": "SMS",
+      "phone": "Téléphone",
+      "in_person": "Sur place"
+    },
+    "confirmation": {
+      "pending": "À confirmer",
+      "confirmed": "Confirmé",
+      "declined": "Annulation annoncée",
+      "reschedule_requested": "Report demandé"
+    },
+    "noClinicPhone": "Le numéro du cabinet n'est pas renseigné : il manquera dans les messages.",
+    "addClinicPhone": "Ajouter le numéro",
+    "settings": {
+      "link": "Messages et relances",
+      "title": "Relances : messages et délais",
+      "subtitle": "Textes envoyés aux patients depuis la page Relances. Ils ne contiennent jamais de détail médical.",
+      "recallMonths": "Proposer un contrôle après (mois sans visite)",
+      "phonesTitle": "Numéro du cabinet dans les messages",
+      "branchPhone": "Téléphone · {branch}",
+      "templatesTitle": "Modèles de messages",
+      "templatesHint": "Laissez un champ vide pour garder le texte par défaut (affiché en gris). Variables disponibles :",
+      "bookingLinkHint": "Le lien de réservation n'est utile que si le cabinet est accessible depuis internet.",
+      "save": "Enregistrer",
+      "saved": "Enregistré",
+      "locales": {
+        "fr": "Français",
+        "en": "English",
+        "ar": "العربية"
+      }
+    },
+    "errors": {
+      "patientUnavailable": "Ce patient n'est pas disponible.",
+      "referenceUnavailable": "Ce rendez-vous ou ce plan ne correspond plus à ce patient.",
+      "recallMonths": "Choisissez entre 3 et 24 mois.",
+      "invalidPhone": "Numéro de téléphone invalide.",
+      "branchUnavailable": "Ce site n'est plus disponible.",
+      "appointmentChanged": "Ce rendez-vous a changé entre-temps ; actualisez la page."
+    },
+    "templates": {
+      "appointment_reminder": "Bonjour {firstName}, nous vous rappelons votre rendez-vous au {clinic} le {date} à {time} avec {provider}. Merci de confirmer votre présence en répondant à ce message. En cas d'empêchement, appelez-nous au {clinicPhone}.",
+      "recall": "Bonjour {firstName}, votre dernière visite au {clinic} remonte à plus de {months} mois. Un contrôle régulier permet d'éviter bien des problèmes dentaires. Répondez à ce message ou appelez le {clinicPhone} pour prendre rendez-vous.",
+      "treatment_followup": "Bonjour {firstName}, votre traitement au {clinic} n'est pas encore terminé. Pour fixer votre prochaine séance, répondez à ce message ou appelez le {clinicPhone}.",
+      "estimate_followup": "Bonjour {firstName}, avez-vous pu étudier le devis remis par le {clinic} ? Nous sommes à votre disposition pour répondre à vos questions au {clinicPhone}.",
+      "no_show": "Bonjour {firstName}, nous ne vous avons pas vu à votre rendez-vous du {date} au {clinic}. Souhaitez-vous en fixer un nouveau ? Répondez à ce message ou appelez le {clinicPhone}."
     }
   }
 }

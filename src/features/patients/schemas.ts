@@ -40,6 +40,8 @@ export const patientInputSchema = z
     city: optionalText(100),
     region: optionalText(100),
     preferredLocale: z.enum(["fr", "en", "ar"]).default("fr"),
+    /** Checkbox + hidden "off": "on" = no reminder messages; absent = keep as is (allowed on create). */
+    messagesOptOut: z.union([z.enum(["on", "off"]), z.boolean()]).transform((v) => v === "on" || v === true).optional(),
     emergencyName: optionalText(150),
     emergencyRelationship: optionalText(80),
     emergencyPhone: optionalText(40),

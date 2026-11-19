@@ -33,6 +33,7 @@ export function patientFormDefaults(p: {
   city: string | null;
   region: string | null;
   preferredLocale: string;
+  communicationPrefs?: { transactionalAllowed?: boolean } | null;
   emergencyContact: { name: string; relationship?: string; phone?: string } | null;
   referralSource: string | null;
   referredBy: string | null;
@@ -54,6 +55,7 @@ export function patientFormDefaults(p: {
     city: p.city ?? "",
     region: p.region ?? "",
     preferredLocale: p.preferredLocale,
+    messagesOptOut: p.communicationPrefs?.transactionalAllowed === false ? "on" : "",
     emergencyName: p.emergencyContact?.name ?? "",
     emergencyRelationship: p.emergencyContact?.relationship ?? "",
     emergencyPhone: p.emergencyContact?.phone ?? "",

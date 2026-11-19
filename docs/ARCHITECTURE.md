@@ -254,3 +254,21 @@ never summed. "Paid to date" is as of generation time.
   `private, no-store`, `nosniff`; `CSP: sandbox` for images/DICOM (not PDFs: browsers refuse to render them sandboxed).
 - `path.resolve` calls on runtime data carry `/*turbopackIgnore: true*/` so the standalone build doesn't trace the
   project or stored files; `.data` is in `.gitignore` and `.dockerignore`.
+
+## Patient follow-ups (`src/features/follow-ups`, migration 0033)
+
+- No server-side sending: each card builds `wa.me` / `sms:` / `tel:` links with the message, and staff send from their own
+  phone (works without internet on the clinic server). A real SMS/WhatsApp Business provider would plug in later as another
+  channel; never show a message as "sent" unless a provider confirmed it (`message_prepared` = link opened).
+- Lists are computed on read with raw SQL in `getFollowUps` (no queue table): reminders for one local day, recall from the
+  latest completed procedure or completed appointment, plans by `treatment_plans.status` + `updated_at` (3-day grace),
+  no-shows of 30 days. All except reminders require no future booked appointment and `transactionalAllowed` ≠ false.
+- `patient_contacts` is append-only and drives snoozing (latest contact per patient/reason/reference: 30 days recall,
+  14 days otherwise, 180 days after `declined`). Reference rules are a CHECK constraint plus the `guard_patient_contact`
+  trigger (same clinic, same patient, staff actor).
+- Templates: built-in defaults live in `messages/*.json` → `followUps.templates` and are read from all three files on the
+  server (`compose.ts`), because a message follows the patient's language, not the user's. Clinic overrides are stored in
+  `organizations.settings.followUps.templates` (empty = default). `{placeholders}` are filled by `fillTemplate`, not ICU.
+- Messages never include clinical content (no procedure names, teeth or diagnoses); plan titles/amounts are shown to staff
+  only with `treatment_plan.read`.
+

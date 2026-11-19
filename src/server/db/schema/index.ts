@@ -16,3 +16,4 @@ export * from "./inventory";
 export * from "./consumables";
 export * from "./sterilization";
 export * from "./clinical-files";
+export * from "./follow-ups";
