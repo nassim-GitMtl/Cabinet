@@ -25,6 +25,10 @@ export type FollowUpItem = {
   planId: string | null;
   /** After-visit messages refer to the day of the visit. */
   visitDate: string | null;
+  /** Installment reminders refer to one installment. */
+  installmentId: string | null;
+  /** Shown as a red "late" badge when set. */
+  late?: string | null;
   details: string[];
   lastContact: string | null;
   confirmation: { status: string; label: string; canConfirm: boolean } | null;
@@ -48,7 +52,7 @@ export function FollowUpCard({ item }: { item: FollowUpItem }) {
       setError(undefined);
       const res = await logContactAction({
         patientId: item.patientId, reason: item.reason, channel: usedChannel, outcome: result,
-        appointmentId: item.appointmentId, treatmentPlanId: item.planId, visitDate: item.visitDate,
+        appointmentId: item.appointmentId, treatmentPlanId: item.reason === "installment_due" ? null : item.planId, visitDate: item.visitDate, installmentId: item.installmentId,
       });
       if (res.error) setError(res.error);
     });
@@ -85,6 +89,7 @@ export function FollowUpCard({ item }: { item: FollowUpItem }) {
             {item.phoneDisplay ? <> · <span dir="ltr" className="tabular-nums">{item.phoneDisplay}</span></> : null}
           </p>
         </div>
+        {item.late ? <span className="rounded-full bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">{item.late}</span> : null}
         {item.confirmation ? (
           <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium",
             item.confirmation.status === "confirmed" ? "bg-success/15 text-success" : item.confirmation.status === "pending" ? "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200" : "bg-destructive/10 text-destructive")}>

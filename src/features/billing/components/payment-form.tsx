@@ -18,6 +18,7 @@ const METHODS = ["cash", "card", "bank_transfer", "cheque", "other"] as const;
 export function PaymentForm({
   patientId,
   allocateTo,
+  installmentId,
   defaultAmountMinor,
   currency,
   symbol,
@@ -27,6 +28,7 @@ export function PaymentForm({
 }: {
   patientId: string;
   allocateTo: string | "auto" | null;
+  installmentId?: string | null;
   defaultAmountMinor?: number;
   currency: string;
   symbol: string;
@@ -38,7 +40,7 @@ export function PaymentForm({
   const router = useRouter();
   const [key, setKey] = useState(() => crypto.randomUUID());
   const [state, action] = useActionState(async (prev: ActionState, fd: FormData) => {
-    const result = await recordPaymentAction(patientId, allocateTo, prev, fd);
+    const result = await recordPaymentAction(patientId, allocateTo, installmentId ?? null, prev, fd);
     if (result.ok) {
       const paymentId = (result.data as { paymentId: string }).paymentId;
       toast.success(t("paymentRecorded"), {

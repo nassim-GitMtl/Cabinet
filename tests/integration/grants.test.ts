@@ -7,7 +7,7 @@ import { describe, expect, it } from "vitest";
  * catalog so a future migration re-running apply_security() cannot reopen them.
  */
 const NO_DELETE = ["payments", "cash_sessions", "expenses", "appointments", "booking_requests", "treatment_plans", "clinical_notes", "questionnaire_versions", "inventory_items", "inventory_purchase_orders", "inventory_item_identifiers", "procedure_consumptions", "sterilizers", "instrument_sets", "sterilization_cycles", "sterilization_packs", "sterilization_pack_uses", "questionnaire_tablet_sessions"];
-const APPEND_ONLY = ["service_prices", "credit_notes", "payment_allocations", "refunds", "cash_movements", "clinical_note_versions", "questionnaire_responses", "health_history_reviews", "odontogram_findings", "inventory_lots", "inventory_movements", "inventory_purchase_order_lines", "audit_events", "clinical_files", "clinical_file_comparisons", "patient_contacts"];
+const APPEND_ONLY = ["service_prices", "credit_notes", "payment_allocations", "refunds", "cash_movements", "clinical_note_versions", "questionnaire_responses", "health_history_reviews", "odontogram_findings", "inventory_lots", "inventory_movements", "inventory_purchase_order_lines", "audit_events", "clinical_files", "clinical_file_comparisons", "patient_contacts", "payment_schedules", "payment_schedule_installments", "payment_installment_receipts"];
 
 describe("database privileges of the runtime role", () => {
   it("cannot delete protected rows or modify append-only ledgers", async () => {

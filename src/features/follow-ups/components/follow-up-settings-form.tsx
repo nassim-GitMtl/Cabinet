@@ -9,7 +9,7 @@ import { FOLLOW_UP_REASONS, MAX_TEMPLATE_LENGTH, MESSAGE_LOCALES, TEMPLATE_PLACE
 
 const REASON_TAB: Record<FollowUpReason, string> = {
   appointment_reminder: "reminders", recall: "recall", treatment_followup: "treatments", estimate_followup: "estimates", no_show: "noShows",
-  after_visit: "afterVisit", referral_thanks: "thanks",
+  after_visit: "afterVisit", referral_thanks: "thanks", installment_due: "installments",
 };
 
 export function FollowUpSettingsForm({ recallMonths, branches, custom, defaults, reviewUrl, categories, aftercare }: {

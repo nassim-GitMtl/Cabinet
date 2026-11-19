@@ -52,7 +52,7 @@ export function careInstructionsFor(categoryIds: string[], locale: MessageLocale
 export function composeMessage(
   templates: Templates,
   reason: FollowUpReason,
-  row: FollowUpPatient & { branchId?: string; date?: string; time?: string; provider?: string; categoryIds?: string[] },
+  row: FollowUpPatient & { branchId?: string; date?: string; time?: string; provider?: string; categoryIds?: string[]; amount?: string },
   context: ComposeContext,
 ): string {
   const locale = row.locale;
@@ -70,6 +70,7 @@ export function composeMessage(
     bookingLink: context.bookingUrl ?? "",
     careInstructions: reason === "after_visit" ? careInstructionsFor(row.categoryIds ?? [], locale, context.aftercare) : "",
     reviewLink: context.reviewUrl ?? "",
+    amount: row.amount ?? "",
   });
   // After a visit, ask for a review when the clinic set a link (unless its own wording already places it).
   if (reason === "after_visit" && context.reviewUrl && !template.includes("{reviewLink}")) {

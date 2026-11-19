@@ -1,7 +1,7 @@
 // Pure helpers for follow-up messages: template filling and one-tap WhatsApp/SMS/phone links.
 // Nothing is sent by the server: links open the staff member's own WhatsApp/SMS app with the text ready.
 
-export const FOLLOW_UP_REASONS = ["appointment_reminder", "recall", "treatment_followup", "estimate_followup", "no_show", "after_visit", "referral_thanks"] as const;
+export const FOLLOW_UP_REASONS = ["appointment_reminder", "recall", "treatment_followup", "estimate_followup", "no_show", "after_visit", "referral_thanks", "installment_due"] as const;
 export type FollowUpReason = (typeof FOLLOW_UP_REASONS)[number];
 export const CONTACT_CHANNELS = ["whatsapp", "sms", "phone", "in_person"] as const;
 export type ContactChannel = (typeof CONTACT_CHANNELS)[number];
@@ -11,7 +11,7 @@ export const MESSAGE_LOCALES = ["fr", "en", "ar"] as const;
 export type MessageLocale = (typeof MESSAGE_LOCALES)[number];
 
 /** Placeholders staff can use in templates (shown in settings). */
-export const TEMPLATE_PLACEHOLDERS = ["firstName", "lastName", "clinic", "date", "time", "provider", "clinicPhone", "months", "bookingLink", "careInstructions", "reviewLink"] as const;
+export const TEMPLATE_PLACEHOLDERS = ["firstName", "lastName", "clinic", "date", "time", "provider", "clinicPhone", "months", "bookingLink", "careInstructions", "reviewLink", "amount"] as const;
 export const MAX_TEMPLATE_LENGTH = 700;
 
 export function asMessageLocale(value: string | null | undefined): MessageLocale {

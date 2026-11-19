@@ -301,3 +301,16 @@ never summed. "Paid to date" is as of generation time.
   availability without revealing the owner. External links must be `https:` (`safeHttpsUrl`).
 - Shared addresses use `publicOrigin()`: `PUBLIC_APP_URL` when set, else the current host, flagged "local only" for
   `.local`, private IPs and localhost. QR codes are vector SVG generated server-side (`qrcode`), no external service.
+
+## Payment schedules (`src/features/payment-plans`, migrations 0037–0038)
+
+- A schedule belongs to one exact accepted estimate version and is append-only; changing it inserts a new schedule that
+  supersedes the current one (allowed only before any receipt). Installment amounts must add up to the estimate total
+  (deferred constraint trigger, checked at commit).
+- Money stays in the payment ledger: receiving on an installment records a normal `advance_deposit` payment (unapplied
+  credit used later for invoices) plus an append-only receipt row classifying it to the installment. Paid = posted payments
+  minus refunds of those receipts; a receipt can never exceed what is left on the installment.
+- Pitfalls met here: in PL/pgSQL never name a variable like a table alias used in the same query; `SELECT … FOR SHARE` needs
+  UPDATE privilege, so append-only tables are serialized with `pg_advisory_xact_lock` instead; Server Components cannot pass
+  functions to client components (wrap `DialogButton` render functions in a client component).
+

@@ -108,7 +108,7 @@ export type OrganizationSettings = {
   /** Patient follow-ups: recall delay and per-language message templates (empty = built-in default). */
   followUps?: {
     recallMonths?: number;
-    templates?: Partial<Record<"appointment_reminder" | "recall" | "treatment_followup" | "estimate_followup" | "no_show" | "after_visit" | "referral_thanks", Partial<Record<"fr" | "en" | "ar", string>>>>;
+    templates?: Partial<Record<"appointment_reminder" | "recall" | "treatment_followup" | "estimate_followup" | "no_show" | "after_visit" | "referral_thanks" | "installment_due", Partial<Record<"fr" | "en" | "ar", string>>>>;
     /** Google (or other) review page, https only; appended to after-visit messages when set. */
     reviewUrl?: string | null;
     /** Clinic-written care instructions per catalog category id and language (none by default). */

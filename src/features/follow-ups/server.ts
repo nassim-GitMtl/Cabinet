@@ -6,7 +6,7 @@ import { addDays, zonedToUtc } from "@/lib/dates";
 import { normalizePhone } from "@/lib/phone";
 import { audit } from "@/server/audit";
 import { can, requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
-import { appointments, bookingLinks, branches, organizations, patientContacts, patients, serviceCategories, treatmentPlans } from "@/server/db/schema";
+import { appointments, bookingLinks, branches, organizations, patientContacts, patients, paymentScheduleInstallments, serviceCategories, treatmentPlans } from "@/server/db/schema";
 import type { ContactChannel, ContactOutcome, FollowUpReason, MessageLocale } from "./messages";
 import { asMessageLocale } from "./messages";
 import type { FollowUpSettingsInput, LogContactInput } from "./schemas";
@@ -17,7 +17,9 @@ export class FollowUpError extends Error {
 
 export const DEFAULT_RECALL_MONTHS = 6;
 /** A patient contacted for the same reason is hidden for this many days (recall: longer). */
-const SNOOZE_DAYS: Record<Exclude<FollowUpReason, "appointment_reminder" | "after_visit" | "referral_thanks">, number> = { recall: 30, treatment_followup: 14, estimate_followup: 14, no_show: 14 };
+const SNOOZE_DAYS: Record<Exclude<FollowUpReason, "appointment_reminder" | "after_visit" | "referral_thanks">, number> = { recall: 30, treatment_followup: 14, estimate_followup: 14, no_show: 14, installment_due: 7 };
+/** Installments due within this many days (and late ones) are listed. */
+const INSTALLMENT_HORIZON_DAYS = 7;
 /** Referrers are thanked for patients created within this window. */
 const THANKS_WINDOW_DAYS = 60;
 /** Plans become follow-ups only after this many days without a booked appointment. */
@@ -37,6 +39,7 @@ export type PlanRow = FollowUpPatient & { planId: string; since: string; title: 
 export type NoShowRow = FollowUpPatient & { appointmentId: string; branchId: string; date: string; time: string; provider: string };
 export type AfterVisitRow = FollowUpPatient & { visitDate: string; categoryIds: string[] };
 export type ThanksRow = FollowUpPatient & { referredCount: number; latestReferral: string };
+export type InstallmentRow = FollowUpPatient & { installmentId: string; planId: string; number: number; dueDate: string; remainingMinor: number; currency: string };
 
 type RawPatient = {
   patient_id: string; patient_number: string; first_name: string; last_name: string; first_name_ar: string | null;
@@ -173,6 +176,23 @@ export async function getFollowUps(ctx: ClinicContext, opts: { today: string; re
        where p.status = 'active' and ${contactAllowed} and (lc.created is null or lc.created < ref.latest)
        order by ref.latest desc limit ${LIMIT}`);
 
+    // Unpaid installments of current schedules, due within a week or late (amounts need payment.read).
+    const installments = can(ctx, "payment.read") ? await tx.execute<RawPatient & { installment_id: string; plan_id: string; installment_number: number; due_date: string; remaining: string; currency: string }>(sql`
+      select i.id as installment_id, s.plan_id, i.installment_number, to_char(i.due_date, 'YYYY-MM-DD') as due_date,
+             (i.amount_minor - paid.amount)::text as remaining, s.currency, ${patientCols}
+        from payment_schedule_installments i
+        join payment_schedules s on s.id = i.schedule_id
+         and not exists (select 1 from payment_schedules n where n.supersedes_schedule_id = s.id)
+        cross join lateral (select coalesce(sum(case when pay.status = 'posted' then pay.amount_minor
+                 - coalesce((select sum(r.amount_minor) from refunds r where r.payment_id = pay.id), 0) else 0 end), 0) as amount
+               from payment_installment_receipts x join payments pay on pay.id = x.payment_id where x.installment_id = i.id) paid
+        join patients p on p.id = i.patient_id
+        ${lastContactJoin(tz, "installment_due", sql`c.installment_id = i.id`)}
+       where i.due_date <= (${opts.today}::date + ${INSTALLMENT_HORIZON_DAYS}::int)
+         and i.amount_minor > paid.amount and p.status in ('active', 'inactive')
+         and ${contactAllowed} and ${notSnoozed(SNOOZE_DAYS.installment_due)}
+       order by i.due_date, p.last_name limit ${LIMIT}`) : [];
+
     const planRow = (r: RawPatient & { plan_id: string; since: string; title: string; total_minor: string; currency: string; remaining: number }): PlanRow => ({
       ...mapPatient(r), planId: r.plan_id, since: r.since, remaining: Number(r.remaining), currency: r.currency,
       title: showPlans ? r.title : null, totalMinor: showPlans ? Number(r.total_minor) : null,
@@ -183,6 +203,10 @@ export async function getFollowUps(ctx: ClinicContext, opts: { today: string; re
       recall: recall.map((r): RecallRow => ({ ...mapPatient(r), lastVisit: r.last_visit })),
       treatments: treatments.map(planRow),
       estimates: estimates.map(planRow),
+      installments: installments.map((r): InstallmentRow => ({
+        ...mapPatient(r), installmentId: r.installment_id, planId: r.plan_id, number: Number(r.installment_number),
+        dueDate: r.due_date, remainingMinor: Number(r.remaining), currency: r.currency,
+      })),
       afterVisit: afterVisit.map((r): AfterVisitRow => ({ ...mapPatient(r), visitDate: r.visit_date, categoryIds: r.category_ids ?? [] })),
       thanks: thanks.map((r): ThanksRow => ({ ...mapPatient(r), referredCount: Number(r.referred_count), latestReferral: r.latest_referral })),
       noShows: noShows
@@ -224,6 +248,11 @@ export async function logPatientContact(ctx: ClinicContext, input: LogContactInp
         where patient_id = ${input.patientId} and service_date = ${input.visitDate}::date and status = 'completed' limit 1`);
       if (!visit) throw new FollowUpError("referenceUnavailable");
     }
+    if (input.installmentId) {
+      const [row] = await tx.select({ id: paymentScheduleInstallments.id }).from(paymentScheduleInstallments)
+        .where(and(eq(paymentScheduleInstallments.id, input.installmentId), eq(paymentScheduleInstallments.patientId, input.patientId))).limit(1);
+      if (!row) throw new FollowUpError("referenceUnavailable");
+    }
     if (input.treatmentPlanId) {
       const [p] = await tx.select({ id: treatmentPlans.id }).from(treatmentPlans)
         .where(and(eq(treatmentPlans.id, input.treatmentPlanId), eq(treatmentPlans.patientId, input.patientId))).limit(1);
@@ -231,7 +260,7 @@ export async function logPatientContact(ctx: ClinicContext, input: LogContactInp
     }
     const [row] = await tx.insert(patientContacts).values({
       organizationId: ctx.organizationId, patientId: input.patientId, reason: input.reason, channel: input.channel,
-      outcome: input.outcome, appointmentId: input.appointmentId, treatmentPlanId: input.treatmentPlanId, visitDate: input.visitDate ?? null, note: input.note,
+      outcome: input.outcome, appointmentId: input.appointmentId, treatmentPlanId: input.treatmentPlanId, visitDate: input.visitDate ?? null, installmentId: input.installmentId ?? null, note: input.note,
       createdByUserId: ctx.userId,
     }).returning({ id: patientContacts.id });
     await audit(tx, {

@@ -1174,9 +1174,9 @@
     "appointmentsDescription": "Visites à venir et récentes",
     "appointment": "Rendez-vous dentaire",
     "noAppointments": "Aucun rendez-vous disponible.",
-    "acceptedEstimates": "Devis acceptés",
-    "acceptedEstimatesDescription": "Plans que vous avez acceptés au cabinet",
-    "noAcceptedEstimates": "Aucun devis accepté disponible.",
+    "acceptedEstimates": "Vos devis",
+    "acceptedEstimatesDescription": "Devis proposés ou acceptés au cabinet, avec leur échéancier",
+    "noAcceptedEstimates": "Aucun devis disponible.",
     "acceptedOn": "Accepté le {date}",
     "billingHistory": "Factures et paiements",
     "billingDescription": "Documents émis et historique des reçus",
@@ -1207,7 +1207,8 @@
     },
     "estimateStatus": {
       "accepted": "Accepté",
-      "completed": "Terminé"
+      "completed": "Terminé",
+      "proposed": "Proposé"
     },
     "pendingRequests": "Demandes en attente de votre décision",
     "noPending": "Aucune demande n'attend votre décision.",
@@ -1237,7 +1238,10 @@
       "images": "Images",
       "documents": "Documents",
       "financial": "Données financières"
-    }
+    },
+    "paymentSchedule": "Échéancier",
+    "installmentPaid": "réglée",
+    "installmentDue": "restant dû"
   },
   "odontogram": {
     "title": "Odontogramme",
@@ -1720,7 +1724,8 @@
       "estimates": "Devis",
       "noShows": "Absents",
       "afterVisit": "Après visite",
-      "thanks": "Remerciements"
+      "thanks": "Remerciements",
+      "installments": "Échéances"
     },
     "hints": {
       "reminders": "Rendez-vous du {date}. Envoyez le rappel, puis marquez le rendez-vous confirmé quand le patient répond.",
@@ -1731,7 +1736,8 @@
       "snooze": "Un patient contacté sort de la liste pendant {days} jours ; s'il refuse, pendant 6 mois.",
       "afterVisit": "Patients soignés le {date} : remerciez-les, envoyez vos conseils après soins et, si vous le souhaitez, demandez un avis.",
       "thanks": "Patients qui ont recommandé le cabinet ces 60 derniers jours. Le message ne cite jamais la personne recommandée.",
-      "thanksSnooze": "Un patient remercié sort de la liste jusqu'à sa prochaine recommandation."
+      "thanksSnooze": "Un patient remercié sort de la liste jusqu'à sa prochaine recommandation.",
+      "installments": "Échéances non réglées des 7 prochains jours et en retard."
     },
     "empty": {
       "reminders": "Aucun rendez-vous ce jour-là.",
@@ -1740,7 +1746,8 @@
       "estimates": "Aucun devis en attente de réponse.",
       "noShows": "Aucune absence à relancer.",
       "afterVisit": "Aucun soin réalisé ce jour-là.",
-      "thanks": "Aucune recommandation à remercier pour le moment."
+      "thanks": "Aucune recommandation à remercier pour le moment.",
+      "installments": "Aucune échéance à rappeler."
     },
     "previousDay": "Jour précédent",
     "nextDay": "Jour suivant",
@@ -1821,12 +1828,15 @@
       "estimate_followup": "Bonjour {firstName}, avez-vous pu étudier le devis remis par le {clinic} ? Nous sommes à votre disposition pour répondre à vos questions au {clinicPhone}.",
       "no_show": "Bonjour {firstName}, nous ne vous avons pas vu à votre rendez-vous du {date} au {clinic}. Souhaitez-vous en fixer un nouveau ? Répondez à ce message ou appelez le {clinicPhone}.",
       "after_visit": "Bonjour {firstName}, merci pour votre visite au {clinic}. {careInstructions} En cas de douleur ou pour toute question, appelez-nous au {clinicPhone}.",
-      "referral_thanks": "Bonjour {firstName}, merci d'avoir recommandé notre cabinet à vos proches : votre confiance nous touche beaucoup. À bientôt, l'équipe du {clinic}."
+      "referral_thanks": "Bonjour {firstName}, merci d'avoir recommandé notre cabinet à vos proches : votre confiance nous touche beaucoup. À bientôt, l'équipe du {clinic}.",
+      "installment_due": "Bonjour {firstName}, petit rappel : une échéance de {amount} pour vos soins au {clinic} est prévue le {date}. Pour toute question, appelez-nous au {clinicPhone}. Merci !"
     },
     "careIncluded": "Conseils après soins inclus",
     "reviewSentence": "Si vous êtes satisfait(e), votre avis nous aiderait beaucoup : {reviewLink}",
     "showFull": "Afficher le message complet",
-    "showLess": "Réduire le message"
+    "showLess": "Réduire le message",
+    "installmentLine": "Échéance {number} du {date}",
+    "late": "En retard"
   },
   "acquisition": {
     "question": "Comment nous a-t-il connu ?",
@@ -1978,5 +1988,53 @@
       "notFound": "Page introuvable",
       "defaultDescription": "Prenez rendez-vous au {name}."
     }
+  },
+  "paymentPlans": {
+    "title": "Échéancier de paiement",
+    "description": "Répartissez le devis accepté en échéances. Un paiement encaissé sur une échéance reste un acompte du patient, utilisé ensuite pour ses factures.",
+    "create": "Créer un échéancier",
+    "createTitle": "Nouvel échéancier",
+    "replace": "Modifier l'échéancier",
+    "replaceTitle": "Remplacer l'échéancier",
+    "formHint": "La somme des échéances doit être égale au total du devis. Dès qu'un paiement est encaissé sur l'échéancier, il ne peut plus être remplacé.",
+    "empty": "Aucun échéancier : le patient règle au fil des soins.",
+    "installment": "Échéance {number}",
+    "recordPayment": "Encaisser",
+    "printEstimate": "Imprimer le devis",
+    "whatsapp": "Envoyer par WhatsApp",
+    "whatsappMessage": "Bonjour, votre devis du {clinic} est disponible dans votre espace patient : {link}. Vous pouvez aussi le demander imprimé au cabinet.",
+    "shareHint": "Imprimez le devis (ou enregistrez-le en PDF) pour le remettre au patient. Le bouton WhatsApp envoie le lien de son espace patient, où le devis et l'échéancier sont visibles s'il a un accès.",
+    "status": {
+      "paid": "Payée",
+      "partial": "Partielle",
+      "overdue": "En retard",
+      "upcoming": "À venir"
+    },
+    "errors": {
+      "planUnavailable": "Ce devis n'est plus accepté.",
+      "invalidSchedule": "Échéancier invalide : dates croissantes, montants positifs et total égal au devis.",
+      "cannotReplacePaid": "Un paiement a déjà été encaissé sur cet échéancier : il ne peut plus être remplacé.",
+      "forbidden": "Accès refusé."
+    },
+    "dueDate": "Échéance {number}",
+    "amount": "Montant",
+    "remove": "Retirer",
+    "addInstallment": "Ajouter une échéance",
+    "sumHint": "Total à répartir : {total} {symbol}",
+    "estimateDocument": "Devis",
+    "version": "Version {version}",
+    "preparedFor": "Établi pour",
+    "service": "Acte",
+    "details": "Détails",
+    "quantity": "Qté",
+    "estimatedTotal": "Total estimé",
+    "tooth": "Dent {tooth}",
+    "scheduleTitle": "Échéancier proposé",
+    "estimateNotice": "Devis établi à titre indicatif ; il peut évoluer selon la situation clinique. Toute modification fait l'objet d'une nouvelle version.",
+    "printedOn": "Imprimé le {date}",
+    "signature": "Lu et accepté, signature du patient",
+    "openPlan": "Voir le plan de traitement",
+    "lateCount": "{count, plural, one {# échéance en retard} other {# échéances en retard}}",
+    "recordNext": "Encaisser l'échéance {number}"
   }
 }

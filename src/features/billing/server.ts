@@ -11,6 +11,7 @@ import {
   memberships,
   patients,
   paymentAllocations,
+  paymentInstallmentReceipts,
   payments,
   performedProcedures,
   refunds,
@@ -244,6 +245,8 @@ export type PaymentInput = {
   idempotencyKey: string;
   /** Invoice to pay; "auto" = oldest open invoices; null = keep as deposit/credit. */
   allocateTo: string | "auto" | null;
+  /** Optional installment classification. The receipt remains an unapplied deposit. */
+  installmentId?: string | null;
 };
 
 async function openInvoices(tx: Tx, patientId: string, onlyId?: string) {
@@ -268,11 +271,28 @@ export async function recordPayment(ctx: ClinicContext, input: PaymentInput) {
 
     const [patient] = await tx.select({ id: patients.id }).from(patients).where(eq(patients.id, input.patientId)).limit(1);
     if (!patient) throw new BillingError("notFound");
+    let installment: { id: string; scheduleId: string; currency: string } | null = null;
+    if (input.installmentId) {
+      if (input.allocateTo !== null) throw new BillingError("invalidAmount");
+      // Serialize receipts per installment (row locks need UPDATE, which append-only tables never grant).
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`installment:${input.installmentId}`}, 0))`);
+      const [row] = await tx.execute<{ id: string; schedule_id: string; currency: string; remaining: string }>(sql`
+        select i.id, i.schedule_id, s.currency,
+               (i.amount_minor - coalesce((select sum(case when p.status = 'posted' then p.amount_minor
+                 - coalesce((select sum(r.amount_minor) from refunds r where r.payment_id = p.id), 0) else 0 end)
+                 from payment_installment_receipts x join payments p on p.id = x.payment_id where x.installment_id = i.id), 0))::text remaining
+          from payment_schedule_installments i join payment_schedules s on s.id = i.schedule_id
+         where i.id = ${input.installmentId} and i.patient_id = ${input.patientId}
+           and not exists (select 1 from payment_schedules n where n.supersedes_schedule_id = s.id)`);
+      if (!row || Number(row.remaining) < input.amountMinor) throw new BillingError("invalidAmount");
+      installment = { id: row.id, scheduleId: row.schedule_id, currency: row.currency };
+    }
     await assertCashDayOpen(tx, input.receivedOn, input.method);
     const targets = input.allocateTo ? await openInvoices(tx, input.patientId, input.allocateTo === "auto" ? undefined : input.allocateTo) : [];
     if (input.allocateTo && input.allocateTo !== "auto" && targets.length === 0) throw new BillingError("invoiceNotOpen");
 
     const le = targets[0] ? (await tx.select().from(legalEntities).where(eq(legalEntities.id, targets[0].legalEntityId)))[0]! : await defaultLegalEntity(tx);
+    if (installment && installment.currency !== le.currency) throw new BillingError("invalidAmount");
     const receiptNumber = await documentNumber(tx, ctx, "receipt", le, input.receivedOn);
     const [payment] = await tx
       .insert(payments)
@@ -293,6 +313,11 @@ export async function recordPayment(ctx: ClinicContext, input: PaymentInput) {
       })
       .returning({ id: payments.id });
 
+    if (installment) await tx.insert(paymentInstallmentReceipts).values({
+      organizationId: ctx.organizationId, scheduleId: installment.scheduleId, installmentId: installment.id,
+      paymentId: payment!.id, patientId: input.patientId, createdByUserId: ctx.userId,
+    });
+
     let remaining = input.amountMinor;
     for (const inv of targets) {
       if (remaining <= 0) break;
@@ -307,7 +332,7 @@ export async function recordPayment(ctx: ClinicContext, input: PaymentInput) {
       entityType: "payment",
       entityId: payment!.id,
       patientId: input.patientId,
-      metadata: { receiptNumber, method: input.method, amountMinor: input.amountMinor, unappliedMinor: remaining },
+      metadata: { receiptNumber, method: input.method, amountMinor: input.amountMinor, unappliedMinor: remaining, installmentId: installment?.id ?? null },
     });
     return { id: payment!.id, duplicate: false };
   });

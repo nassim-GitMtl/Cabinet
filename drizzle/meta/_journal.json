@@ -260,6 +260,20 @@
       "when": 1795097251064,
       "tag": "0036_after_visit",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1795100230789,
+      "tag": "0037_payment_schedules",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1795130169129,
+      "tag": "0038_installment_reminders",
+      "breakpoints": true
     }
   ]
 }

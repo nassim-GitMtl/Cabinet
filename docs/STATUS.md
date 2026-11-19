@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-19 by Claude (session 27c — verification after concurrent sessions).
+Last updated: 2026-11-20 by Claude (session 28 — estimates for patients + payment schedules).
 
 ## How to verify the current state
 
@@ -296,6 +296,24 @@ tests, typecheck, lint, `npx next build` (Turbopack) green; browser: public-page
 "Imprimer l'affiche" label, after-visit message expands/collapses. Reminder: one agent at a time (AGENTS.md), and check the
 test exit status before committing.
 
+Session 28 (Codex started, Claude finished): estimates for patients and payment schedules (§13, §16). Codex built the
+schema and most UI, stopped before running anything; Claude completed, tested and fixed it. Migration 0037: append-only
+`payment_schedules` (one exact accepted estimate version; replacing creates a new schedule that supersedes the previous one,
+refused once any receipt exists), `payment_schedule_installments` (deferred constraint trigger: sum = estimate total) and
+`payment_installment_receipts` (links a real deposit payment to one installment; never above what is left). Receiving
+"Encaisser" on an installment records a normal patient deposit (later used for invoices) classified to that installment.
+Plan page: print estimate (A4 with lines, total, proposed schedule, signature line), WhatsApp link to the patient portal,
+schedule dialog (default 3 monthly parts, editable), installment statuses and per-installment receipt. Patient finance tab
+lists schedules with late count and "Encaisser l'échéance N". Portal shows proposed and accepted estimates with lines and
+schedule. Migration 0038: follow-up reason `installment_due` + `patient_contacts.installment_id` (guarded); Relances tab
+"Échéances" (unpaid, due within 7 days or late; only with payment.read) with a ready reminder in the patient's language.
+Bugs fixed while finishing: PL/pgSQL variable `v` clashed with a table alias (every schedule insert failed); raw query used
+an unaliased Drizzle column; `FOR SHARE` on an append-only table needs UPDATE privilege (replaced by a per-installment
+advisory lock in service and DB guard); a Server Component passed a function child to a client dialog (500 after
+acceptance); FR/EN/AR texts were missing. 158/158 tests (3 integration added), typecheck, lint, `next build` green.
+Browser-checked on the demo clinic (P-000010, fictitious): acceptance, 2-part schedule, cash receipt on part 1 → "Payée" and
+900 DA deposit credit, finance tab, Relances reminder in English, printed estimate with schedule.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -320,7 +338,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Scheduler & booking (§9, §9A) | ✅ | Clinic public page `/c/[slug]` + QR poster ✅. Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
-| Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Consent capture/signatures ⏳. |
+| Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Printable estimate, portal view, payment schedules with per-installment receipts and reminders ✅. Consent capture/signatures ⏳. |
 | Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and treatment links. Structured draft notes, review, signing, amendments and hash-chain integrity ✅. Primary visual chart and periodontal chart ⏳. |
 | Images/documents, object storage (§12A, §15) | ✅ | Private clinic-server storage, camera upload, magic-byte type check, sha256, append-only metadata, before/after pairs, audited views, included in backups. DICOM viewer, annotations/measurements, cloud object storage 🔌 ⏳ |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
@@ -351,18 +369,15 @@ Distinctive product pillars to preserve in future work:
 
 ## Next steps (in order)
 
-1. Patient-friendly estimates & payment plans (§13, §16): send the estimate to the patient (portal link or PDF by WhatsApp),
-   propose an installment schedule (amounts + due dates, linked to the accepted plan), show upcoming/overdue installments in
-   Relances and on the patient finance tab.
-2. Visual treatment journey (§12A, §21): let the clinician select images and milestones for the patient portal, with explicit
+1. Visual treatment journey (§12A, §21): let the clinician select images and milestones for the patient portal, with explicit
    consent, plain-language context and revocable access; never expose the full clinical library by default.
-3. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
+2. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
    the aftercare draft, without replacing clinician decisions.
-4. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
+3. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
    détartrage season, children's check-up) only for opted-in patients, using the same WhatsApp/SMS tools.
-5. Guardian/family portal (§6, §21): exact delegated permissions, combined appointment coordination and balances without
+4. Guardian/family portal (§6, §21): exact delegated permissions, combined appointment coordination and balances without
    leaking one family member's clinical record to another.
-6. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
+5. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
 
 Later / on hold: inventory follow-ups (pending consumptions on the patient screen; reorder suggestion → pre-filled order
 form), treatment consent capture (§12A), lab cases (§22).

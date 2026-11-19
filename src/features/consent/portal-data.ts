@@ -26,11 +26,13 @@ export type PortalAppointment = {
 
 export type PortalEstimate = {
   id: string;
-  status: "accepted" | "completed";
+  status: "proposed" | "accepted" | "completed";
   title: string;
   currency: string;
   totalMinor: number;
   acceptedAt: Date | null;
+  items: Array<{ id: string; name: Record<string, string>; code: string; quantity: number; amountMinor: number }>;
+  installments: Array<{ id: string; number: number; dueDate: string; amountMinor: number; paidMinor: number }>;
 };
 
 export type PortalInvoice = {
@@ -90,7 +92,16 @@ export async function listPatientPortalData(ctx: PatientPortalContext): Promise<
          order by a.starts_at desc limit 20`),
       tx.execute<PortalEstimate>(sql`
         select p.id, p.status, v.title, v.currency, v.total_minor as "totalMinor",
-               d.decided_at as "acceptedAt"
+               d.decided_at as "acceptedAt",
+               coalesce((select jsonb_agg(jsonb_build_object('id', i.id, 'name', i.service_snapshot->'name', 'code', i.service_snapshot->>'code',
+                 'quantity', i.quantity, 'amountMinor', i.quantity * i.unit_price_minor) order by i.sort_order)
+                 from treatment_plan_items i where i.version_id = v.id), '[]'::jsonb) items,
+               coalesce((select jsonb_agg(jsonb_build_object('id', si.id, 'number', si.installment_number, 'dueDate', si.due_date,
+                 'amountMinor', si.amount_minor, 'paidMinor', coalesce((select sum(case when pay.status = 'posted' then pay.amount_minor
+                   - coalesce((select sum(r.amount_minor) from refunds r where r.payment_id = pay.id), 0) else 0 end)
+                   from payment_installment_receipts pr join payments pay on pay.id = pr.payment_id where pr.installment_id = si.id), 0)) order by si.installment_number)
+                 from payment_schedules ps join payment_schedule_installments si on si.schedule_id = ps.id
+                where ps.version_id = v.id and not exists (select 1 from payment_schedules ns where ns.supersedes_schedule_id = ps.id)), '[]'::jsonb) installments
           from treatment_plans p
           join treatment_plan_versions v
             on v.plan_id = p.id and v.version_number = p.current_version
@@ -98,7 +109,7 @@ export async function listPatientPortalData(ctx: PatientPortalContext): Promise<
             on d.version_id = v.id and d.decision = 'accepted'
          where p.organization_id = ${link.organization_id}
            and p.patient_id = ${link.patient_id}
-           and p.status in ('accepted', 'completed')
+           and p.status in ('proposed', 'accepted', 'completed')
          order by coalesce(d.decided_at, p.updated_at) desc limit 20`),
       tx.execute<PortalInvoice>(sql`
         select i.id, i.number, i.status, i.document_date as "documentDate",
@@ -126,7 +137,10 @@ export async function listPatientPortalData(ctx: PatientPortalContext): Promise<
       timezone: link.timezone,
       currencyDisplay: link.currency_display,
       appointments,
-      estimates: estimates.map((estimate) => ({ ...estimate, totalMinor: Number(estimate.totalMinor) })),
+      estimates: estimates.map((estimate) => ({ ...estimate, totalMinor: Number(estimate.totalMinor),
+        items: estimate.items.map((item) => ({ ...item, quantity: Number(item.quantity), amountMinor: Number(item.amountMinor) })),
+        installments: estimate.installments.map((item) => ({ ...item, number: Number(item.number), amountMinor: Number(item.amountMinor), paidMinor: Number(item.paidMinor) })),
+      })),
       invoices: invoices.map((invoice) => ({
         ...invoice, totalMinor: Number(invoice.totalMinor), balanceMinor: Number(invoice.balanceMinor),
       })),

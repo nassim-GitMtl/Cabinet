@@ -1174,9 +1174,9 @@
     "appointmentsDescription": "Upcoming and recent visits",
     "appointment": "Dental appointment",
     "noAppointments": "No appointment is available.",
-    "acceptedEstimates": "Accepted estimates",
-    "acceptedEstimatesDescription": "Plans you accepted at the clinic",
-    "noAcceptedEstimates": "No accepted estimate is available.",
+    "acceptedEstimates": "Your estimates",
+    "acceptedEstimatesDescription": "Estimates proposed or accepted at the clinic, with their payment schedule",
+    "noAcceptedEstimates": "No estimate available.",
     "acceptedOn": "Accepted on {date}",
     "billingHistory": "Invoices & payments",
     "billingDescription": "Issued documents and receipt history",
@@ -1207,7 +1207,8 @@
     },
     "estimateStatus": {
       "accepted": "Accepted",
-      "completed": "Completed"
+      "completed": "Completed",
+      "proposed": "Proposed"
     },
     "pendingRequests": "Requests awaiting your decision",
     "noPending": "No request is awaiting your decision.",
@@ -1237,7 +1238,10 @@
       "images": "Images",
       "documents": "Documents",
       "financial": "Financial records"
-    }
+    },
+    "paymentSchedule": "Payment schedule",
+    "installmentPaid": "paid",
+    "installmentDue": "left to pay"
   },
   "odontogram": {
     "title": "Odontogram",
@@ -1713,7 +1717,8 @@
       "estimates": "Estimates",
       "noShows": "No-shows",
       "afterVisit": "After visit",
-      "thanks": "Thanks"
+      "thanks": "Thanks",
+      "installments": "Installments"
     },
     "hints": {
       "reminders": "Appointments on {date}. Send the reminder, then mark the appointment confirmed when the patient replies.",
@@ -1724,7 +1729,8 @@
       "snooze": "A contacted patient leaves the list for {days} days; if they decline, for 6 months.",
       "afterVisit": "Patients treated on {date}: thank them, send your aftercare advice and, if you wish, ask for a review.",
       "thanks": "Patients who recommended the clinic in the last 60 days. The message never names who was recommended.",
-      "thanksSnooze": "A thanked patient leaves the list until their next recommendation."
+      "thanksSnooze": "A thanked patient leaves the list until their next recommendation.",
+      "installments": "Unpaid installments due within 7 days, and late ones."
     },
     "empty": {
       "reminders": "No appointments on that day.",
@@ -1733,7 +1739,8 @@
       "estimates": "No estimate awaiting an answer.",
       "noShows": "No missed appointment to follow up.",
       "afterVisit": "No treatment done that day.",
-      "thanks": "No recommendation to thank for right now."
+      "thanks": "No recommendation to thank for right now.",
+      "installments": "No installment to remind."
     },
     "previousDay": "Previous day",
     "nextDay": "Next day",
@@ -1814,12 +1821,15 @@
       "estimate_followup": "Hello {firstName}, have you had a chance to review the estimate from {clinic}? We are happy to answer your questions on {clinicPhone}.",
       "no_show": "Hello {firstName}, we missed you at your appointment on {date} at {clinic}. Would you like to book a new one? Reply to this message or call {clinicPhone}.",
       "after_visit": "Hello {firstName}, thank you for your visit to {clinic}. {careInstructions} If you have any pain or questions, call us on {clinicPhone}.",
-      "referral_thanks": "Hello {firstName}, thank you for recommending our clinic to people close to you: your trust means a lot to us. See you soon, the {clinic} team."
+      "referral_thanks": "Hello {firstName}, thank you for recommending our clinic to people close to you: your trust means a lot to us. See you soon, the {clinic} team.",
+      "installment_due": "Hello {firstName}, a quick reminder: an installment of {amount} for your treatment at {clinic} is due on {date}. For any question, call us on {clinicPhone}. Thank you!"
     },
     "careIncluded": "Aftercare advice included",
     "reviewSentence": "If you were happy with your visit, a review would help us a lot: {reviewLink}",
     "showFull": "Show the full message",
-    "showLess": "Collapse the message"
+    "showLess": "Collapse the message",
+    "installmentLine": "Installment {number} due {date}",
+    "late": "Late"
   },
   "acquisition": {
     "question": "How did they hear of us?",
@@ -1971,5 +1981,53 @@
       "notFound": "Page not found",
       "defaultDescription": "Book an appointment at {name}."
     }
+  },
+  "paymentPlans": {
+    "title": "Payment schedule",
+    "description": "Split the accepted estimate into installments. A payment received on an installment stays a patient deposit, used later for their invoices.",
+    "create": "Create a schedule",
+    "createTitle": "New payment schedule",
+    "replace": "Change the schedule",
+    "replaceTitle": "Replace the schedule",
+    "formHint": "Installments must add up to the estimate total. Once a payment has been received on the schedule, it can no longer be replaced.",
+    "empty": "No schedule: the patient pays as treatment goes.",
+    "installment": "Installment {number}",
+    "recordPayment": "Receive",
+    "printEstimate": "Print estimate",
+    "whatsapp": "Send by WhatsApp",
+    "whatsappMessage": "Hello, your estimate from {clinic} is available in your patient area: {link}. You can also ask the clinic for a printed copy.",
+    "shareHint": "Print the estimate (or save it as PDF) to give it to the patient. The WhatsApp button sends the link to their patient area, where the estimate and schedule are visible if they have access.",
+    "status": {
+      "paid": "Paid",
+      "partial": "Partial",
+      "overdue": "Late",
+      "upcoming": "Upcoming"
+    },
+    "errors": {
+      "planUnavailable": "This estimate is no longer accepted.",
+      "invalidSchedule": "Invalid schedule: increasing dates, positive amounts and a total equal to the estimate.",
+      "cannotReplacePaid": "A payment was already received on this schedule: it can no longer be replaced.",
+      "forbidden": "Access denied."
+    },
+    "dueDate": "Installment {number}",
+    "amount": "Amount",
+    "remove": "Remove",
+    "addInstallment": "Add an installment",
+    "sumHint": "Total to split: {total} {symbol}",
+    "estimateDocument": "Estimate",
+    "version": "Version {version}",
+    "preparedFor": "Prepared for",
+    "service": "Procedure",
+    "details": "Details",
+    "quantity": "Qty",
+    "estimatedTotal": "Estimated total",
+    "tooth": "Tooth {tooth}",
+    "scheduleTitle": "Proposed payment schedule",
+    "estimateNotice": "Indicative estimate; it may change with the clinical situation. Any change creates a new version.",
+    "printedOn": "Printed on {date}",
+    "signature": "Read and accepted, patient signature",
+    "openPlan": "View treatment plan",
+    "lateCount": "{count, plural, one {# late installment} other {# late installments}}",
+    "recordNext": "Receive installment {number}"
   }
 }

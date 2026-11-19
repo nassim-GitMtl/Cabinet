@@ -61,6 +61,7 @@ export function DialogButton({
 export function ReceivePaymentButton(props: {
   patientId: string;
   allocateTo: string | "auto" | null;
+  installmentId?: string | null;
   defaultAmountMinor?: number;
   currency: string;
   symbol: string;

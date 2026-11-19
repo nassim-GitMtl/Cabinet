@@ -14,13 +14,16 @@ export const logContactSchema = z
     appointmentId: optionalUuid,
     treatmentPlanId: optionalUuid,
     visitDate: z.union([z.iso.date(), z.literal("")]).transform((v) => v || null).nullish(),
+    installmentId: z.union([z.uuid(), z.literal("")]).transform((v) => v || null).nullish(),
     note: z.string().trim().max(300, "tooLong").nullish().transform((v) => v || null),
   })
   .superRefine((v, ctx) => {
     const needsAppointment = v.reason === "appointment_reminder" || v.reason === "no_show";
     const needsPlan = v.reason === "treatment_followup" || v.reason === "estimate_followup";
     const needsVisit = v.reason === "after_visit";
-    if (needsAppointment !== Boolean(v.appointmentId) || needsPlan !== Boolean(v.treatmentPlanId) || needsVisit !== Boolean(v.visitDate)) {
+    const needsInstallment = v.reason === "installment_due";
+    if (needsAppointment !== Boolean(v.appointmentId) || needsPlan !== Boolean(v.treatmentPlanId) || needsVisit !== Boolean(v.visitDate)
+      || needsInstallment !== Boolean(v.installmentId)) {
       ctx.addIssue({ code: "custom", message: "followUps.errors.referenceUnavailable" });
     }
   });

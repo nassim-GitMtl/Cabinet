@@ -19,13 +19,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("followUps"))("title") };
 }
 
-const TABS = ["reminders", "afterVisit", "recall", "treatments", "estimates", "noShows", "thanks"] as const;
+const TABS = ["reminders", "afterVisit", "installments", "recall", "treatments", "estimates", "noShows", "thanks"] as const;
 type Tab = (typeof TABS)[number];
 const REASON: Record<Tab, FollowUpReason> = {
   reminders: "appointment_reminder", recall: "recall", treatments: "treatment_followup", estimates: "estimate_followup", noShows: "no_show",
-  afterVisit: "after_visit", thanks: "referral_thanks",
+  afterVisit: "after_visit", thanks: "referral_thanks", installments: "installment_due",
 };
-const SNOOZE: Partial<Record<Tab, number>> = { recall: 30, treatments: 14, estimates: 14, noShows: 14 };
+const SNOOZE: Partial<Record<Tab, number>> = { recall: 30, treatments: 14, estimates: 14, noShows: 14, installments: 7 };
 /** Tabs that list one day (with day navigation). */
 const DAY_TABS: Partial<Record<Tab, "date" | "day">> = { reminders: "date", afterVisit: "day" };
 
@@ -34,7 +34,9 @@ export default async function FollowUpsPage(props: PageProps<"/follow-ups">) {
   const t = await getTranslations("followUps");
   if (!can(ctx, "patient.followup")) return <ForbiddenState message={(await getTranslations("errors"))("forbiddenPage")} />;
   const sp = await props.searchParams;
-  const tab: Tab = TABS.find((x) => x === sp.tab) ?? "reminders";
+  // Installment amounts are financial data: the tab exists only for staff who can read payments.
+  const tabs = TABS.filter((x) => x !== "installments" || can(ctx, "payment.read"));
+  const tab: Tab = tabs.find((x) => x === sp.tab) ?? "reminders";
   const today = todayInZone(ctx.organization.timezone);
   const date = (typeof sp.date === "string" && parseDateOnly(sp.date)) || (await suggestReminderDate(ctx, today));
   // After-visit messages default to today's visits (sent at the end of the day).
@@ -56,7 +58,7 @@ export default async function FollowUpsPage(props: PageProps<"/follow-ups">) {
 
   const lastContactText = (c: LastContact) =>
     c ? t("lastContact", { channel: t(`channels.${c.channel}`), outcome: t(`outcomes.${c.outcome}`), at: `${formatDateOnly(c.at.slice(0, 10))} ${c.at.slice(11)}`, by: c.by }) : null;
-  const base = (reason: FollowUpReason, row: FollowUpPatient & { branchId?: string; date?: string; time?: string; provider?: string; categoryIds?: string[] }, key: string) => ({
+  const base = (reason: FollowUpReason, row: FollowUpPatient & { branchId?: string; date?: string; time?: string; provider?: string; categoryIds?: string[]; amount?: string }, key: string) => ({
     key,
     reason,
     patientId: row.patientId,
@@ -70,11 +72,21 @@ export default async function FollowUpsPage(props: PageProps<"/follow-ups">) {
     appointmentId: null,
     planId: null,
     visitDate: null,
+    installmentId: null,
     confirmation: null,
   });
 
   const items: FollowUpItem[] =
-    tab === "afterVisit"
+    tab === "installments"
+      ? data.installments.map((r) => {
+          const amount = money(r.remainingMinor, r.currency);
+          return {
+            ...base(REASON.installments, { ...r, date: r.dueDate, amount }, r.installmentId), installmentId: r.installmentId, planId: r.planId,
+            details: [t("installmentLine", { number: r.number, date: formatDateOnly(r.dueDate) }), amount],
+            late: r.dueDate < today ? t("late") : null,
+          };
+        })
+    : tab === "afterVisit"
       ? data.afterVisit.map((r) => ({
           ...base(REASON.afterVisit, r, `${r.patientId}-${r.visitDate}`), visitDate: r.visitDate,
           details: careInstructionsFor(r.categoryIds, r.locale, composeContext.aftercare) ? [t("careIncluded")] : [],
@@ -106,7 +118,7 @@ export default async function FollowUpsPage(props: PageProps<"/follow-ups">) {
   const counts: Record<Tab, number> = {
     reminders: data.reminders.filter((r) => r.confirmation === "pending").length,
     recall: data.recall.length, treatments: data.treatments.length, estimates: data.estimates.length, noShows: data.noShows.length,
-    afterVisit: data.afterVisit.filter((r) => !r.lastContact).length, thanks: data.thanks.length,
+    afterVisit: data.afterVisit.filter((r) => !r.lastContact).length, thanks: data.thanks.length, installments: data.installments.length,
   };
   const navDate = tab === "afterVisit" ? visitDay : date;
   const dayLabel = messageDate(navDate, asMessageLocale(uiLocale));
@@ -130,7 +142,7 @@ export default async function FollowUpsPage(props: PageProps<"/follow-ups">) {
       ) : null}
 
       <nav aria-label={t("title")} className="mb-4 flex gap-1 overflow-x-auto rounded-lg border bg-card p-1 text-sm">
-        {TABS.map((x) => (
+        {tabs.map((x) => (
           <Link key={x} href={href(x)} aria-current={tab === x ? "page" : undefined}
             className={cn("flex shrink-0 items-center gap-2 rounded-md px-3 py-2 font-medium", tab === x ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground")}>
             {t(`tabs.${x}`)}

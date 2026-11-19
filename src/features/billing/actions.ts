@@ -90,6 +90,7 @@ export async function voidInvoiceAction(invoiceId: string, _prev: ActionState, f
 export async function recordPaymentAction(
   patientId: string,
   allocateTo: string | "auto" | null,
+  installmentId: string | null,
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
@@ -117,6 +118,7 @@ export async function recordPaymentAction(
       receivedOn: receivedOn!,
       idempotencyKey: values.idempotencyKey!,
       allocateTo,
+      installmentId,
     });
     paymentId = r.id;
   } catch (err) {
