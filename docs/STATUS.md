@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-19 by Codex (session 27b — after-visit validation and distinctive roadmap).
+Last updated: 2026-11-19 by Claude (session 27c — verification after concurrent sessions).
 
 ## How to verify the current state
 
@@ -289,6 +289,12 @@ templates and clinic-authored aftercare. Long messages have an explicit expand/c
 text on mobile before sending. Fixed the public poster action showing a translation key. 155/155 tests, typecheck and lint
 green; `npx next build --webpack` green after the unchanged runner-only Turbopack helper-port restriction. Browser-checked
 the real French post-visit card, full-message disclosure and shared public-page review field without changing product data.
+
+Session 27c (Claude): Claude and Codex ran on this folder at the same time; Claude's commit dc2fe38 picked up Codex's
+unfinished public-page review-link edits (2 failing tests on main until Codex's 98daf02). Re-verified on 98daf02: 155/155
+tests, typecheck, lint, `npx next build` (Turbopack) green; browser: public-page settings show the shared review link and the
+"Imprimer l'affiche" label, after-visit message expands/collapses. Reminder: one agent at a time (AGENTS.md), and check the
+test exit status before committing.
 
 ## Requirement coverage map
 
