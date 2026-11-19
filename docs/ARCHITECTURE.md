@@ -255,7 +255,7 @@ never summed. "Paid to date" is as of generation time.
 - `path.resolve` calls on runtime data carry `/*turbopackIgnore: true*/` so the standalone build doesn't trace the
   project or stored files; `.data` is in `.gitignore` and `.dockerignore`.
 
-## Patient follow-ups (`src/features/follow-ups`, migration 0033)
+## Patient follow-ups (`src/features/follow-ups`, migrations 0033/0036)
 
 - No server-side sending: each card builds `wa.me` / `sms:` / `tel:` links with the message, and staff send from their own
   phone (works without internet on the clinic server). A real SMS/WhatsApp Business provider would plug in later as another
@@ -274,6 +274,10 @@ never summed. "Paid to date" is as of generation time.
   category, written by the clinic, none by default), sent to the patient's own number and visible to staff before sending.
 - After-visit rows come from completed `performed_procedures` of one day (appointments optional); contacts reference
   `visit_date`. Referral thanks never name the referred patient (that would disclose someone else's care).
+- The HTTPS review destination is one organization setting (`followUps.reviewUrl`) exposed on both the public-page and
+  follow-up settings screens. Public-page saves merge only that nested key so they cannot overwrite templates or aftercare.
+  Staff can expand and review the complete message before opening WhatsApp/SMS; the software logs `message_prepared`, never
+  claims that an external app sent it.
 - New `follow_up_reason` values: add them to the enum and to `FOLLOW_UP_REASONS`, and write any SQL that compares them as
   `reason::text` in the same migration (Postgres refuses new enum values inside the transaction that added them).
 
@@ -297,4 +301,3 @@ never summed. "Paid to date" is as of generation time.
   availability without revealing the owner. External links must be `https:` (`safeHttpsUrl`).
 - Shared addresses use `publicOrigin()`: `PUBLIC_APP_URL` when set, else the current host, flagged "local only" for
   `.local`, private IPs and localhost. QR codes are vector SVG generated server-side (`qrcode`), no external service.
-

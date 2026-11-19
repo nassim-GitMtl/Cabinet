@@ -8,6 +8,12 @@ import { clinicPublicProfiles } from "@/server/db/schema";
 import { withDbContext } from "@/server/db/tenant";
 import { contextFor, expectDbError, makeClinic } from "../support/factories";
 
+async function asOwner(run: (sql: import("postgres").Sql) => Promise<unknown>) {
+  const postgres = (await import("postgres")).default;
+  const sql = postgres(process.env.TEST_DATABASE_URL_ADMIN!, { max: 1 });
+  try { await run(sql); } finally { await sql.end(); }
+}
+
 async function setup(name: string, slug: string) {
   const ctx = await makeClinic(name);
   const picker = await getServicePickerData(ctx);
@@ -43,10 +49,12 @@ describe("clinic public page", () => {
     // A deactivated booking link is never shown.
     await setBookingLinkActive(f.ctx, linkId, false);
     expect((await getPublicClinicPage("cabinet-vitrine-a"))!.bookingToken).toBeNull();
-    expect(await getPublicPageSettings(f.ctx)).toMatchObject({
-      profile: { slug: "cabinet-vitrine-a", showPrices: false },
-      reviewUrl: "https://g.page/r/cabinet-demo/review",
+    expect((await getPublicPageSettings(f.ctx)).profile).toMatchObject({ slug: "cabinet-vitrine-a", showPrices: false });
+    let reviewUrl: string | undefined;
+    await asOwner(async (sql) => {
+      [{ review_url: reviewUrl }] = await sql`select settings->'followUps'->>'reviewUrl' as review_url from organizations where id = ${f.ctx.organizationId}`;
     });
+    expect(reviewUrl).toBe("https://g.page/r/cabinet-demo/review");
 
     await savePublicProfile(f.ctx, f.input({ isPublished: false }));
     expect(await getPublicClinicPage("cabinet-vitrine-a")).toBeNull();

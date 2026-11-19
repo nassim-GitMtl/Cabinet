@@ -1824,7 +1824,9 @@
       "referral_thanks": "Bonjour {firstName}, merci d'avoir recommandé notre cabinet à vos proches : votre confiance nous touche beaucoup. À bientôt, l'équipe du {clinic}."
     },
     "careIncluded": "Conseils après soins inclus",
-    "reviewSentence": "Si vous êtes satisfait(e), votre avis nous aiderait beaucoup : {reviewLink}"
+    "reviewSentence": "Si vous êtes satisfait(e), votre avis nous aiderait beaucoup : {reviewLink}",
+    "showFull": "Afficher le message complet",
+    "showLess": "Réduire le message"
   },
   "acquisition": {
     "question": "Comment nous a-t-il connu ?",
@@ -1917,6 +1919,7 @@
     "view": "Voir la page",
     "copy": "Copier le lien",
     "copied": "Lien copié",
+    "posterAction": "Imprimer l’affiche",
     "poster": {
       "headline": "Prenez rendez-vous en ligne",
       "scan": "Scannez ce code avec votre téléphone",
@@ -1935,6 +1938,8 @@
     "whatsappHint": "Laissez vide pour utiliser le numéro du cabinet.",
     "mapUrl": "Lien Google Maps",
     "mapUrlHint": "Dans Google Maps : Partager › Copier le lien.",
+    "reviewUrl": "Lien pour laisser un avis Google",
+    "reviewUrlHint": "Dans votre fiche Google : Demander des avis › copier le lien. Il sera proposé après les soins.",
     "bookingTitle": "Prise de rendez-vous en ligne",
     "bookingHint": "Le bouton « Prendre rendez-vous » ouvre ce lien. Chaque demande reste à valider par le cabinet.",
     "noBookingLink": "Aucun lien de réservation actif : créez-en un pour afficher le bouton « Prendre rendez-vous ».",

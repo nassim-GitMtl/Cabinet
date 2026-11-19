@@ -38,6 +38,7 @@ export function FollowUpCard({ item }: { item: FollowUpItem }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string>();
   const [copied, setCopied] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   // Outcomes are logged on the channel last used from this card (a call by default).
   const [channel, setChannel] = useState<ContactChannel>("phone");
   const [outcome, setOutcome] = useState<ContactOutcome>("reached");
@@ -95,7 +96,14 @@ export function FollowUpCard({ item }: { item: FollowUpItem }) {
       {item.details.length ? <p className="text-sm text-muted-foreground">{item.details.map((d, i) => <span key={i}>{i ? " · " : ""}<bdi>{d}</bdi></span>)}</p> : null}
 
       {canMessage ? (
-        <p className="line-clamp-3 rounded-xl bg-muted/60 p-3 text-sm" dir="auto" title={item.message}>{item.message}</p>
+        <div className="rounded-xl bg-muted/60 p-3">
+          <p className={cn("text-sm", !expanded && "line-clamp-3")} dir="auto">{item.message}</p>
+          {item.message.length > 180 ? (
+            <Button type="button" variant="link" size="sm" className="mt-1 h-auto px-0" onClick={() => setExpanded((value) => !value)}>
+              {expanded ? t("showLess") : t("showFull")}
+            </Button>
+          ) : null}
+        </div>
       ) : (
         <p className="text-sm font-medium text-muted-foreground">{item.phone ? t("optedOut") : t("noPhone")}</p>
       )}

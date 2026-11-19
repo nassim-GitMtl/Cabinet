@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-19 by Claude (session 27 — after-visit messages, reviews, referral thanks).
+Last updated: 2026-11-19 by Codex (session 27b — after-visit validation and distinctive roadmap).
 
 ## How to verify the current state
 
@@ -283,6 +283,13 @@ the clinic's). 155/155 tests (1 integration test added), typecheck, lint, `next 
 clinic: settings saved, after-visit card for BENSAID Karim with review link (no advice for his category, as configured), WhatsApp
 click logged with the visit day, Arabic thank-you to HAMDI Nour without naming the referred patient.
 
+Session 27b (Codex): validation follow-up. The Google review destination is now also editable from the public-page settings
+and remains the same organization value used by after-visit messages; that save merges only the nested review key, preserving
+templates and clinic-authored aftercare. Long messages have an explicit expand/collapse control so staff can review the full
+text on mobile before sending. Fixed the public poster action showing a translation key. 155/155 tests, typecheck and lint
+green; `npx next build --webpack` green after the unchanged runner-only Turbopack helper-port restriction. Browser-checked
+the real French post-visit card, full-message disclosure and shared public-page review field without changing product data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -325,14 +332,31 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 Priority: features that bring patients in and make the clinic easy to deal with. Inventory/purchasing is good enough for now
 (no warehouse); do not extend it unless asked.
 
+Distinctive product pillars to preserve in future work:
+
+- **For practitioners — one visit cockpit:** alerts, odontogram, planned work, note, traceable consumables, images and the
+  aftercare draft in one guided workflow, with clinician confirmation instead of opaque automation.
+- **For patients — a visual treatment journey:** clinician-selected before/after images, treatment milestones, estimates,
+  consent and aftercare in plain FR/EN/AR, shared only through explicit patient-controlled access.
+- **For both — explainable prevention:** recalls and safety prompts show the exact rule/date/source that triggered them;
+  the app never invents a diagnosis or hides a recommendation behind an unexplained score.
+- **For families — delegated care:** guardian/family access with exact per-patient permissions, consolidated appointments
+  and balances, while preserving each patient's confidentiality.
+
 ## Next steps (in order)
 
 1. Patient-friendly estimates & payment plans (§13, §16): send the estimate to the patient (portal link or PDF by WhatsApp),
    propose an installment schedule (amounts + due dates, linked to the accepted plan), show upcoming/overdue installments in
    Relances and on the patient finance tab.
-2. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
+2. Visual treatment journey (§12A, §21): let the clinician select images and milestones for the patient portal, with explicit
+   consent, plain-language context and revocable access; never expose the full clinical library by default.
+3. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
+   the aftercare draft, without replacing clinician decisions.
+4. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
    détartrage season, children's check-up) only for opted-in patients, using the same WhatsApp/SMS tools.
-3. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
+5. Guardian/family portal (§6, §21): exact delegated permissions, combined appointment coordination and balances without
+   leaking one family member's clinical record to another.
+6. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
 
 Later / on hold: inventory follow-ups (pending consumptions on the patient screen; reorder suggestion → pre-filled order
 form), treatment consent capture (§12A), lab cases (§22).

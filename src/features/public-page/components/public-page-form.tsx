@@ -65,7 +65,7 @@ export function PublicPageForm({ saved, origin, localOnly, links, services, bran
             <Button type="button" variant="outline" size="sm" onClick={async () => { try { await navigator.clipboard.writeText(`${origin}/c/${saved.slug}`); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch { /* clipboard unavailable */ } }}>
               {copied ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}{copied ? t("copied") : t("copy")}
             </Button>
-            <ButtonLink href="/print/public-poster" target="_blank" variant="outline" size="sm"><PrinterIcon aria-hidden />{t("poster")}</ButtonLink>
+            <ButtonLink href="/print/public-poster" target="_blank" variant="outline" size="sm"><PrinterIcon aria-hidden />{t("posterAction")}</ButtonLink>
             <a href="/api/public-page/qr" download className={buttonVariants({ variant: "outline", size: "sm" })}><QrCodeIcon aria-hidden />{t("downloadQr")}</a>
           </div>
         ) : null}

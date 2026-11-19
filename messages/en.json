@@ -1817,7 +1817,9 @@
       "referral_thanks": "Hello {firstName}, thank you for recommending our clinic to people close to you: your trust means a lot to us. See you soon, the {clinic} team."
     },
     "careIncluded": "Aftercare advice included",
-    "reviewSentence": "If you were happy with your visit, a review would help us a lot: {reviewLink}"
+    "reviewSentence": "If you were happy with your visit, a review would help us a lot: {reviewLink}",
+    "showFull": "Show the full message",
+    "showLess": "Collapse the message"
   },
   "acquisition": {
     "question": "How did they hear of us?",
@@ -1910,6 +1912,7 @@
     "view": "View page",
     "copy": "Copy link",
     "copied": "Link copied",
+    "posterAction": "Print the poster",
     "poster": {
       "headline": "Book your appointment online",
       "scan": "Scan this code with your phone",
@@ -1928,6 +1931,8 @@
     "whatsappHint": "Leave empty to use the clinic number.",
     "mapUrl": "Google Maps link",
     "mapUrlHint": "In Google Maps: Share › Copy link.",
+    "reviewUrl": "Google review link",
+    "reviewUrlHint": "In your Google profile: Ask for reviews › copy the link. It will be offered after treatment.",
     "bookingTitle": "Online booking",
     "bookingHint": "The “Book an appointment” button opens this link. Every request is still approved by the clinic.",
     "noBookingLink": "No active booking link: create one to show the “Book an appointment” button.",

@@ -43,14 +43,13 @@ export async function getPublicPageSettings(ctx: ClinicContext) {
       .where(eq(services.isActive, true))
       .orderBy(asc(serviceCategories.sortOrder), asc(services.code));
     const [branch] = await tx.select({ phone: branches.phone }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)).limit(1);
-    const [org] = await tx.select({ settings: organizations.settings }).from(organizations).limit(1);
     return {
       profile: profile ?? null,
       suggestedSlug: slugify(ctx.organization.name),
       links,
       services: serviceRows,
       branchPhone: branch?.phone ?? null,
-      reviewUrl: org?.settings.followUps?.reviewUrl ?? "",
+      reviewUrl: ctx.organization.settings.followUps?.reviewUrl ?? "",
     };
   });
 }
@@ -99,7 +98,7 @@ export async function savePublicProfile(ctx: ClinicContext, input: PublicProfile
       settings: sql`jsonb_set(
         ${organizations.settings},
         '{followUps}',
-        coalesce(${organizations.settings}->'followUps', '{}'::jsonb) || jsonb_build_object('reviewUrl', ${reviewUrl}),
+        coalesce(${organizations.settings}->'followUps', '{}'::jsonb) || jsonb_build_object('reviewUrl', ${reviewUrl}::text),
         true
       )`,
     }).where(eq(organizations.id, ctx.organizationId));
