@@ -1,11 +1,16 @@
+import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
-import { approveQuestionnaire, changedQuestions, getHealthHistory, healthStatus, normalizeAnswers, recordResponse, reviewHistory } from "@/features/health/server";
+import { createPortalInvitation } from "@/features/consent/server";
+import { getPortalHealthQuestionnaire, getTabletQuestionnaire, listPortalHealthQuestionnaires, recordPortalHealthResponse, recordTabletHealthResponse } from "@/features/health/patient";
+import { approveQuestionnaire, changedQuestions, createQuestionnaireDraft, createQuestionnaireTabletSession, getHealthHistory, healthStatus, listQuestionnaireVersions, normalizeAnswers, publishQuestionnaireVersion, recordResponse, reviewHistory } from "@/features/health/server";
 import { STARTER_QUESTIONS } from "@/features/health/starter-questionnaire";
 import { createPatient } from "@/features/patients/server";
 import { ForbiddenError } from "@/server/auth/context";
-import { questionnaireResponses, questionnaireVersions } from "@/server/db/schema";
+import { questionnaireResponses, questionnaireTabletSessions, questionnaireVersions } from "@/server/db/schema";
 import { withDbContext } from "@/server/db/tenant";
+import { activatePortalAccount } from "@/server/portal/auth";
+import type { PatientPortalContext } from "@/server/portal/session";
 import { contextFor, expectDbError, makeClinic } from "../support/factories";
 
 const blank = {
@@ -82,5 +87,77 @@ describe("medical history", () => {
     const other = await makeClinic("Cabinet Santé D");
     expect((await getHealthHistory(other, f.patientId)).latest).toBeNull();
     await expect(recordResponse(other, f.patientId, { answers: { smoking: { value: "no" } }, patientAcknowledged: true })).rejects.toMatchObject({ code: "notFound" });
+  });
+
+  it("creates immutable drafts and activates a clinician-approved version without rewriting history", async () => {
+    const f = await setup("Cabinet Santé Versions");
+    const [starter] = await listQuestionnaireVersions(f.ctx);
+    await publishQuestionnaireVersion(contextFor(f.ctx, "dentist"), starter!.id);
+    await recordResponse(f.ctx, f.patientId, { answers: { smoking: { value: "no" } }, patientAcknowledged: true });
+
+    const draftId = await createQuestionnaireDraft(f.ctx, {
+      titleFr: "Antécédents médicaux actualisés",
+      titleEn: "Updated medical history",
+      titleAr: "التاريخ الطبي المحدث",
+      questions: [{
+        id: "allergies", kind: "yes_no", labelFr: "Avez-vous des allergies ?", labelEn: "Do you have allergies?",
+        labelAr: "هل لديك حساسية؟", detailFr: "Précisez", detailEn: "Please specify", detailAr: "يرجى التوضيح",
+        sensitive: true, alertLabelFr: "Allergie", alertLabelEn: "Allergy", alertLabelAr: "حساسية", alertKind: "allergy",
+      }],
+    });
+    let versions = await listQuestionnaireVersions(f.ctx);
+    expect(versions).toMatchObject([{ id: draftId, versionNo: 2, isCurrent: false, approvedAt: null }, { versionNo: 1, isCurrent: true }]);
+    await expect(createQuestionnaireDraft(contextFor(f.ctx, "dentist"), {
+      titleFr: "Interdit", titleEn: undefined, titleAr: undefined, questions: [{
+        id: "test_item", kind: "text", labelFr: "Test", labelEn: undefined, labelAr: undefined,
+        detailFr: undefined, detailEn: undefined, detailAr: undefined, sensitive: false,
+        alertLabelFr: undefined, alertLabelEn: undefined, alertLabelAr: undefined, alertKind: null,
+      }],
+    })).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(publishQuestionnaireVersion(contextFor(f.ctx, "assistant"), draftId)).rejects.toBeInstanceOf(ForbiddenError);
+
+    await publishQuestionnaireVersion(contextFor(f.ctx, "dentist"), draftId);
+    await recordResponse(f.ctx, f.patientId, { answers: { allergies: { value: "yes", details: "Latex" } }, patientAcknowledged: true });
+    const history = await getHealthHistory(f.ctx, f.patientId);
+    expect(history.history.map((entry) => entry.versionNo)).toEqual([2, 1]);
+    versions = await listQuestionnaireVersions(f.ctx);
+    expect(versions.map((version) => [version.versionNo, version.isCurrent, !!version.approvedAt])).toEqual([[2, true, true], [1, false, true]]);
+    await expect(publishQuestionnaireVersion(f.ctx, draftId)).rejects.toMatchObject({ code: "versionNotDraft" });
+  });
+
+  it("lets the exact linked patient complete the approved questionnaire through the portal", async () => {
+    const f = await setup("Cabinet Santé Portail");
+    await approveQuestionnaire(f.ctx);
+    const email = `health-${randomUUID()}@example.test`;
+    const invitation = await createPortalInvitation(f.ctx, f.patientId, email, "HEALTH-IDENTITY-001");
+    const identity = await activatePortalAccount(invitation.token, "patient-safe-password");
+    const portalCtx: PatientPortalContext = { ...identity, sessionId: "health-session" };
+
+    expect(await listPortalHealthQuestionnaires(portalCtx)).toMatchObject([{ organizationId: f.ctx.organizationId, latestAt: null }]);
+    expect(await getPortalHealthQuestionnaire(portalCtx, f.ctx.organizationId)).toMatchObject({ patientId: f.patientId });
+    const other = await makeClinic("Cabinet Santé Portail Isolé");
+    expect(await getPortalHealthQuestionnaire(portalCtx, other.organizationId)).toBeNull();
+
+    await recordPortalHealthResponse(portalCtx, f.ctx.organizationId, { diabetes: { value: "no" } });
+    const history = await getHealthHistory(f.ctx, f.patientId);
+    expect(history.history[0]).toMatchObject({ source: "patient_portal", acknowledged: true });
+  });
+
+  it("uses a single-use tablet handoff and keeps its session isolated by clinic", async () => {
+    const f = await setup("Cabinet Santé Tablette");
+    await approveQuestionnaire(f.ctx);
+    const handoff = await createQuestionnaireTabletSession(f.ctx, f.patientId);
+    expect(await getTabletQuestionnaire(handoff.token)).toMatchObject({ organizationId: f.ctx.organizationId, patientId: f.patientId });
+
+    const other = await makeClinic("Cabinet Santé Tablette Isolé");
+    const hidden = await withDbContext({ organizationId: other.organizationId, userId: other.userId, actorType: "staff" }, (tx) =>
+      tx.select().from(questionnaireTabletSessions));
+    expect(hidden).toEqual([]);
+
+    await recordTabletHealthResponse(handoff.token, { smoking: { value: "no" } });
+    expect(await getTabletQuestionnaire(handoff.token)).toBeNull();
+    await expect(recordTabletHealthResponse(handoff.token, { smoking: { value: "yes" } })).rejects.toMatchObject({ code: "tabletExpired" });
+    const history = await getHealthHistory(f.ctx, f.patientId);
+    expect(history.history[0]).toMatchObject({ source: "patient_tablet", acknowledged: true });
   });
 });

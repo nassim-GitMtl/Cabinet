@@ -20,7 +20,12 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   if (can(ctx, "inventory.manage")) nav.push("inventory");
   if (can(ctx, "sterilization.manage") || can(ctx, "sterilization.release")) nav.push("sterilization");
   if (can(ctx, "catalog.read")) nav.push("catalog");
-  if (can(ctx, "org.settings.manage") || can(ctx, "org.staff.manage")) nav.push("settings");
+  if (
+    can(ctx, "org.settings.manage") ||
+    can(ctx, "org.staff.manage") ||
+    can(ctx, "questionnaire.manage") ||
+    can(ctx, "questionnaire.approve")
+  ) nav.push("settings");
 
   return (
     <AppShell

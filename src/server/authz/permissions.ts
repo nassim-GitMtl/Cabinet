@@ -24,6 +24,8 @@ export const PERMISSIONS = [
   "clinical.read",
   "clinical.write",
   "clinical.sign",
+  "questionnaire.manage",
+  "questionnaire.approve",
   "clinical.images.read",
   "clinical.images.write",
   "treatment_plan.read",
@@ -107,6 +109,7 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
     permissions: [
       ...CLINICAL,
       "clinical.sign",
+      "questionnaire.approve",
       "treatment_plan.manage",
       "treatment_plan.accept",
       "treatment_plan.convert",
@@ -124,7 +127,7 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "sterilization.release",
     ],
   },
-  hygienist: { name: "Hygiéniste", permissions: [...CLINICAL, "clinical.sign", "treatment_plan.convert"] },
+  hygienist: { name: "Hygiéniste", permissions: [...CLINICAL, "clinical.sign", "questionnaire.approve", "treatment_plan.convert"] },
   assistant: {
     name: "Assistant(e) dentaire",
     permissions: [...CLINICAL, "appointment.manage", "booking.approve", "treatment_plan.convert", "sterilization.manage"],

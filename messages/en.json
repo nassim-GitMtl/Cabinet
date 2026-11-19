@@ -1183,6 +1183,11 @@
     "void": "Void",
     "balance": "Balance: {amount}",
     "billingContactClinic": "To make a payment or request a correction, contact the clinic.",
+    "healthQuestionnaire": "Medical questionnaire",
+    "healthQuestionnaireDescription": "Update your medical history directly for this clinic.",
+    "healthLastUpdated": "Last updated: {date}",
+    "healthNotCompleted": "Not completed yet",
+    "healthComplete": "Complete or update",
     "noClinicRecords": "No clinic record is linked to this account.",
     "appointmentStatus": {
       "requested": "Requested",
@@ -1643,11 +1648,39 @@
     "approvedToast": "Questionnaire approved",
     "headerNone": "Medical history not recorded",
     "headerPending": "Medical history to review",
+    "patient": {
+      "openTablet": "Open tablet questionnaire", "launchTablet": "Tablet mode", "tabletTitle": "Patient questionnaire on tablet",
+      "tabletPrivacy": "This temporary page expires after 30 minutes and can only be submitted once. Return the device to staff when finished.",
+      "portalTitle": "Medical questionnaire", "portalDescription": "Your answers are added to your record at this clinic and must be reviewed by a clinician.",
+      "backPortal": "Back to portal", "formHint": "Answer only the questions you want to complete. A blank question remains unanswered.",
+      "acknowledged": "I confirm that these answers are accurate to the best of my knowledge.", "ackRequired": "Confirm that the answers are accurate before submitting them.",
+      "submit": "Submit my answers", "savedTitle": "Answers saved", "savedPortal": "Your clinic can now view and review them.",
+      "savedTablet": "Return the device to clinic staff now. This link can no longer be used."
+    },
+    "editor": {
+      "shortTitle": "Medical questionnaire", "title": "Clinic medical questionnaire",
+      "subtitle": "Create a complete new version, then have a clinician approve and activate it.", "back": "Back to settings",
+      "versions": "Versions", "versionsHint": "Previous versions and their responses remain unchanged.", "version": "Version {number}",
+      "questionCount": "{count, plural, one {# question} other {# questions}}", "current": "Active", "previous": "Archived", "draft": "Draft",
+      "approveAndActivate": "Approve and activate", "titleSection": "Questionnaire title", "titleFr": "French title", "titleEn": "English title", "titleAr": "Arabic title",
+      "questions": "Questions", "questionsHint": "Stable identifiers allow answers to be compared between versions.", "addQuestion": "Add question", "questionNumber": "Question {number}",
+      "moveUp": "Move question up", "moveDown": "Move question down", "removeQuestion": "Remove question", "id": "Stable identifier", "kind": "Answer type",
+      "yesNo": "Yes / no / uncertain", "freeText": "Free text", "sensitive": "Sensitive information", "labelFr": "French question", "labelEn": "English question", "labelAr": "Arabic question",
+      "detailFr": "French detail prompt", "detailEn": "English detail prompt", "detailAr": "Arabic detail prompt", "alertOptions": "Clinical alert option",
+      "alertKind": "Suggested alert type", "noAlert": "No suggestion", "alertMedical": "Medical", "alertAllergy": "Allergy", "alertMedication": "Medication",
+      "alertLabelFr": "French alert label", "alertLabelEn": "English alert label", "alertLabelAr": "Arabic alert label",
+      "saveDraft": "Save a new version", "saveHint": "Saving creates an immutable draft; patients will only see it after approval.", "draftSaved": "New version saved as a draft.",
+      "errors": { "invalid": "Check the title, questions and their identifiers.", "questionId": "Use lowercase letters, numbers and underscores.", "questionsRequired": "Add at least one question.", "tooManyQuestions": "The questionnaire cannot exceed 40 questions.", "duplicateId": "Each question must have a unique identifier.", "textDetail": "A free-text question cannot request conditional details." }
+    },
     "errors": {
       "notFound": "Patient not found.",
       "empty": "No answers entered.",
       "nothingToReview": "No questionnaire to review.",
-      "notPromotable": "Only a “Yes” answer or a text answer can become an alert."
+      "notPromotable": "Only a “Yes” answer or a text answer can become an alert.",
+      "questionnaireNotApproved": "The questionnaire must be approved before it is offered to the patient.",
+      "tabletExpired": "This tablet link has expired or has already been used.",
+      "versionNotFound": "This questionnaire version could not be found.",
+      "versionNotDraft": "Only an unapproved draft can be activated."
     }
   }
 }

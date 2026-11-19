@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateTime } from "@/lib/dates";
 import { can, type ClinicContext } from "@/server/auth/context";
 import { getHealthHistory } from "../server";
-import { ApproveButton, PromoteButton, ReviewButtons } from "./health-ui";
+import { ApproveButton, PromoteButton, ReviewButtons, TabletSessionButton } from "./health-ui";
 
 /** "Santé" tab: latest answers, review state, changes since last review, history (server component). */
 export async function HealthPanel({ ctx, patientId, editable }: { ctx: ClinicContext; patientId: string; editable: boolean }) {
@@ -21,7 +21,7 @@ export async function HealthPanel({ ctx, patientId, editable }: { ctx: ClinicCon
       {!h.approved ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-warning/50 bg-warning/10 p-3 text-sm">
           <span className="flex items-center gap-2"><TriangleAlertIcon className="size-4 text-warning-foreground" aria-hidden />{t("notApproved")}</span>
-          {can(ctx, "clinical.sign") && can(ctx, "org.settings.manage") ? <ApproveButton patientId={patientId} /> : null}
+          {can(ctx, "questionnaire.approve") ? <ApproveButton patientId={patientId} /> : null}
         </div>
       ) : null}
 
@@ -56,6 +56,7 @@ export async function HealthPanel({ ctx, patientId, editable }: { ctx: ClinicCon
                 {latest ? t("update") : t("fill")}
               </ButtonLink>
             ) : null}
+            {editable && h.approved ? <TabletSessionButton patientId={patientId} /> : null}
             {can(ctx, "clinical.sign") ? <ReviewButtons patientId={patientId} latestReviewed={h.latestReviewed} hasResponse={!!latest} /> : null}
           </div>
         </div>

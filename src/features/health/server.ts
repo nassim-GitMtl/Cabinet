@@ -1,5 +1,6 @@
 import "server-only";
-import { and, desc, eq } from "drizzle-orm";
+import { createHash, randomBytes } from "node:crypto";
+import { and, desc, eq, max, sql } from "drizzle-orm";
 import { audit } from "@/server/audit";
 import { can, requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
 import type { Tx } from "@/server/db/client";
@@ -7,6 +8,7 @@ import {
   healthHistoryReviews,
   patients,
   questionnaireResponses,
+  questionnaireTabletSessions,
   questionnaireVersions,
   users,
   type Answers,
@@ -14,6 +16,8 @@ import {
   type Question,
 } from "@/server/db/schema";
 import { STARTER_QUESTIONS, STARTER_TITLE } from "./starter-questionnaire";
+import type { QuestionnaireDraftInput } from "./schemas";
+import { questionnaireDraftToRecord } from "./schemas";
 
 export class HealthError extends Error {
   constructor(public readonly code: string) {
@@ -24,6 +28,7 @@ export class HealthError extends Error {
 const KEY = "medical_history";
 const VALUES: AnswerValue[] = ["yes", "no", "unknown", "declined"];
 const staff = (ctx: ClinicContext) => ({ organizationId: ctx.organizationId, actorType: "staff" as const, actorUserId: ctx.userId });
+const tokenHash = (token: string) => createHash("sha256").update(token).digest("hex");
 
 /** Current questionnaire version; creates the starter version (unapproved) on first use. */
 async function currentVersion(tx: Tx, ctx: ClinicContext) {
@@ -147,13 +152,74 @@ export async function reviewHistory(ctx: ClinicContext, patientId: string, outco
 
 /** A clinician approves the current questionnaire wording (one time per version). */
 export async function approveQuestionnaire(ctx: ClinicContext) {
-  requirePermission(ctx, "clinical.sign");
-  requirePermission(ctx, "org.settings.manage");
+  requirePermission(ctx, "questionnaire.approve");
   return tenantTx(ctx, async (tx) => {
     const v = await currentVersion(tx, ctx);
     if (v.approvedAt) return;
     await tx.update(questionnaireVersions).set({ approvedByUserId: ctx.userId, approvedAt: new Date() }).where(eq(questionnaireVersions.id, v.id));
     await audit(tx, { ...staff(ctx), action: "questionnaire.approved", entityType: "questionnaire_version", entityId: v.id });
+  });
+}
+
+function requireQuestionnaireRead(ctx: ClinicContext) {
+  if (can(ctx, "questionnaire.manage")) requirePermission(ctx, "questionnaire.manage");
+  else requirePermission(ctx, "questionnaire.approve");
+}
+
+export async function listQuestionnaireVersions(ctx: ClinicContext) {
+  requireQuestionnaireRead(ctx);
+  return tenantTx(ctx, async (tx) => {
+    await currentVersion(tx, ctx);
+    return tx.select().from(questionnaireVersions).where(eq(questionnaireVersions.key, KEY)).orderBy(desc(questionnaireVersions.versionNo));
+  });
+}
+
+/** Creates a complete immutable draft; publishing is a separate clinician decision. */
+export async function createQuestionnaireDraft(ctx: ClinicContext, input: QuestionnaireDraftInput) {
+  requirePermission(ctx, "questionnaire.manage");
+  const record = questionnaireDraftToRecord(input);
+  return tenantTx(ctx, async (tx) => {
+    await currentVersion(tx, ctx);
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`questionnaire:${ctx.organizationId}:${KEY}`}, 0))`);
+    const [latest] = await tx.select({ version: max(questionnaireVersions.versionNo) }).from(questionnaireVersions).where(eq(questionnaireVersions.key, KEY));
+    const versionNo = Number(latest?.version ?? 0) + 1;
+    const [version] = await tx.insert(questionnaireVersions).values({ organizationId: ctx.organizationId, key: KEY, versionNo, title: record.title, questions: record.questions, isCurrent: false }).returning({ id: questionnaireVersions.id });
+    await audit(tx, { ...staff(ctx), action: "questionnaire.draft_created", entityType: "questionnaire_version", entityId: version!.id, metadata: { versionNo, questionCount: record.questions.length } });
+    return version!.id;
+  });
+}
+
+/** Clinician approval and activation happen atomically; the previous version remains immutable history. */
+export async function publishQuestionnaireVersion(ctx: ClinicContext, versionId: string) {
+  requirePermission(ctx, "questionnaire.approve");
+  return tenantTx(ctx, async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`questionnaire:${ctx.organizationId}:${KEY}`}, 0))`);
+    const [target] = await tx.select().from(questionnaireVersions).where(and(eq(questionnaireVersions.id, versionId), eq(questionnaireVersions.key, KEY))).limit(1);
+    if (!target) throw new HealthError("versionNotFound");
+    if (target.approvedAt) throw new HealthError("versionNotDraft");
+    if (!target.isCurrent) {
+      await tx.update(questionnaireVersions).set({ isCurrent: false }).where(and(eq(questionnaireVersions.key, KEY), eq(questionnaireVersions.isCurrent, true)));
+    }
+    await tx.update(questionnaireVersions).set({ isCurrent: true, approvedAt: new Date(), approvedByUserId: ctx.userId }).where(eq(questionnaireVersions.id, versionId));
+    await audit(tx, { ...staff(ctx), action: "questionnaire.version_published", entityType: "questionnaire_version", entityId: versionId, metadata: { versionNo: target.versionNo } });
+  });
+}
+
+/** Creates a 30-minute bearer handoff for a clinic tablet; the raw token is returned once. */
+export async function createQuestionnaireTabletSession(ctx: ClinicContext, patientId: string) {
+  requirePermission(ctx, "clinical.write");
+  return tenantTx(ctx, async (tx) => {
+    const [[patient], version] = await Promise.all([
+      tx.select({ id: patients.id }).from(patients).where(eq(patients.id, patientId)).limit(1),
+      currentVersion(tx, ctx),
+    ]);
+    if (!patient) throw new HealthError("notFound");
+    if (!version.approvedAt) throw new HealthError("questionnaireNotApproved");
+    const token = randomBytes(32).toString("base64url");
+    const expiresAt = new Date(Date.now() + 30 * 60_000);
+    const [session] = await tx.insert(questionnaireTabletSessions).values({ organizationId: ctx.organizationId, patientId, questionnaireVersionId: version.id, tokenHash: tokenHash(token), expiresAt, createdByUserId: ctx.userId }).returning({ id: questionnaireTabletSessions.id });
+    await audit(tx, { ...staff(ctx), action: "questionnaire.tablet_session_created", entityType: "questionnaire_tablet_session", entityId: session!.id, patientId, metadata: { questionnaireVersionId: version.id } });
+    return { token, expiresAt };
   });
 }
 

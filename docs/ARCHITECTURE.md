@@ -66,7 +66,7 @@ tests/                    integration tests + support (global setup resets cabin
 - Patient portal accounts are global and separate from staff users. Activation requires a single-use seven-day invitation, passwords use the same scrypt policy, sessions are opaque hashed 12-hour tokens, and five failed logins lock the account for 15 minutes. Staff-assisted recovery requires another documented in-person identity check and creates a single-use 24-hour link; a successful reset clears lockout state and revokes every existing patient session. Narrow `SECURITY DEFINER` functions expose only invitation/recovery resolution, activation/reset, login lookup, active-session lookup and the verified local clinic links; account/session tables otherwise have patient-self RLS.
 - A portal patient may read clinic-local appointments, accepted/completed estimates, issued invoices and payments only after `patient_portal_links()` proves an active identity link for the current network patient. Every clinic is then queried in its own `withDbContext` transaction, and every query also filters the exact linked local `patient_id`; an account never receives a general tenant browse capability. Portal financial balances are derived from the immutable subledger and online payment is not shown until a real provider exists.
 - Consent approval copies the exact requested purpose, categories, date range and future-update flag into a new grant. Decline and revocation are patient-authenticated portal actions. Approval, decline, revocation, activation and staff request/invite mutations are audited without clinical content.
-- Not built yet: shared-record pages themselves, portal clinical health-record views, online payment provider integration, and revocation propagation to future caches/exports. Until a cache/export exists, every read is evaluated live.
+- Not built yet: shared-record pages themselves, portal views of the wider clinical record, online payment provider integration, and revocation propagation to future caches/exports. Patient-authenticated medical-questionnaire completion is built, but does not expose clinical notes or other records. Until a cache/export exists, every read is evaluated live.
 
 ## Money and dates (§2, §16)
 
@@ -179,9 +179,17 @@ never summed. "Paid to date" is as of generation time.
   unreachable. `ConnectionBanner` polls `/api/health` and warns that nothing is saved while disconnected.
   No patient, clinical or financial data is stored on devices; there is no offline write queue (deliberate).
 
-## Medical history (`src/features/health`, migrations 0021/0022)
+## Medical history (`src/features/health`, migrations 0021/0022/0031)
 - `questionnaire_versions` (wording immutable; one-time clinician approval), append-only `questionnaire_responses`
   (every update is a new row) and `health_history_reviews` ("reviewed" / "no_changes" events).
+- `questionnaire.manage` creates complete immutable drafts; `questionnaire.approve` atomically approves and activates one
+  version. A partial unique index permits exactly one current version per tenant/key, while every response retains its exact
+  historical version. Existing approved versions cannot be reactivated or have their approval changed.
+- Portal completion first resolves the patient's exact active clinic identity link, then reads/writes only that local patient
+  under patient RLS. Clinic tablet completion uses a random 256-bit bearer token stored only as a hash in
+  `questionnaire_tablet_sessions`; its narrow `SECURITY DEFINER` lookup returns one approved current form, expires after
+  30 minutes, and the database permits only the one-way unused → used transition. Portal/tablet submissions are append-only,
+  patient-acknowledged responses awaiting the same clinician review as staff-entered responses.
 - Answers: `yes | no | unknown | declined` or text; an unanswered question is ABSENT (never stored as "no").
 - No inference: alerts are created only by a clinician from an answer (`promoteToAlertAction`, label built server-side).
 - The starter questionnaire is generic wording flagged "to be approved by a clinician" until approved.

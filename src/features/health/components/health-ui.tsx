@@ -3,17 +3,18 @@
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { BellPlusIcon, CheckCheckIcon, CheckIcon, ShieldCheckIcon } from "lucide-react";
+import { BellPlusIcon, CheckCheckIcon, CheckIcon, ExternalLinkIcon, ShieldCheckIcon, TabletIcon } from "lucide-react";
 import { toast } from "sonner";
 import { FormError, SubmitButton, useErrorText } from "@/components/form";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/button-link";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { initialActionState, type ActionState } from "@/lib/action-state";
 import { cn } from "@/lib/utils";
 import type { Answers, Question } from "@/server/db/schema";
-import { approveQuestionnaireAction, promoteToAlertAction, recordResponseAction, reviewAction } from "../actions";
+import { approveQuestionnaireAction, createQuestionnaireTabletSessionAction, promoteToAlertAction, recordResponseAction, reviewAction } from "../actions";
 
 const VALUES = ["yes", "no", "unknown", "declined"] as const;
 
@@ -75,6 +76,12 @@ export function PromoteButton({ patientId, questionId }: { patientId: string; qu
       {t("createAlert")}
     </Button>
   );
+}
+
+export function TabletSessionButton({ patientId }: { patientId: string }) {
+  const t = useTranslations("health"); const [state, action] = useActionState(createQuestionnaireTabletSessionAction.bind(null, patientId), initialActionState);
+  const data = state.data as { url?: string } | undefined;
+  return <div className="grid gap-1"><form action={action}><SubmitButton variant="outline"><TabletIcon />{t("patient.openTablet")}</SubmitButton></form><FormError error={state.error} />{data?.url ? <ButtonLink href={data.url} target="_blank" variant="secondary"><ExternalLinkIcon />{t("patient.launchTablet")}</ButtonLink> : null}</div>;
 }
 
 /** Questionnaire form, prefilled with the previous answers (a new response is recorded; history is kept). */

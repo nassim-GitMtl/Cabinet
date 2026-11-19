@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { ShieldCheckIcon, ShieldQuestionIcon, UsersIcon, KeyRoundIcon, SmartphoneIcon } from "lucide-react";
+import { ClipboardListIcon, ShieldCheckIcon, ShieldQuestionIcon, UsersIcon, KeyRoundIcon, SmartphoneIcon } from "lucide-react";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,12 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SettingsPage() {
   const ctx = await requireClinicContext();
   const t = await getTranslations();
-  if (!can(ctx, "org.settings.manage") && !can(ctx, "org.staff.manage")) {
+  if (
+    !can(ctx, "org.settings.manage") &&
+    !can(ctx, "org.staff.manage") &&
+    !can(ctx, "questionnaire.manage") &&
+    !can(ctx, "questionnaire.approve")
+  ) {
     return <ForbiddenState message={t("errors.forbiddenPage")} />;
   }
   const staff = can(ctx, "org.staff.manage") ? await listStaff(ctx) : [];
@@ -31,11 +36,11 @@ export default async function SettingsPage() {
       <PageHeader
         title={t("settings.title")}
         actions={
-          <div className="flex flex-wrap gap-2"><ButtonLink href="/settings/security" variant="outline"><SmartphoneIcon />{t("access.securityTitle")}</ButtonLink>{can(ctx, "org.staff.manage") ? <ButtonLink href="/settings/team" variant="outline"><UsersIcon />{t("access.teamTitle")}</ButtonLink> : null}{can(ctx, "org.roles.manage") ? <ButtonLink href="/settings/roles" variant="outline"><KeyRoundIcon />{t("access.rolesTitle")}</ButtonLink> : null}<ButtonLink href="/settings/agenda" variant="outline">{t("agendaSettings.title")}</ButtonLink></div>
+          <div className="flex flex-wrap gap-2">{can(ctx, "org.settings.manage") ? <><ButtonLink href="/settings/security" variant="outline"><SmartphoneIcon />{t("access.securityTitle")}</ButtonLink><ButtonLink href="/settings/agenda" variant="outline">{t("agendaSettings.title")}</ButtonLink></> : null}{can(ctx, "org.staff.manage") ? <ButtonLink href="/settings/team" variant="outline"><UsersIcon />{t("access.teamTitle")}</ButtonLink> : null}{can(ctx, "org.roles.manage") ? <ButtonLink href="/settings/roles" variant="outline"><KeyRoundIcon />{t("access.rolesTitle")}</ButtonLink> : null}{can(ctx, "questionnaire.manage") || can(ctx, "questionnaire.approve") ? <ButtonLink href="/settings/questionnaire" variant="outline"><ClipboardListIcon />{t("health.editor.shortTitle")}</ButtonLink> : null}</div>
         }
       />
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border bg-card p-5">
+        {can(ctx, "org.settings.manage") ? <section className="rounded-xl border bg-card p-5">
           <h2 className="mb-3 font-semibold">{t("settings.clinic")}</h2>
           <p className="mb-4 text-lg">{org.name}</p>
           <dl className="grid gap-3 text-sm">
@@ -56,7 +61,7 @@ export default async function SettingsPage() {
             </div>
           </dl>
           {!verified ? <p className="mt-4 text-xs text-muted-foreground">{t("settings.verificationHint")}</p> : null}
-        </section>
+        </section> : null}
 
         {can(ctx, "org.staff.manage") ? (
           <section className="rounded-xl border bg-card p-5">

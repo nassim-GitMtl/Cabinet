@@ -1,10 +1,12 @@
-import { CalendarDaysIcon, FileCheckIcon, ReceiptTextIcon } from "lucide-react";
+import { CalendarDaysIcon, FileCheckIcon, HeartPulseIcon, ReceiptTextIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConsentDecisionButtons, LogoutButton, RevokeGrantForm } from "@/features/consent/components/portal-forms";
 import { listPatientConsents } from "@/features/consent/portal";
 import { listPatientPortalData } from "@/features/consent/portal-data";
+import { listPortalHealthQuestionnaires } from "@/features/health/patient";
+import { ButtonLink } from "@/components/button-link";
 import { formatDateOnly, formatDateTime } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { requirePatientSession } from "@/server/portal/session";
@@ -14,7 +16,7 @@ const localized = (value: Record<string, string> | null, locale: string, fallbac
 
 export default async function PortalPage() {
   const ctx = await requirePatientSession();
-  const [data, clinics, t] = await Promise.all([listPatientConsents(ctx), listPatientPortalData(ctx), getTranslations("portal")]);
+  const [data, clinics, health, t] = await Promise.all([listPatientConsents(ctx), listPatientPortalData(ctx), listPortalHealthQuestionnaires(ctx), getTranslations("portal")]);
   const pending = data.requests.filter((r) => r.status === "awaiting_patient" && r.expiresAt > new Date());
   const locale = localeTag(ctx.locale);
 
@@ -24,7 +26,7 @@ export default async function PortalPage() {
     {clinics.map((clinic) => {
       return <section key={`${clinic.organizationId}:${clinic.patientId}`} className="space-y-4">
         <div><h2 className="text-xl font-semibold"><bdi>{clinic.organizationName}</bdi></h2><p className="text-sm text-muted-foreground">{t("clinicRecord")}</p></div>
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
           <Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><CalendarDaysIcon className="size-4 text-primary" />{t("appointments")}</CardTitle><CardDescription>{t("appointmentsDescription")}</CardDescription></CardHeader><CardContent className="space-y-3">
             {clinic.appointments.slice(0, 8).map((appointment) => <div key={appointment.id} className="rounded-lg border p-3 text-sm">
               <div className="flex items-start justify-between gap-2"><span className="font-medium">{formatDateTime(appointment.startsAt, clinic.timezone, locale)}</span><Badge variant="secondary">{t(`appointmentStatus.${appointment.schedulingStatus}`)}</Badge></div>
@@ -44,6 +46,7 @@ export default async function PortalPage() {
             {clinic.payments.length > 0 ? <div><h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("payments")}</h3><div className="space-y-2">{clinic.payments.map((payment) => <div key={payment.id} className="flex items-center justify-between gap-3 text-sm"><span><bdi>{payment.receiptNumber}</bdi> · {formatDateOnly(payment.receivedOn)}</span><span className={payment.status === "reversed" ? "text-muted-foreground line-through" : "font-medium"} dir="auto">{formatMoney(Number(payment.amountMinor), payment.currency, locale, clinic.currencyDisplay)}</span></div>)}</div></div> : null}
             <p className="text-xs text-muted-foreground">{t("billingContactClinic")}</p>
           </CardContent></Card>
+          {health.find((item) => item.organizationId === clinic.organizationId) ? <Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><HeartPulseIcon className="size-4 text-primary" />{t("healthQuestionnaire")}</CardTitle><CardDescription>{t("healthQuestionnaireDescription")}</CardDescription></CardHeader><CardContent><p className="mb-3 text-sm text-muted-foreground">{health.find((item) => item.organizationId === clinic.organizationId)?.latestAt ? t("healthLastUpdated", { date: formatDateTime(health.find((item) => item.organizationId === clinic.organizationId)!.latestAt!, clinic.timezone, locale) }) : t("healthNotCompleted")}</p><ButtonLink href={`/portal/health/${clinic.organizationId}`}>{t("healthComplete")}</ButtonLink></CardContent></Card> : null}
         </div>
       </section>;
     })}

@@ -77,6 +77,26 @@ export const questionnaireResponses = pgTable(
   (t) => [index("questionnaire_responses_patient_idx").on(t.organizationId, t.patientId, t.recordedAt)],
 );
 
+/** Short-lived, single-use handoff for a patient completing the form on a clinic tablet. */
+export const questionnaireTabletSessions = pgTable(
+  "questionnaire_tablet_sessions",
+  {
+    id: id(),
+    organizationId: organizationId().references(() => organizations.id),
+    patientId: uuid("patient_id").notNull().references(() => patients.id),
+    questionnaireVersionId: uuid("questionnaire_version_id").notNull().references(() => questionnaireVersions.id),
+    tokenHash: text("token_hash").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdByUserId: uuid("created_by_user_id").notNull().references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex("questionnaire_tablet_sessions_token_uq").on(t.tokenHash),
+    index("questionnaire_tablet_sessions_patient_idx").on(t.organizationId, t.patientId, t.createdAt),
+  ],
+);
+
 export const historyReviewOutcome = pgEnum("health_history_review_outcome", ["reviewed", "no_changes"]);
 
 export const healthHistoryReviews = pgTable(

@@ -1183,6 +1183,11 @@
     "void": "Annulée",
     "balance": "Solde : {amount}",
     "billingContactClinic": "Pour payer ou demander une correction, contactez le cabinet.",
+    "healthQuestionnaire": "Questionnaire médical",
+    "healthQuestionnaireDescription": "Mettez à jour vos antécédents directement pour ce cabinet.",
+    "healthLastUpdated": "Dernière mise à jour : {date}",
+    "healthNotCompleted": "Pas encore rempli",
+    "healthComplete": "Remplir ou mettre à jour",
     "noClinicRecords": "Aucun dossier de cabinet n’est lié à ce compte.",
     "appointmentStatus": {
       "requested": "Demandé",
@@ -1643,11 +1648,46 @@
     "approvedToast": "Questionnaire validé",
     "headerNone": "Questionnaire médical non renseigné",
     "headerPending": "Questionnaire médical à revoir",
+    "patient": {
+      "openTablet": "Ouvrir le questionnaire tablette",
+      "launchTablet": "Mode tablette",
+      "tabletTitle": "Questionnaire patient sur tablette",
+      "tabletPrivacy": "Cette page temporaire expire après 30 minutes et ne peut être envoyée qu’une seule fois. Rendez l’appareil au personnel une fois terminé.",
+      "portalTitle": "Questionnaire médical",
+      "portalDescription": "Vos réponses sont ajoutées à votre dossier de ce cabinet et devront être revues par un praticien.",
+      "backPortal": "Retour au portail",
+      "formHint": "Répondez uniquement aux questions que vous souhaitez renseigner. Une case laissée vide reste sans réponse.",
+      "acknowledged": "Je confirme que ces réponses sont exactes au meilleur de ma connaissance.",
+      "ackRequired": "Confirmez l’exactitude des réponses avant de les envoyer.",
+      "submit": "Envoyer mes réponses",
+      "savedTitle": "Réponses enregistrées",
+      "savedPortal": "Votre cabinet peut maintenant les consulter et les revoir.",
+      "savedTablet": "Rendez maintenant l’appareil au personnel du cabinet. Ce lien n’est plus utilisable."
+    },
+    "editor": {
+      "shortTitle": "Questionnaire médical", "title": "Questionnaire médical du cabinet",
+      "subtitle": "Créez une nouvelle version complète, puis faites-la approuver et activer par un praticien.", "back": "Retour aux réglages",
+      "versions": "Versions", "versionsHint": "Les anciennes versions et les réponses associées restent inchangées.", "version": "Version {number}",
+      "questionCount": "{count, plural, one {# question} other {# questions}}", "current": "Active", "previous": "Archivée", "draft": "Brouillon",
+      "approveAndActivate": "Approuver et activer", "titleSection": "Titre du questionnaire", "titleFr": "Titre en français", "titleEn": "Titre en anglais", "titleAr": "Titre en arabe",
+      "questions": "Questions", "questionsHint": "Les identifiants restent stables pour comparer les réponses entre les versions.", "addQuestion": "Ajouter une question", "questionNumber": "Question {number}",
+      "moveUp": "Monter la question", "moveDown": "Descendre la question", "removeQuestion": "Supprimer la question", "id": "Identifiant stable", "kind": "Type de réponse",
+      "yesNo": "Oui / non / incertain", "freeText": "Texte libre", "sensitive": "Information sensible", "labelFr": "Question en français", "labelEn": "Question en anglais", "labelAr": "Question en arabe",
+      "detailFr": "Précision demandée en français", "detailEn": "Précision demandée en anglais", "detailAr": "Précision demandée en arabe", "alertOptions": "Option d’alerte clinique",
+      "alertKind": "Type d’alerte suggéré", "noAlert": "Aucune suggestion", "alertMedical": "Médicale", "alertAllergy": "Allergie", "alertMedication": "Médicament",
+      "alertLabelFr": "Libellé d’alerte en français", "alertLabelEn": "Libellé d’alerte en anglais", "alertLabelAr": "Libellé d’alerte en arabe",
+      "saveDraft": "Enregistrer une nouvelle version", "saveHint": "L’enregistrement crée un brouillon immuable ; il ne sera proposé aux patients qu’après approbation.", "draftSaved": "Nouvelle version enregistrée comme brouillon.",
+      "errors": { "invalid": "Vérifiez le titre, les questions et leurs identifiants.", "questionId": "Utilisez des lettres minuscules, des chiffres et des tirets bas.", "questionsRequired": "Ajoutez au moins une question.", "tooManyQuestions": "Le questionnaire ne peut pas dépasser 40 questions.", "duplicateId": "Chaque question doit avoir un identifiant unique.", "textDetail": "Une question en texte libre ne peut pas demander une précision conditionnelle." }
+    },
     "errors": {
       "notFound": "Patient introuvable.",
       "empty": "Aucune réponse saisie.",
       "nothingToReview": "Aucun questionnaire à revoir.",
-      "notPromotable": "Seule une réponse « Oui » ou un texte peut devenir une alerte."
+      "notPromotable": "Seule une réponse « Oui » ou un texte peut devenir une alerte.",
+      "questionnaireNotApproved": "Le questionnaire doit être approuvé avant d’être proposé au patient.",
+      "tabletExpired": "Ce lien tablette a expiré ou a déjà été utilisé.",
+      "versionNotFound": "Cette version du questionnaire est introuvable.",
+      "versionNotDraft": "Seul un brouillon non approuvé peut être activé."
     }
   }
 }

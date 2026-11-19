@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-19 by Codex (session 21 — sterilization traceability).
+Last updated: 2026-11-19 by Codex (session 22 — questionnaire versions and patient completion).
 
 ## How to verify the current state
 
@@ -193,6 +193,18 @@ sterilization integration tests added), typecheck and lint green. The standard T
 runner-only helper-port restriction; `npx next build --webpack` is green with all four new routes. Browser-checked the
 responsive French empty/setup state without creating product data.
 
+Session 22 (Codex): medical questionnaire completion end to end. Owners can build complete FR/EN/AR questionnaire
+versions with stable question identifiers, reorder questions and configure sensitive/clinical-alert metadata; saving creates
+an immutable draft and a practitioner with the separate approval permission atomically activates it without rewriting older
+responses. Linked patients can complete or update the approved form in their portal for the exact clinic record. Staff can
+also create a random, hashed, 30-minute, single-use tablet handoff from the patient workspace; replay and cross-clinic access
+are rejected by database guards/RLS. Both patient sources create acknowledged append-only responses awaiting the existing
+clinician review. Migration 0031 adds one-current-version enforcement and tablet sessions. FR/EN/AR and RTL copy are complete.
+132/132 tests (3 new integration tests), typecheck and lint green. The standard Turbopack build hit the documented runner-only
+helper-port restriction; `npx next build --webpack` is green and includes `/settings/questionnaire`,
+`/portal/health/[organizationId]` and `/health/tablet/[token]`. Visual browser verification was unavailable because the Mac
+was locked; route compilation and production rendering checks completed in the build.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -209,7 +221,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Network identity + consent schema (§4A) | ✅ | Assisted in-person verified linking, exact-scope requests, patient-only approval/revocation, immutable grants, guarded + logged shared reads and cross-tenant tests |
 | Patient registration & directory (§6) | ✅ | Numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
 | Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, odontogram, treatment plans, finance tab (account, invoices, payments, deposit). |
-| Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; structured medical questionnaires, clinician review and explicit alert promotion ✅ |
+| Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; versioned structured medical questionnaires, separate editor/approval permissions, clinician review and explicit alert promotion ✅ |
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; PDFs in Arabic ⏳ |
@@ -224,7 +236,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | ⏳ 🔌 | Requires real SMS/WhatsApp/email providers |
-| Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, and assisted single-use account recovery ✅. Health records and online payment provider integration ⏳ |
+| Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
 | Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
 | Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
 | Backups/restore exercise (§27, scenario 32) | ⏳ | |
@@ -236,9 +248,8 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
    copy for patient booking links/portal/cross-clinic sharing when online; attachments folder in backups once
    file storage exists.
 
-1. Questionnaire editor (new versions with clinician approval) and patient completion via the portal/tablet mode.
-2. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
-3. Inventory follow-ups: show pending consumptions on the procedure/patient screen for chairside confirmation; turn a
+1. Clinical images & documents (§12A/§15): private file storage on the clinic server, camera upload, before/after, included in backups.
+2. Inventory follow-ups: show pending consumptions on the procedure/patient screen for chairside confirmation; turn a
    reorder suggestion into a draft purchase order.
 
 ## Known gaps / decisions to revisit
