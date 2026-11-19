@@ -2036,5 +2036,65 @@
     "openPlan": "Voir le plan de traitement",
     "lateCount": "{count, plural, one {# échéance en retard} other {# échéances en retard}}",
     "recordNext": "Encaisser l'échéance {number}"
+  },
+  "clinicIdentity": {
+    "title": "Identité du cabinet",
+    "subtitle": "Nom, coordonnées et mentions légales imprimés sur les factures, reçus et devis.",
+    "identityTitle": "Coordonnées et mentions légales",
+    "identityHint": "Ces informations figurent en en-tête des documents imprimés.",
+    "saved": "Identité enregistrée.",
+    "clinicName": "Nom du cabinet",
+    "clinicNameHint": "Affiché dans l'application, sur la page publique et dans les messages aux patients.",
+    "legalName": "Raison sociale / nom du praticien",
+    "legalNameHint": "Nom légal qui figure sur les factures.",
+    "address": "Adresse",
+    "phone": "Téléphone",
+    "email": "E-mail",
+    "identifiersTitle": "Identifiants fiscaux",
+    "identifiersHint": "Tels qu'ils doivent figurer sur vos factures (à confirmer avec votre comptable). Un champ vide n'est pas imprimé.",
+    "identifiers": {
+      "NIF": "NIF (identification fiscale)",
+      "NIS": "NIS (identification statistique)",
+      "RC": "RC ou n° d'agrément",
+      "AI": "AI (article d'imposition)"
+    },
+    "frozenHint": "Les factures, reçus et avoirs déjà émis gardent les informations en vigueur au moment de leur émission.",
+    "save": "Enregistrer",
+    "logoTitle": "Logo",
+    "logoHint": "PNG, JPEG ou WebP, 300 Ko maximum. Il apparaît sur les documents imprimés et la page publique.",
+    "chooseLogo": "Choisir un logo",
+    "uploadLogo": "Envoyer",
+    "removeLogo": "Retirer le logo",
+    "errors": {
+      "clinicName": "Nom du cabinet : 2 à 120 caractères.",
+      "legalName": "Raison sociale : 2 à 160 caractères.",
+      "tooLong": "Texte trop long.",
+      "invalidPhone": "Numéro de téléphone invalide.",
+      "invalidEmail": "Adresse e-mail invalide.",
+      "unavailable": "Aucun site actif n'est configuré.",
+      "emptyFile": "Choisissez une image.",
+      "logoTooLarge": "Le logo dépasse 300 Ko.",
+      "logoType": "Format non accepté : PNG, JPEG ou WebP."
+    },
+    "setup": {
+      "title": "Mise en route du cabinet",
+      "progress": "{done}/{total} terminé",
+      "items": {
+        "identity": "Coordonnées et identifiants fiscaux",
+        "phone": "Téléphone du cabinet",
+        "logo": "Logo",
+        "team": "Inviter l'équipe",
+        "booking": "Lien de réservation en ligne",
+        "publicPage": "Page publique du cabinet"
+      },
+      "hints": {
+        "identity": "Adresse et NIF imprimés sur les factures.",
+        "phone": "Sur les documents et dans les messages aux patients.",
+        "logo": "Sur les factures, les devis et la page publique.",
+        "team": "Assistant(e), secrétaire, autres praticiens.",
+        "booking": "Pour que les patients demandent un rendez-vous.",
+        "publicPage": "Une page à partager, avec affiche QR code."
+      }
+    }
   }
 }

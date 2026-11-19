@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ForbiddenState } from "@/components/app/page-header";
 import { DocumentHeader } from "@/components/print/document-header";
+import { getPrintBranding } from "@/features/clinic-identity/server";
 import { PrintButton } from "@/components/print/print-button";
 import { pageFormat } from "@/features/billing/page-format";
 import { patientDisplayName } from "@/features/patients/display";
@@ -24,14 +25,15 @@ export default async function PrintEstimatePage({ params }: { params: Promise<{ 
   if (!can(ctx, "treatment_plan.read") || !can(ctx, "patient.read")) return <ForbiddenState message={t("errors.forbidden")} />;
   const plan = await getTreatmentPlan(ctx, planId);
   if (!plan || !["proposed", "accepted", "completed"].includes(plan.status)) notFound();
-  const [patient, fmt, schedule] = await Promise.all([
+  const [patient, fmt, schedule, branding] = await Promise.all([
     getPatient(ctx, plan.patientId), pageFormat(ctx),
     ["accepted", "completed"].includes(plan.status) ? getPlanPaymentSchedule(ctx, planId) : Promise.resolve(null),
+    getPrintBranding(ctx),
   ]);
   if (!patient) notFound();
   return <article>
     <div className="no-print mb-4 flex justify-end"><PrintButton /></div>
-    <DocumentHeader clinicName={ctx.organization.name} title={t("estimateDocument")}
+    <DocumentHeader clinicName={ctx.organization.name} issuer={branding.issuer} logoVersion={branding.logoVersion} title={t("estimateDocument")}
       subtitle={<><p className="font-semibold">{plan.title}</p><p>{t("version", { version: plan.currentVersion })}</p></>} />
     <section className="avoid-break mb-5">
       <p className="text-[11px] uppercase text-neutral-600">{t("preparedFor")}</p>

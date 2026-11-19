@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/button-link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDashboardStats } from "@/features/dashboard/server";
+import { SetupChecklist } from "@/features/clinic-identity/components/setup-checklist";
+import { getSetupChecklist } from "@/features/clinic-identity/server";
 import { formatDateOnly } from "@/lib/dates";
 import { INTL_LOCALE, isLocale } from "@/i18n/config";
 import { can, requireClinicContext } from "@/server/auth/context";
@@ -47,6 +49,7 @@ export default async function DashboardPage() {
     getLocale(),
     getDashboardStats(ctx),
   ]);
+  const setup = can(ctx, "org.settings.manage") ? await getSetupChecklist(ctx) : null;
   const activeLocale = isLocale(locale) ? locale : "fr";
   const date = new Intl.DateTimeFormat(INTL_LOCALE[activeLocale], {
     timeZone: ctx.organization.timezone,
@@ -79,6 +82,8 @@ export default async function DashboardPage() {
           ) : null
         }
       />
+
+      {setup ? <SetupChecklist items={setup} /> : null}
 
       {stats.clinicalStats ? (
         <section className="mb-6 space-y-3" aria-labelledby="today-activity-heading">

@@ -43,6 +43,10 @@ export default async function ClinicPublicPage(props: PageProps<"/c/[slug]">) {
   return (
     <div className="grid gap-4">
       <section className="rounded-2xl border bg-card p-5 shadow-sm sm:p-6">
+        {page.logoVersion ? (
+          // eslint-disable-next-line @next/next/no-img-element -- small versioned logo from the database
+          <img src={`/c/${page.slug}/logo?v=${page.logoVersion}`} alt="" className="mb-3 max-h-16 max-w-40 object-contain" />
+        ) : null}
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl"><bdi>{page.name}</bdi></h1>
         {page.branches[0]?.address ? <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground"><MapPinIcon className="size-4" aria-hidden /><bdi>{page.branches[0].address}</bdi></p> : null}
         {about ? <p className="mt-4 whitespace-pre-line text-sm leading-relaxed" dir="auto">{about}</p> : null}

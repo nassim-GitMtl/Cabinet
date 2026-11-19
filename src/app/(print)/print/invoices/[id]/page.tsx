@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ForbiddenState } from "@/components/app/page-header";
 import { DocumentHeader } from "@/components/print/document-header";
+import { getPrintBranding } from "@/features/clinic-identity/server";
 import { PrintButton } from "@/components/print/print-button";
 import { pageFormat } from "@/features/billing/page-format";
 import { getInvoice } from "@/features/billing/server";
@@ -22,8 +23,8 @@ export default async function PrintInvoicePage({ params }: PageProps<"/print/inv
   if (!can(ctx, "invoice.read")) return <ForbiddenState message={t("noFinanceAccess")} />;
   const data = await getInvoice(ctx, id);
   if (!data || data.invoice.status === "draft") notFound();
-  const fmt = await pageFormat(ctx);
-  const { invoice: inv, patient, legalEntity: le, lines } = data;
+  const [fmt, branding] = await Promise.all([pageFormat(ctx), getPrintBranding(ctx)]);
+  const { invoice: inv, patient, lines } = data;
   const m = (v: number) => fmt.money(v, inv.currency);
 
   return (
@@ -33,9 +34,8 @@ export default async function PrintInvoicePage({ params }: PageProps<"/print/inv
       </div>
       <DocumentHeader
         clinicName={ctx.organization.name}
-        legalName={le.legalName}
-        address={le.address}
-        identifiers={le.identifiers}
+        issuer={inv.issuerSnapshot ?? branding.issuer}
+        logoVersion={branding.logoVersion}
         title={t("invoiceTitle")}
         subtitle={
           <>

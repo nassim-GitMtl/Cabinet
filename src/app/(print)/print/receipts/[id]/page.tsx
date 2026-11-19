@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ForbiddenState } from "@/components/app/page-header";
 import { DocumentHeader } from "@/components/print/document-header";
+import { getPrintBranding } from "@/features/clinic-identity/server";
 import { PrintButton } from "@/components/print/print-button";
 import { pageFormat } from "@/features/billing/page-format";
 import { getPayment } from "@/features/billing/server";
@@ -21,8 +22,8 @@ export default async function PrintReceiptPage({ params }: PageProps<"/print/rec
   if (!can(ctx, "payment.read")) return <ForbiddenState message={t("noFinanceAccess")} />;
   const data = await getPayment(ctx, id);
   if (!data) notFound();
-  const fmt = await pageFormat(ctx);
-  const { payment: p, patient, legalEntity: le } = data;
+  const [fmt, branding] = await Promise.all([pageFormat(ctx), getPrintBranding(ctx)]);
+  const { payment: p, patient } = data;
   const m = (v: number) => fmt.money(v, p.currency);
 
   return (
@@ -32,9 +33,8 @@ export default async function PrintReceiptPage({ params }: PageProps<"/print/rec
       </div>
       <DocumentHeader
         clinicName={ctx.organization.name}
-        legalName={le.legalName}
-        address={le.address}
-        identifiers={le.identifiers}
+        issuer={p.issuerSnapshot ?? branding.issuer}
+        logoVersion={branding.logoVersion}
         title={t("receiptTitle")}
         subtitle={
           <>

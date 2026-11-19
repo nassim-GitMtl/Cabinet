@@ -2029,5 +2029,65 @@
     "openPlan": "View treatment plan",
     "lateCount": "{count, plural, one {# late installment} other {# late installments}}",
     "recordNext": "Receive installment {number}"
+  },
+  "clinicIdentity": {
+    "title": "Clinic identity",
+    "subtitle": "Name, contact details and legal mentions printed on invoices, receipts and estimates.",
+    "identityTitle": "Contact details and legal mentions",
+    "identityHint": "These details appear in the header of printed documents.",
+    "saved": "Identity saved.",
+    "clinicName": "Clinic name",
+    "clinicNameHint": "Shown in the app, on the public page and in messages to patients.",
+    "legalName": "Legal name / practitioner name",
+    "legalNameHint": "Legal name printed on invoices.",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "identifiersTitle": "Tax identifiers",
+    "identifiersHint": "As they must appear on your invoices (confirm with your accountant). Empty fields are not printed.",
+    "identifiers": {
+      "NIF": "NIF (tax ID)",
+      "NIS": "NIS (statistical ID)",
+      "RC": "RC or licence number",
+      "AI": "AI (tax article)"
+    },
+    "frozenHint": "Invoices, receipts and credit notes already issued keep the details in force when they were issued.",
+    "save": "Save",
+    "logoTitle": "Logo",
+    "logoHint": "PNG, JPEG or WebP, 300 KB maximum. Shown on printed documents and the public page.",
+    "chooseLogo": "Choose a logo",
+    "uploadLogo": "Upload",
+    "removeLogo": "Remove logo",
+    "errors": {
+      "clinicName": "Clinic name: 2 to 120 characters.",
+      "legalName": "Legal name: 2 to 160 characters.",
+      "tooLong": "Text too long.",
+      "invalidPhone": "Invalid phone number.",
+      "invalidEmail": "Invalid email address.",
+      "unavailable": "No active site is configured.",
+      "emptyFile": "Choose an image.",
+      "logoTooLarge": "The logo exceeds 300 KB.",
+      "logoType": "Format not accepted: PNG, JPEG or WebP."
+    },
+    "setup": {
+      "title": "Clinic setup",
+      "progress": "{done}/{total} done",
+      "items": {
+        "identity": "Contact details and tax identifiers",
+        "phone": "Clinic phone",
+        "logo": "Logo",
+        "team": "Invite your team",
+        "booking": "Online booking link",
+        "publicPage": "Clinic public page"
+      },
+      "hints": {
+        "identity": "Address and NIF printed on invoices.",
+        "phone": "On documents and in messages to patients.",
+        "logo": "On invoices, estimates and the public page.",
+        "team": "Assistant, receptionist, other practitioners.",
+        "booking": "So patients can request appointments.",
+        "publicPage": "A page to share, with a QR poster."
+      }
+    }
   }
 }

@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Claude (session 28 — estimates for patients + payment schedules).
+Last updated: 2026-11-20 by Claude (session 29 — clinic identity, frozen issuer details, setup checklist).
 
 ## How to verify the current state
 
@@ -314,17 +314,31 @@ acceptance); FR/EN/AR texts were missing. 158/158 tests (3 integration added), t
 Browser-checked on the demo clinic (P-000010, fictitious): acceptance, 2-part schedule, cash receipt on part 1 → "Payée" and
 900 DA deposit credit, finance tab, Relances reminder in English, printed estimate with schedule.
 
+Session 29 (Claude): launch essential 1 — clinic identity. `/settings/clinic` (org.settings.manage): clinic name, legal
+name, address, phone, email, Algerian identifiers NIF/NIS/RC/AI (empty ones not printed) and a logo (PNG/JPEG/WebP checked
+from magic bytes, ≤ 300 KB, SVG refused; stored in `clinic_logos`, so it is in every database backup). Migration 0039 adds
+`issuer_snapshot` to invoices, receipts (payments) and credit notes: written at issue time by
+`app_private.issuer_snapshot_for()` and then frozen by the existing ledger guards; a trigger refuses any issued document
+without it; documents issued before were backfilled with the details they already printed. Prints (invoice, receipt,
+statement, estimate) use the frozen copy (live details for drafts/estimates/statements) plus the current logo; the public
+page shows the logo too (`/c/<slug>/logo`, published pages only). Dashboard "Mise en route" checklist from real data
+(identity + NIF, phone, logo, team, booking link, public page), hidden once complete. Bug caught by tests: the shared
+trigger compared `status` across tables with different enums. 160/160 tests (2 integration added), typecheck, lint,
+`next build` green. Browser-checked: checklist 4/6 → identity + logo saved → hidden; F-2026-00001 (issued 17/11) still prints
+its original header; estimate prints new legal details with logo; public logo 200, unknown 404, staff route requires login.
+Legal content (which mentions are mandatory) still needs validation by an Algerian accountant.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
 
 | Area (brief §) | Status | Notes |
 | --- | --- | --- |
-| Multi-tenant orgs, legal entity, branch (§2, §25) | ✅ | Created at registration. Branch/legal-entity management UI ⏳ |
+| Multi-tenant orgs, legal entity, branch (§2, §25) | ✅ | Created at registration; clinic identity screen (legal name, NIF/NIS/RC/AI, address, contact, logo) ✅, issuer details frozen on issued documents. Multi-branch/multi-entity management UI ⏳ |
 | Postgres RLS tenant isolation (§4A, §27) | ✅ | Integration tests: cross-tenant read/write denied, no-context = 0 rows |
 | Roles & permission templates (§4) | ✅ | Permission-key templates, tenant custom role editor, owner-role protection and exact membership assignment |
 | Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | Invite activation, password lockout, encrypted TOTP + recovery codes, MFA challenge, active session list/revocation. Account recovery ⏳ |
-| Clinic onboarding (§25) | 🟡 | Self-service register creates clinic + catalog. Wizard steps (hours, chairs, branding, numbering) ⏳. Verification workflow ⏳ |
+| Clinic onboarding (§25) | 🟡 | Self-service register creates clinic + catalog; dashboard setup checklist from real data ✅. Verification workflow ⏳ |
 | Active clinic switching for multi-org staff (§4A) | ✅ | `/select-clinic`, membership re-checked per request |
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
 | Network identity + consent schema (§4A) | ✅ | Assisted in-person verified linking, exact-scope requests, patient-only approval/revocation, immutable grants, guarded + logged shared reads and cross-tenant tests |
@@ -369,15 +383,26 @@ Distinctive product pillars to preserve in future work:
 
 ## Next steps (in order)
 
-1. Visual treatment journey (§12A, §21): let the clinician select images and milestones for the patient portal, with explicit
-   consent, plain-language context and revocable access; never expose the full clinical library by default.
-2. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
+Launch essentials first (user decision 2026-11-20), then the patient features.
+
+1. Import existing patients (§26): upload an Excel/CSV list, map columns (name, Arabic name, phone, birth date, sex,
+   address, notes), preview with validation and duplicate detection, then import in one audited batch; downloadable template.
+2. Arabic printed documents: invoices, receipts, estimates and statements printable in Arabic (RTL) or bilingual FR/AR,
+   chosen per document or from the patient's language.
+3. Staff password reset: owner/admin creates a single-use reset link (no email needed on the clinic server), plus an
+   email path when SMTP is configured; sessions revoked on reset.
+4. Per-IP login rate limiting (staff and portal) before any internet exposure.
+5. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
+   option behind CGNAT), or the cloud copy/sync, so booking, public page and portal work from outside.
+6. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
+   consent, plain-language context and revocable access.
+7. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
    the aftercare draft, without replacing clinician decisions.
-3. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
-   détartrage season, children's check-up) only for opted-in patients, using the same WhatsApp/SMS tools.
-4. Guardian/family portal (§6, §21): exact delegated permissions, combined appointment coordination and balances without
-   leaking one family member's clinical record to another.
-5. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
+8. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
+9. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
+
+Not doable in code (user/accountant): validate the mandatory invoice mentions and retention rules with an Algerian
+accountant; run a timed restore exercise on the real clinic server.
 
 Later / on hold: inventory follow-ups (pending consumptions on the patient screen; reorder suggestion → pre-filled order
 form), treatment consent capture (§12A), lab cases (§22).

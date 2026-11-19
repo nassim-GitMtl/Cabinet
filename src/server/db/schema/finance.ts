@@ -1,4 +1,14 @@
 import { sql } from "drizzle-orm";
+
+/** Who issued a financial document, as printed on it. Copied at issue time so later edits never change it. */
+export type IssuerSnapshot = {
+  clinicName: string;
+  legalName: string;
+  address: string | null;
+  identifiers: Record<string, string>;
+  phone: string | null;
+  email: string | null;
+};
 import {
   bigint,
   boolean,
@@ -36,6 +46,8 @@ export const invoices = pgTable(
   {
     id: id(),
     organizationId: organizationId().references(() => organizations.id),
+    /** Issuer identity frozen when the document is issued (legal name, identifiers, address); null = draft. */
+    issuerSnapshot: jsonb("issuer_snapshot").$type<IssuerSnapshot>(),
     legalEntityId: uuid("legal_entity_id")
       .notNull()
       .references(() => legalEntities.id),
@@ -127,6 +139,8 @@ export const creditNotes = pgTable(
   {
     id: id(),
     organizationId: organizationId().references(() => organizations.id),
+    /** Issuer identity frozen when the document is issued (legal name, identifiers, address); null = draft. */
+    issuerSnapshot: jsonb("issuer_snapshot").$type<IssuerSnapshot>(),
     legalEntityId: uuid("legal_entity_id")
       .notNull()
       .references(() => legalEntities.id),
@@ -160,6 +174,8 @@ export const payments = pgTable(
   {
     id: id(),
     organizationId: organizationId().references(() => organizations.id),
+    /** Issuer identity frozen when the document is issued (legal name, identifiers, address); null = draft. */
+    issuerSnapshot: jsonb("issuer_snapshot").$type<IssuerSnapshot>(),
     legalEntityId: uuid("legal_entity_id")
       .notNull()
       .references(() => legalEntities.id),

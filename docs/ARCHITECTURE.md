@@ -314,3 +314,14 @@ never summed. "Paid to date" is as of generation time.
   UPDATE privilege, so append-only tables are serialized with `pg_advisory_xact_lock` instead; Server Components cannot pass
   functions to client components (wrap `DialogButton` render functions in a client component).
 
+## Clinic identity and issuer details (`src/features/clinic-identity`, migration 0039)
+
+- The default legal entity holds the legal name, address and identifiers (NIF, NIS, RC, AI; printed as labelled, empty ones
+  skipped); its first active branch holds phone and email. Edited from `/settings/clinic`.
+- Issued documents carry `issuer_snapshot` (invoices at draft→issued, receipts and credit notes at insert), built by the SQL
+  function `app_private.issuer_snapshot_for(legal_entity_id)` so code and backfill agree. Existing ledger guards make it
+  immutable afterwards; `require_issuer_snapshot` refuses issued rows without it. Prints use the snapshot, live details only
+  for drafts, estimates and statements. The logo is decoration and is not frozen.
+- Logo bytes live in `clinic_logos` (bytea, ≤ 300 KB, PNG/JPEG/WebP from magic bytes, never SVG), served privately at
+  `/api/clinic/logo` and publicly at `/c/<slug>/logo` only for published pages.
+

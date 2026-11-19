@@ -19,3 +19,4 @@ export * from "./clinical-files";
 export * from "./follow-ups";
 export * from "./public-profile";
 export * from "./payment-plans";
+export * from "./clinic-branding";

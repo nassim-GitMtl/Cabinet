@@ -5,7 +5,7 @@ import { normalizePhone } from "@/lib/phone";
 import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
 import { db } from "@/server/db/client";
-import { bookingLinks, branches, clinicPublicProfiles, organizations, serviceCategories, services } from "@/server/db/schema";
+import { bookingLinks, branches, clinicLogos, clinicPublicProfiles, organizations, serviceCategories, services } from "@/server/db/schema";
 import { withDbContext } from "@/server/db/tenant";
 import { isValidSlug, mergeWeeklyHours, safeHttpsUrl, slugify } from "./helpers";
 
@@ -135,6 +135,7 @@ export async function getPublicClinicPage(rawSlug: string) {
     const links = await tx.select({ id: bookingLinks.id, token: bookingLinks.token }).from(bookingLinks)
       .where(eq(bookingLinks.isActive, true)).orderBy(asc(bookingLinks.createdAt));
     const link = links.find((l) => l.id === profile.bookingLinkId) ?? links[0] ?? null;
+    const [logo] = await tx.select({ sha256: clinicLogos.sha256 }).from(clinicLogos).limit(1);
     const phone = branchRows.find((b) => b.phone)?.phone ?? null;
     return {
       slug: profile.slug,
@@ -154,6 +155,7 @@ export async function getPublicClinicPage(rawSlug: string) {
       currency: org.currency,
       currencyDisplay: org.settings.currencyDisplay ?? null,
       bookingToken: link?.token ?? null,
+      logoVersion: logo?.sha256.slice(0, 12) ?? null,
     };
   });
 }

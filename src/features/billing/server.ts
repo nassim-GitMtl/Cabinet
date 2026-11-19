@@ -16,6 +16,7 @@ import {
   performedProcedures,
   refunds,
 } from "@/server/db/schema";
+import type { IssuerSnapshot } from "@/server/db/schema";
 import { nextCounter } from "@/server/db/tenant";
 import { todayInZone } from "@/lib/dates";
 import { assertCashDayOpen } from "@/features/cash/server";
@@ -38,6 +39,9 @@ export class BillingError extends Error {
 }
 
 const staff = (ctx: ClinicContext) => ({ organizationId: ctx.organizationId, actorType: "staff" as const, actorUserId: ctx.userId });
+
+/** Issuer details frozen onto an issued document (same SQL function as the 0039 backfill). */
+const issuerSnapshotOf = (legalEntityId: string) => sql<IssuerSnapshot>`app_private.issuer_snapshot_for(${legalEntityId})`;
 
 async function defaultLegalEntity(tx: Tx) {
   const [le] = await tx
@@ -186,7 +190,7 @@ async function issueInTx(tx: Tx, ctx: ClinicContext, invoiceId: string) {
   const number = await documentNumber(tx, ctx, "invoice", le!, documentDate);
   await tx
     .update(invoices)
-    .set({ status: "issued", number, documentDate, issuedAt: new Date(), issuedByUserId: ctx.userId, updatedAt: new Date(), version: sql`${invoices.version} + 1` })
+    .set({ status: "issued", number, documentDate, issuerSnapshot: issuerSnapshotOf(le!.id), issuedAt: new Date(), issuedByUserId: ctx.userId, updatedAt: new Date(), version: sql`${invoices.version} + 1` })
     .where(eq(invoices.id, invoiceId));
   await audit(tx, { ...staff(ctx), action: "invoice.issued", entityType: "invoice", entityId: invoiceId, patientId: inv.patientId, metadata: { number } });
   return number;
@@ -299,6 +303,7 @@ export async function recordPayment(ctx: ClinicContext, input: PaymentInput) {
       .values({
         organizationId: ctx.organizationId,
         legalEntityId: le.id,
+        issuerSnapshot: issuerSnapshotOf(le.id),
         patientId: input.patientId,
         payerName: input.payerName || null,
         purpose: input.allocateTo ? "invoice_payment" : "advance_deposit",
@@ -403,7 +408,7 @@ export async function issueCreditNote(ctx: ClinicContext, invoiceId: string, amo
     const number = await documentNumber(tx, ctx, "credit", le!, documentDate);
     const [cn] = await tx
       .insert(creditNotes)
-      .values({ organizationId: ctx.organizationId, legalEntityId: le!.id, invoiceId, number, documentDate, amountMinor, currency: inv.inv.currency, reason: reason.trim(), createdByUserId: ctx.userId })
+      .values({ organizationId: ctx.organizationId, legalEntityId: le!.id, issuerSnapshot: issuerSnapshotOf(le!.id), invoiceId, number, documentDate, amountMinor, currency: inv.inv.currency, reason: reason.trim(), createdByUserId: ctx.userId })
       .returning({ id: creditNotes.id });
     await audit(tx, { ...staff(ctx), action: "credit_note.issued", entityType: "credit_note", entityId: cn!.id, patientId: inv.inv.patientId, metadata: { invoiceId, number, amountMinor } });
     return cn!.id;

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ForbiddenState } from "@/components/app/page-header";
 import { DocumentHeader } from "@/components/print/document-header";
+import { getPrintBranding } from "@/features/clinic-identity/server";
 import { PrintButton } from "@/components/print/print-button";
 import { pageFormat } from "@/features/billing/page-format";
 import { getPatientStatement } from "@/features/billing/statement";
@@ -27,7 +28,7 @@ export default async function StatementPage({ params, searchParams }: PageProps<
   const today = todayInZone(ctx.organization.timezone);
   const to = parseDateOnly(typeof sp.to === "string" ? sp.to : "") ?? today;
   const from = parseDateOnly(typeof sp.from === "string" ? sp.from : "") ?? `${to.slice(0, 4)}-01-01`;
-  const [st, fmt] = await Promise.all([getPatientStatement(ctx, patientId, from, to), pageFormat(ctx)]);
+  const [st, fmt, branding] = await Promise.all([getPatientStatement(ctx, patientId, from, to), pageFormat(ctx), getPrintBranding(ctx)]);
   const m = (v: number) => fmt.money(v, st.currency);
   const p = data.patient;
 
@@ -40,6 +41,8 @@ export default async function StatementPage({ params, searchParams }: PageProps<
         <PrintButton />
       </form>
       <DocumentHeader
+        issuer={branding.issuer}
+        logoVersion={branding.logoVersion}
         clinicName={ctx.organization.name}
         title={t("statement.title")}
         subtitle={<p>{t("statement.period", { from: formatDateOnly(from), to: formatDateOnly(to) })}</p>}
