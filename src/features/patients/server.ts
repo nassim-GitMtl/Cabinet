@@ -3,6 +3,7 @@ import { and, asc, count, desc, eq, ilike, isNull, ne, or, sql, type SQL } from 
 import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
 import { memberships, patientAlerts, patients } from "@/server/db/schema";
+import type { Tx } from "@/server/db/client";
 import { nextCounter } from "@/server/db/tenant";
 import { normalizePhone } from "@/lib/phone";
 import type { PatientInput } from "./schemas";
@@ -115,8 +116,25 @@ export async function getPatient(ctx: ClinicContext, id: string) {
       entityId: id,
       patientId: id,
     });
-    return { patient, alerts, provider };
+    const [referrer] = patient.referredByPatientId
+      ? await tx.select({ id: patients.id, patientNumber: patients.patientNumber, firstName: patients.firstName, lastName: patients.lastName })
+          .from(patients).where(eq(patients.id, patient.referredByPatientId)).limit(1)
+      : [];
+    const [referred] = await tx.select({ n: count() }).from(patients).where(eq(patients.referredByPatientId, id));
+    return { patient, alerts, provider, referrer: referrer ?? null, referredCount: Number(referred?.n ?? 0) };
   });
+}
+
+/** The referring patient must be another patient visible in this clinic (RLS); the DB guard enforces it too. */
+export class PatientReferralError extends Error {
+  constructor() { super("referrerUnavailable"); }
+}
+
+async function checkReferrer(tx: Tx, referrerId: string | null | undefined, selfId?: string) {
+  if (!referrerId) return;
+  if (referrerId === selfId) throw new PatientReferralError();
+  const [row] = await tx.select({ id: patients.id }).from(patients).where(eq(patients.id, referrerId)).limit(1);
+  if (!row) throw new PatientReferralError();
 }
 
 const ctxCanReadAlerts = (ctx: ClinicContext) => ctx.permissions.includes("patient.alerts.read");
@@ -189,6 +207,13 @@ function toRow(input: PatientInput, countryCode: string) {
       : null,
     referralSource: input.referralSource,
     referredBy: input.referredBy,
+    // Absent (undefined) = keep the stored value on update; a referrer implies the "patient referral" channel.
+    ...(input.acquisitionChannel !== undefined || input.referredByPatientId
+      ? { acquisitionChannel: input.referredByPatientId ? ("patient_referral" as const) : input.acquisitionChannel ?? null }
+      : {}),
+    ...(input.referredByPatientId !== undefined || input.acquisitionChannel !== undefined
+      ? { referredByPatientId: input.acquisitionChannel === undefined || input.acquisitionChannel === "patient_referral" ? input.referredByPatientId ?? null : null }
+      : {}),
     administrativeNotes: input.administrativeNotes,
     assignedProviderId: input.assignedProviderId,
   };
@@ -210,6 +235,7 @@ export async function createPatient(
       const candidates = await findDuplicates(tx, row);
       if (candidates.length) return { status: "duplicates", candidates };
     }
+    await checkReferrer(tx, row.referredByPatientId);
     const n = await nextCounter(tx, ctx.organizationId, "patient");
     const patientNumber = `P-${String(n).padStart(6, "0")}`;
     const [created] = await tx
@@ -238,6 +264,7 @@ export async function updatePatient(ctx: ClinicContext, id: string, input: Patie
   requirePermission(ctx, "patient.update");
   const row = toRow(input, ctx.organization.countryCode);
   return tenantTx(ctx, async (tx) => {
+    await checkReferrer(tx, row.referredByPatientId, id);
     const updated = await tx
       .update(patients)
       .set({

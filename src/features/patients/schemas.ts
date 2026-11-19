@@ -1,3 +1,4 @@
+import { ACQUISITION_CHANNELS } from "@/lib/acquisition";
 import { z } from "zod";
 import { parseDateOnly } from "@/lib/dates";
 
@@ -45,7 +46,10 @@ export const patientInputSchema = z
     emergencyName: optionalText(150),
     emergencyRelationship: optionalText(80),
     emergencyPhone: optionalText(40),
+    /** "" = not asked/unknown (null); absent = keep as is on update. */
+    acquisitionChannel: z.union([z.enum(ACQUISITION_CHANNELS), z.literal("")]).transform((v) => v || null).optional(),
     referralSource: optionalText(150),
+    referredByPatientId: z.string().trim().transform((v) => v || null).pipe(z.uuid().nullable()).optional(),
     referredBy: optionalText(150),
     administrativeNotes: optionalText(2000),
     assignedProviderId: z

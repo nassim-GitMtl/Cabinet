@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-19 by Claude (session 24 — patient follow-ups / Relances).
+Last updated: 2026-11-19 by Claude (session 25 — where new patients come from).
 
 ## How to verify the current state
 
@@ -243,6 +243,19 @@ WhatsApp click logs "Message préparé", confirm, outcome "RDV pris" removes the
 saved and inserted into messages, Arabic RTL at 375 px, opt-out checkbox saved both ways. Bug fixed during the check: the
 contact action rejected the `null` reference sent by buttons (unit test added).
 
+Session 25 (Claude): where new patients come from (§6, §19). Migration 0034 adds `acquisition_channel` (Facebook,
+Instagram, TikTok, Google/Maps, bouche-à-oreille, recommandé par un patient, adressé par un médecin, passage, convention,
+autre) on patients and booking requests, and `patients.referred_by_patient_id` (DB guard: same clinic, never self). Patient
+form: "Comment nous a-t-il connu ?" + detail + referring-patient search (picking a referrer sets the channel; another channel
+clears it; fields absent from an update keep stored values). Public booking form asks the optional question in the patient's
+words; the answer shows in the request inbox and is copied to the patient created on approval. Patient details show source,
+referrer link and "N patients recommandés". `/reports/acquisition` (report.operational; link on /reports): 3/6/12 months —
+new patients, % with a source, % treated (≥1 completed procedure), online bookings accepted/received; by source (share,
+treated, production only with report.financial), by month, booking funnel, top referring patients. 148/148 tests (3
+integration + 1 unit added), typecheck, lint, `next build` green. Browser-checked: new patient referred by HAMDI Nour saved
+and shown on details, report with real demo numbers (13 new, 12 without source → reminder shown), referrer list, public booking
+question. Fixed during the check: report tables overflowed the page (grid items need `min-w-0`).
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -257,7 +270,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Active clinic switching for multi-org staff (§4A) | ✅ | `/select-clinic`, membership re-checked per request |
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
 | Network identity + consent schema (§4A) | ✅ | Assisted in-person verified linking, exact-scope requests, patient-only approval/revocation, immutable grants, guarded + logged shared reads and cross-tenant tests |
-| Patient registration & directory (§6) | ✅ | Numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
+| Patient registration & directory (§6) | ✅ | Structured acquisition source + referring patient, numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
 | Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, odontogram, treatment plans, finance tab (account, invoices, payments, deposit). |
 | Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; versioned structured medical questionnaires, separate editor/approval permissions, clinician review and explicit alert promotion ✅ |
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
@@ -272,7 +285,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Images/documents, object storage (§12A, §15) | ✅ | Private clinic-server storage, camera upload, magic-byte type check, sha256, append-only metadata, before/after pairs, audited views, included in backups. DICOM viewer, annotations/measurements, cloud object storage 🔌 ⏳ |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
-| Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
+| Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Acquisition report ✅ (sources, treated share, production, booking funnel, referrers). `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | 🟡 | Relances ✅: reminders, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic sending through an SMS/WhatsApp Business provider ⏳ 🔌 |
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
 | Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
@@ -287,19 +300,17 @@ Priority: features that bring patients in and make the clinic easy to deal with.
 
 ## Next steps (in order)
 
-1. Where patients come from (§6, §19): structured "Comment nous avez-vous connu ?" (Facebook, Instagram, Google/Maps,
-   bouche-à-oreille, patient référent → link to that patient, passage, autre) on the patient form and online booking; report
-   of new patients per month by source, booking requests → new patients, and top referring patients (to thank them).
-2. Clinic public page + QR poster (§9A): `/c/[slug]` with services ("à partir de" prices only if the clinic opts in), hours,
+1. Clinic public page + QR poster (§9A): `/c/[slug]` with services ("à partir de" prices only if the clinic opts in), hours,
    address + map link, call/WhatsApp buttons and online booking; printable QR poster (A4/A5) and a share image for social
-   media. Needs the server reachable from the internet (cloud mode, or step 6).
-3. After-visit message & reviews: one tap after a completed visit sends care instructions (per appointment type, editable)
-   and, if the clinic set one, its Google review link; logged in `patient_contacts` (new reason).
-4. Patient-friendly estimates & payment plans (§13, §16): send the estimate to the patient (portal link or PDF by WhatsApp),
+   media. Needs the server reachable from the internet (cloud mode, or step 5).
+2. After-visit message, thanks & reviews: one tap after a completed visit sends care instructions (per appointment type,
+   editable) and, if set, the clinic's Google review link; a "Remercier" WhatsApp message for referring patients (from the
+   sources report); both logged in `patient_contacts` (new reasons).
+3. Patient-friendly estimates & payment plans (§13, §16): send the estimate to the patient (portal link or PDF by WhatsApp),
    propose an installment schedule, and show what is due in the follow-ups.
-5. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
+4. Marketing consent & campaigns (§8, §20): record opt-in with evidence on the patient form, then campaign lists (e.g.
    détartrage season, children's check-up) only for opted-in patients, using the same WhatsApp/SMS tools.
-6. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
+5. Clinic server optional internet sync to a cloud copy, so public page, booking links and the portal work from outside.
 
 Later / on hold: inventory follow-ups (pending consumptions on the patient screen; reorder suggestion → pre-filled order
 form), treatment consent capture (§12A), lab cases (§22).

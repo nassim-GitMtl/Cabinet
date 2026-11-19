@@ -26,6 +26,8 @@ export type InboxItem = {
   when: string;
   waiting: string;
   message: string | null;
+  /** Translated answer to "how did you hear of us", when given. */
+  channel: string | null;
 };
 
 type Candidate = { id: string; patientNumber: string; firstName: string; lastName: string; phone: string | null };
@@ -80,6 +82,7 @@ export function RequestCard({ item, canApprove }: { item: InboxItem; canApprove:
         <div className="flex flex-col items-end gap-1">
           <Badge variant="outline">{t("waitingFor", { time: item.waiting })}</Badge>
           {item.declaresExistingPatient ? <Badge variant="secondary">{t("declaresExisting")}</Badge> : null}
+          {item.channel ? <Badge variant="outline">{item.channel}</Badge> : null}
         </div>
       </div>
       {item.message ? <p className="mt-2 rounded-md bg-muted p-2 text-sm whitespace-pre-line" dir="auto">{item.message}</p> : null}

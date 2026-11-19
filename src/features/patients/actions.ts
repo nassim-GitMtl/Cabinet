@@ -10,6 +10,7 @@ import { alertInputSchema, patientInputSchema } from "./schemas";
 import {
   addPatientAlert,
   createPatient,
+  PatientReferralError,
   resolvePatientAlert,
   setPatientArchived,
   updatePatient,
@@ -30,6 +31,7 @@ async function handle<T>(fn: () => Promise<T>, values?: Record<string, string>):
   } catch (err) {
     if (err instanceof ForbiddenError) return { error: "forbidden", values };
     if (err instanceof ConflictError) return { error: "conflict", values };
+    if (err instanceof PatientReferralError) return { error: "fixErrors", fieldErrors: { referredByPatientId: "acquisition.errors.referrerUnavailable" }, values };
     throw err;
   }
 }

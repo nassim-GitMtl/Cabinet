@@ -60,7 +60,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   if (!can(ctx, "patient.read")) return <ForbiddenState message={t("errors.forbiddenPage")} />;
   const data = await getPatient(ctx, id);
   if (!data) notFound();
-  const { patient: p, alerts, provider } = data;
+  const { patient: p, alerts, provider, referrer, referredCount } = data;
   const tabAllowed = (x: (typeof TABS)[number]) =>
     x === "clinical" || x === "health" ? can(ctx, "clinical.read") : x === "documents" ? can(ctx, "clinical.images.read") : x === "treatments" ? can(ctx, "treatment_plan.read") : x === "finance" ? can(ctx, "invoice.read") : true;
   const tab = TABS.find((x) => x === sp.tab && tabAllowed(x)) ?? "overview";
@@ -283,8 +283,17 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
               <section className="rounded-xl border bg-card p-4 sm:p-5">
                 <h2 className="mb-3 text-sm font-semibold">{t("patients.sections.administrative")}</h2>
                 <dl className="grid gap-4 sm:grid-cols-2">
-                  <Info label={t("patients.fields.referralSource")} value={p.referralSource} />
-                  <Info label={t("patients.fields.referredBy")} value={p.referredBy} />
+                  <Info label={t("acquisition.question")} value={p.acquisitionChannel ? t(`acquisition.channels.${p.acquisitionChannel}`) : null} />
+                  <Info label={t("patients.fields.referralSource")} value={p.referralSource ? <bdi>{p.referralSource}</bdi> : null} />
+                  {referrer ? (
+                    <Info label={t("acquisition.referrer")} value={
+                      <Link href={`/patients/${referrer.id}`} className="font-medium text-primary underline-offset-4 hover:underline">
+                        <bdi>{patientDisplayName(referrer)}</bdi> <span className="text-xs text-muted-foreground">({referrer.patientNumber})</span>
+                      </Link>
+                    } />
+                  ) : null}
+                  <Info label={t("patients.fields.referredBy")} value={p.referredBy ? <bdi>{p.referredBy}</bdi> : null} />
+                  {referredCount ? <Info label={t("acquisition.referredOthers")} value={t("acquisition.report.referred", { count: referredCount })} /> : null}
                   <div className="sm:col-span-2">
                     <Info label={t("patients.fields.administrativeNotes")} value={p.administrativeNotes ? <span className="whitespace-pre-line">{p.administrativeNotes}</span> : null} />
                   </div>

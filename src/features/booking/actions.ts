@@ -1,5 +1,6 @@
 "use server";
 
+import { isAcquisitionChannel } from "@/lib/acquisition";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
@@ -56,6 +57,7 @@ export async function submitBookingAction(
         declaresExistingPatient: values.existing === "yes",
         message: values.message || null,
         locale: await getLocale(),
+        acquisitionChannel: isAcquisitionChannel(values.acquisitionChannel) ? values.acquisitionChannel : null,
       },
       ipAddress,
     );

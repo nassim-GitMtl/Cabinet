@@ -272,3 +272,13 @@ never summed. "Paid to date" is as of generation time.
 - Messages never include clinical content (no procedure names, teeth or diagnoses); plan titles/amounts are shown to staff
   only with `treatment_plan.read`.
 
+## Patient acquisition (`src/lib/acquisition.ts`, `src/features/reports/acquisition.ts`, migration 0034)
+
+- One channel list (`ACQUISITION_CHANNELS`) feeds the PostgreSQL enum, forms and the report; add a channel there plus a
+  migration (`ALTER TYPE … ADD VALUE`) and the FR/EN/AR labels (`acquisition.channels` and `channelsPublic`).
+- Patient input fields `acquisitionChannel` / `referredByPatientId` are optional: absent = keep the stored value (other
+  callers such as booking approval or tests never erase them); `""` from the form = explicit clear. A referrer forces the
+  `patient_referral` channel; any other channel clears the referrer. `guard_patient_referral` enforces same clinic, not self.
+- The report counts patients by `created_at` in the clinic time zone over whole months; production is the value of all
+  completed procedures of those patients (§18 production basis) and is hidden without `report.financial`.
+

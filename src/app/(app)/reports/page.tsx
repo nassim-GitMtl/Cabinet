@@ -98,6 +98,9 @@ export default async function ReportsPage({ searchParams }: PageProps<"/reports"
           {can(ctx, "report.financial") ? (
             <Link href="/reports/aging" className="inline-flex h-10 items-center rounded-lg border px-3 text-sm font-medium hover:bg-muted md:h-9">{t("aging.title")}</Link>
           ) : null}
+          {can(ctx, "report.operational") ? (
+            <Link href="/reports/acquisition" className="inline-flex h-10 items-center rounded-lg border px-3 text-sm font-medium hover:bg-muted md:h-9">{t("acquisition.report.shortTitle")}</Link>
+          ) : null}
           <PrintButton />
         </form>
       </div>

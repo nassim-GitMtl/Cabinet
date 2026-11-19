@@ -66,6 +66,7 @@ export default async function BookingRequestsPage() {
                   when: formatDateTime(r.requestedStartsAt, tz, intl),
                   waiting: waitingLabel(r.createdAt, intl),
                   message: r.message,
+                  channel: r.acquisitionChannel ? t(`acquisition.channels.${r.acquisitionChannel}`) : null,
                 }}
               />
             ))}

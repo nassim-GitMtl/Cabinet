@@ -1,4 +1,6 @@
 import { sql, type SQL } from "drizzle-orm";
+import type { AnyPgColumn } from "drizzle-orm/pg-core";
+import { ACQUISITION_CHANNELS } from "../../../lib/acquisition";
 import {
   boolean,
   date,
@@ -48,6 +50,9 @@ export const birthDatePrecision = pgEnum("birth_date_precision", [
   "year",
   "estimated",
 ]);
+/** How a new patient heard of the clinic (§6, §19): drives the acquisition report. */
+export const acquisitionChannel = pgEnum("acquisition_channel", ACQUISITION_CHANNELS);
+
 export const patientSex = pgEnum("patient_sex", ["female", "male", "other", "undisclosed"]);
 
 export type EmergencyContact = { name: string; relationship?: string; phone?: string };
@@ -88,8 +93,13 @@ export const patients = pgTable(
       .notNull()
       .default({}),
     assignedProviderId: uuid("assigned_provider_id").references(() => memberships.id),
+    acquisitionChannel: acquisitionChannel("acquisition_channel"),
+    /** Free-text detail of the source (e.g. "page Facebook", "salon de Blida"). */
     referralSource: text("referral_source"),
+    /** Referring practitioner (free text). */
     referredBy: text("referred_by"),
+    /** Patient of this clinic who recommended them (same clinic, never self; DB guard). */
+    referredByPatientId: uuid("referred_by_patient_id").references((): AnyPgColumn => patients.id),
     /** Administrative only. Clinical content never goes here. */
     administrativeNotes: text("administrative_notes"),
     status: patientStatus("status").notNull().default("active"),
@@ -107,6 +117,8 @@ export const patients = pgTable(
   (t) => [
     uniqueIndex("patients_org_number_uq").on(t.organizationId, t.patientNumber),
     index("patients_org_phone_idx").on(t.organizationId, t.phone),
+    index("patients_org_created_idx").on(t.organizationId, t.createdAt),
+    index("patients_referrer_idx").on(t.organizationId, t.referredByPatientId),
     index("patients_search_trgm_idx").using("gin", sql`${t.searchText} gin_trgm_ops`),
   ],
 );

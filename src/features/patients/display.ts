@@ -35,8 +35,10 @@ export function patientFormDefaults(p: {
   preferredLocale: string;
   communicationPrefs?: { transactionalAllowed?: boolean } | null;
   emergencyContact: { name: string; relationship?: string; phone?: string } | null;
+  acquisitionChannel?: string | null;
   referralSource: string | null;
   referredBy: string | null;
+  referredByPatientId?: string | null;
   administrativeNotes: string | null;
   assignedProviderId: string | null;
 }): Record<string, string> {
@@ -59,6 +61,8 @@ export function patientFormDefaults(p: {
     emergencyName: p.emergencyContact?.name ?? "",
     emergencyRelationship: p.emergencyContact?.relationship ?? "",
     emergencyPhone: p.emergencyContact?.phone ?? "",
+    acquisitionChannel: p.acquisitionChannel ?? "",
+    referredByPatientId: p.referredByPatientId ?? "",
     referralSource: p.referralSource ?? "",
     referredBy: p.referredBy ?? "",
     administrativeNotes: p.administrativeNotes ?? "",

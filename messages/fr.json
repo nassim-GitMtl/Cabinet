@@ -319,7 +319,7 @@
       "emergencyPhone": "Téléphone",
       "messagesOptOut": "Ne souhaite pas recevoir de rappels par message",
       "messagesOptOutHint": "Le patient n'apparaîtra pas dans les relances WhatsApp/SMS (contrôles, devis, absences).",
-      "referralSource": "Comment nous a-t-il connu ?",
+      "referralSource": "Précision sur la source",
       "referredBy": "Adressé par (praticien)",
       "administrativeNotes": "Notes administratives",
       "administrativeNotesHint": "Uniquement administratif. Les informations cliniques vont dans le dossier clinique.",
@@ -1807,6 +1807,84 @@
       "treatment_followup": "Bonjour {firstName}, votre traitement au {clinic} n'est pas encore terminé. Pour fixer votre prochaine séance, répondez à ce message ou appelez le {clinicPhone}.",
       "estimate_followup": "Bonjour {firstName}, avez-vous pu étudier le devis remis par le {clinic} ? Nous sommes à votre disposition pour répondre à vos questions au {clinicPhone}.",
       "no_show": "Bonjour {firstName}, nous ne vous avons pas vu à votre rendez-vous du {date} au {clinic}. Souhaitez-vous en fixer un nouveau ? Répondez à ce message ou appelez le {clinicPhone}."
+    }
+  },
+  "acquisition": {
+    "question": "Comment nous a-t-il connu ?",
+    "questionPublic": "Comment avez-vous connu le cabinet ?",
+    "preferNotToSay": "Je préfère ne pas répondre",
+    "unknown": "Non renseigné",
+    "detailPlaceholder": "ex. publication Facebook, salon, nom de l'entreprise",
+    "referrer": "Recommandé par (patient du cabinet)",
+    "searchReferrer": "Rechercher le patient (nom, n°, téléphone)",
+    "referrerHint": "Il apparaîtra dans « Patients qui vous recommandent » du rapport des sources.",
+    "clearReferrer": "Retirer",
+    "referredOthers": "Recommandations",
+    "channels": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "google": "Google / Google Maps",
+      "word_of_mouth": "Bouche-à-oreille (famille, amis)",
+      "patient_referral": "Recommandé par un patient",
+      "doctor_referral": "Adressé par un médecin / confrère",
+      "walk_in": "Passage devant le cabinet",
+      "partner": "Convention / entreprise / mutuelle",
+      "other": "Autre",
+      "unknown": "Non renseigné"
+    },
+    "channelsPublic": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "google": "Google / Google Maps",
+      "word_of_mouth": "Famille ou amis",
+      "patient_referral": "Un patient du cabinet me l'a recommandé",
+      "doctor_referral": "Mon médecin ou dentiste m'a adressé",
+      "walk_in": "En passant devant le cabinet",
+      "partner": "Mon entreprise ou ma mutuelle",
+      "other": "Autre"
+    },
+    "errors": {
+      "referrerUnavailable": "Ce patient ne peut pas être choisi comme référent."
+    },
+    "report": {
+      "title": "Sources des nouveaux patients",
+      "shortTitle": "Sources des patients",
+      "subtitle": "D'où viennent vos nouveaux patients, combien sont soignés, et qui recommande le cabinet.",
+      "period": "Période",
+      "months": "{count} mois",
+      "newPatients": "Nouveaux patients",
+      "sinceMonth": "depuis {month}",
+      "sourceKnown": "Source renseignée",
+      "sourceKnownHint": "{count, plural, =0 {toutes renseignées} one {# non renseignée} other {# non renseignées}}",
+      "treated": "Patients soignés",
+      "treatedHint": "{count, plural, =0 {aucun acte réalisé} one {# patient avec au moins un acte} other {# patients avec au moins un acte}}",
+      "bookingsApproved": "Réservations en ligne acceptées",
+      "bookingsHint": "acceptées / reçues sur la période",
+      "askHint": "Demandez « Comment nous avez-vous connu ? » à chaque nouveau patient : le rapport n'en sera que plus utile.",
+      "byChannel": "Par source",
+      "byChannelHint": "Patients créés sur la période. « Soignés » = au moins un acte réalisé ; la production compte tous leurs actes réalisés.",
+      "channel": "Source",
+      "share": "Part",
+      "treatedShort": "Soignés",
+      "production": "Production",
+      "byMonth": "Par mois",
+      "total": "Total",
+      "empty": "Aucun nouveau patient sur la période.",
+      "bookingsTitle": "Réservations en ligne",
+      "bookingsTitleHint": "Demandes reçues via vos liens de réservation sur la période.",
+      "bookings": {
+        "received": "Reçues",
+        "approved": "Acceptées",
+        "pending": "En attente",
+        "declined": "Refusées",
+        "lapsed": "Expirées ou annulées"
+      },
+      "referrersTitle": "Patients qui vous recommandent",
+      "referrersHint": "Pensez à les remercier : ce sont vos meilleurs ambassadeurs.",
+      "referrersEmpty": "Aucune recommandation enregistrée sur la période.",
+      "referred": "{count, plural, one {# patient recommandé} other {# patients recommandés}}"
     }
   }
 }

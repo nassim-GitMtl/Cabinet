@@ -1,4 +1,5 @@
 import "server-only";
+import type { AcquisitionChannel } from "@/lib/acquisition";
 import { createHash, randomBytes } from "node:crypto";
 import { and, asc, count, desc, eq, gt, gte, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { audit } from "@/server/audit";
@@ -140,6 +141,7 @@ export type SubmitInput = {
   declaresExistingPatient: boolean;
   message: string | null;
   locale: string;
+  acquisitionChannel?: AcquisitionChannel | null;
 };
 
 /** Creates a request (never an appointment). Returns the secret status token. */
@@ -178,6 +180,7 @@ export async function submitBookingRequest(token: string, input: SubmitInput, ip
         contactPhone: phone,
         contactEmail: input.contactEmail?.trim() || null,
         declaresExistingPatient: input.declaresExistingPatient,
+        acquisitionChannel: input.acquisitionChannel ?? null,
         preferredLocale: input.locale,
         appointmentTypeId: input.typeId,
         providerId: input.providerId,
@@ -374,6 +377,7 @@ export async function createPatientFromRequest(ctx: ClinicContext, id: string, o
       emergencyName: null,
       emergencyRelationship: null,
       emergencyPhone: null,
+      acquisitionChannel: req.acquisitionChannel,
       referralSource: "Réservation en ligne",
       referredBy: null,
       administrativeNotes: null,

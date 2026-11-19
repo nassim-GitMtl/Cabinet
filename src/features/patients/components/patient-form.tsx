@@ -12,6 +12,7 @@ import { initialActionState, type ActionState } from "@/lib/action-state";
 import { formatDateOnly } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import type { DuplicateCandidate } from "../server";
+import { AcquisitionFields } from "./acquisition-fields";
 
 type Props = {
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
@@ -164,8 +165,7 @@ export function PatientForm({ action, defaults = {}, providers, submitLabel, can
           defaultValue={v.assignedProviderId}
           options={providers.map((p) => ({ value: p.id, label: p.label }))}
         />
-        <TextField label={t("fields.referralSource")} name="referralSource" autoComplete="off" optionalLabel defaultValue={v.referralSource} />
-        <TextField label={t("fields.referredBy")} name="referredBy" autoComplete="off" optionalLabel defaultValue={v.referredBy} />
+        <AcquisitionFields values={v} errors={fe} />
         <TextAreaField
           label={t("fields.administrativeNotes")}
           name="administrativeNotes"

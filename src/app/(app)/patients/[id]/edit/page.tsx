@@ -25,7 +25,10 @@ export default async function EditPatientPage({ params }: PageProps<"/patients/[
       <PageHeader title={t("patients.editTitle")} description={patientDisplayName(data.patient)} />
       <PatientForm
         action={updatePatientAction.bind(null, id, data.patient.version)}
-        defaults={patientFormDefaults(data.patient)}
+        defaults={{
+          ...patientFormDefaults(data.patient),
+          referredByPatientLabel: data.referrer ? `${patientDisplayName(data.referrer)} (${data.referrer.patientNumber})` : "",
+        }}
         providers={providers.map((p) => ({ id: p.id, label: [p.title, p.displayName].filter(Boolean).join(" ") }))}
         submitLabel={t("common.save")}
         cancelHref={`/patients/${id}`}

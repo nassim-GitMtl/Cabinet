@@ -319,7 +319,7 @@
       "emergencyPhone": "Phone",
       "messagesOptOut": "Does not want reminder messages",
       "messagesOptOutHint": "The patient will not appear in WhatsApp/SMS follow-ups (check-ups, estimates, no-shows).",
-      "referralSource": "How did they hear about us?",
+      "referralSource": "Source details",
       "referredBy": "Referred by (practitioner)",
       "administrativeNotes": "Administrative notes",
       "administrativeNotesHint": "Administrative only. Clinical information belongs in the clinical record.",
@@ -1800,6 +1800,84 @@
       "treatment_followup": "Hello {firstName}, your treatment at {clinic} is not finished yet. To book your next session, reply to this message or call {clinicPhone}.",
       "estimate_followup": "Hello {firstName}, have you had a chance to review the estimate from {clinic}? We are happy to answer your questions on {clinicPhone}.",
       "no_show": "Hello {firstName}, we missed you at your appointment on {date} at {clinic}. Would you like to book a new one? Reply to this message or call {clinicPhone}."
+    }
+  },
+  "acquisition": {
+    "question": "How did they hear of us?",
+    "questionPublic": "How did you hear about the clinic?",
+    "preferNotToSay": "I prefer not to say",
+    "unknown": "Not recorded",
+    "detailPlaceholder": "e.g. Facebook post, fair, company name",
+    "referrer": "Recommended by (clinic patient)",
+    "searchReferrer": "Search the patient (name, number, phone)",
+    "referrerHint": "They will appear under “Patients who recommend you” in the sources report.",
+    "clearReferrer": "Remove",
+    "referredOthers": "Recommendations",
+    "channels": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "google": "Google / Google Maps",
+      "word_of_mouth": "Word of mouth (family, friends)",
+      "patient_referral": "Recommended by a patient",
+      "doctor_referral": "Referred by a doctor / colleague",
+      "walk_in": "Walked past the clinic",
+      "partner": "Company / insurance agreement",
+      "other": "Other",
+      "unknown": "Not recorded"
+    },
+    "channelsPublic": {
+      "facebook": "Facebook",
+      "instagram": "Instagram",
+      "tiktok": "TikTok",
+      "google": "Google / Google Maps",
+      "word_of_mouth": "Family or friends",
+      "patient_referral": "A patient of the clinic recommended it",
+      "doctor_referral": "My doctor or dentist referred me",
+      "walk_in": "Walking past the clinic",
+      "partner": "My company or insurance",
+      "other": "Other"
+    },
+    "errors": {
+      "referrerUnavailable": "This patient cannot be chosen as the referrer."
+    },
+    "report": {
+      "title": "Where new patients come from",
+      "shortTitle": "Patient sources",
+      "subtitle": "Where your new patients come from, how many get treated, and who recommends the clinic.",
+      "period": "Period",
+      "months": "{count} months",
+      "newPatients": "New patients",
+      "sinceMonth": "since {month}",
+      "sourceKnown": "Source recorded",
+      "sourceKnownHint": "{count, plural, =0 {all recorded} one {# not recorded} other {# not recorded}}",
+      "treated": "Treated patients",
+      "treatedHint": "{count, plural, =0 {no procedure yet} one {# patient with at least one procedure} other {# patients with at least one procedure}}",
+      "bookingsApproved": "Online bookings accepted",
+      "bookingsHint": "accepted / received in the period",
+      "askHint": "Ask every new patient “How did you hear about us?”: the report gets more useful.",
+      "byChannel": "By source",
+      "byChannelHint": "Patients created in the period. “Treated” = at least one completed procedure; production counts all their completed procedures.",
+      "channel": "Source",
+      "share": "Share",
+      "treatedShort": "Treated",
+      "production": "Production",
+      "byMonth": "By month",
+      "total": "Total",
+      "empty": "No new patients in the period.",
+      "bookingsTitle": "Online bookings",
+      "bookingsTitleHint": "Requests received through your booking links in the period.",
+      "bookings": {
+        "received": "Received",
+        "approved": "Accepted",
+        "pending": "Pending",
+        "declined": "Declined",
+        "lapsed": "Expired or withdrawn"
+      },
+      "referrersTitle": "Patients who recommend you",
+      "referrersHint": "Remember to thank them: they are your best ambassadors.",
+      "referrersEmpty": "No recommendation recorded in the period.",
+      "referred": "{count, plural, one {# patient referred} other {# patients referred}}"
     }
   }
 }

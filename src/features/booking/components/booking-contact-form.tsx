@@ -1,5 +1,6 @@
 "use client";
 
+import { ACQUISITION_CHANNELS } from "@/lib/acquisition";
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { FormError, SelectField, SubmitButton, TextAreaField, TextField, useErrorText } from "@/components/form";
@@ -10,6 +11,7 @@ import { submitBookingAction } from "../actions";
 
 export function BookingContactForm({ token, slot }: { token: string; slot: { typeId: string; providerId: string; date: string; time: string } }) {
   const t = useTranslations("booking");
+  const ta = useTranslations("acquisition");
   const errorText = useErrorText();
   const [state, action] = useActionState(submitBookingAction.bind(null, token, slot), initialActionState);
   const v = state.values ?? {};
@@ -35,6 +37,14 @@ export function BookingContactForm({ token, slot }: { token: string; slot: { typ
           { value: "no", label: t("existingNo") },
           { value: "yes", label: t("existingYes") },
         ]}
+      />
+      <SelectField
+        label={ta("questionPublic")}
+        name="acquisitionChannel"
+        optionalLabel
+        placeholder={ta("preferNotToSay")}
+        defaultValue={v.acquisitionChannel}
+        options={ACQUISITION_CHANNELS.map((c) => ({ value: c, label: ta(`channelsPublic.${c}`) }))}
       />
       <TextAreaField label={t("message")} name="message" optionalLabel rows={2} defaultValue={v.message} hint={t("messageHint")} />
       <div className="flex items-start gap-3 rounded-lg border p-3">

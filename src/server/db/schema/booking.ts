@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { boolean, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createdAt, id, organizationId } from "./_shared";
-import { patients } from "./patients";
+import { acquisitionChannel, patients } from "./patients";
 import { memberships, organizations, users } from "./platform";
 import { appointments, appointmentTypes } from "./scheduling";
 
@@ -58,6 +58,8 @@ export const bookingRequests = pgTable(
     /** Self-declared; never used to reveal or match records automatically. */
     declaresExistingPatient: boolean("declares_existing_patient").notNull().default(false),
     preferredLocale: text("preferred_locale").notNull().default("fr"),
+    /** Optional answer to "Comment nous avez-vous connu ?", copied to the patient on approval. */
+    acquisitionChannel: acquisitionChannel("acquisition_channel"),
     appointmentTypeId: uuid("appointment_type_id")
       .notNull()
       .references(() => appointmentTypes.id),
