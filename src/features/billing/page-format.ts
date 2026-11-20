@@ -6,9 +6,9 @@ import type { LocalizedText } from "@/server/db/schema/_shared";
 import { moneyFormatter } from "./format";
 
 /** Formatting helpers for server-rendered finance pages. */
-export async function pageFormat(ctx: ClinicContext) {
+export async function pageFormat(ctx: ClinicContext, localeOverride?: Locale) {
   const raw = await getLocale();
-  const locale: Locale = isLocale(raw) ? raw : "fr";
+  const locale: Locale = localeOverride ?? (isLocale(raw) ? raw : "fr");
   const intl = INTL_LOCALE[locale];
   const symbol = ctx.organization.settings.currencyDisplay ?? ctx.organization.defaultCurrency;
   return {

@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Codex (session 32 — product-wide Human Practice visual system).
+Last updated: 2026-11-20 by Codex (session 33 — Arabic and bilingual financial documents).
 
 ## How to verify the current state
 
@@ -361,6 +361,15 @@ selected concept with browser evidence and passed after that responsive fix (`de
 agenda, inventory and patient documents in the in-app browser. 168/168 tests, typecheck and full lint green. Standard
 Turbopack still hits the documented helper-port `EPERM`; `npx next build --webpack` is green.
 
+Session 33 (Codex): invoices, receipts, estimates and patient statements can now be printed in French, Arabic RTL or a
+stacked French/Arabic bilingual format. Each print has a language selector and stable URL choice; without an explicit
+choice it follows an Arabic patient's preferred language and otherwise defaults to French. Labels, payment methods,
+statement events and snapshotted service names are translated explicitly, while dates and money remain isolated and
+legible LTR. Issued invoice/receipt snapshots remain immutable; this is a render-time choice, so no schema migration or
+financial-record mutation was needed. 172/172 tests, typecheck and full lint green. The standard Turbopack build still
+hits the documented runner-only helper-port `EPERM`; `npx next build --webpack` is green. Browser-checked Arabic and
+bilingual invoices, a bilingual receipt and an Arabic statement; no fictitious estimate was created merely for QA.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -380,7 +389,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Clinical alerts separate from marketing (§7, §8) | ✅ | `patient_alerts`; versioned structured medical questionnaires, separate editor/approval permissions, clinician review and explicit alert promotion ✅ |
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
-| i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; PDFs in Arabic ⏳ |
+| i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; invoices, receipts, estimates and statements print in Arabic RTL or bilingual FR/AR ✅ |
 | Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, and an always-available FR/EN/AR FDI tooth-number guide. Service worker/offline policy ⏳ (no patient data offline by design) |
 | Scheduler & booking (§9, §9A) | ✅ | Clinic public page `/c/[slug]` + QR poster ✅. Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
@@ -418,19 +427,17 @@ Distinctive product pillars to preserve in future work:
 
 Launch essentials first (user decision 2026-11-20), then the patient features.
 
-1. Arabic printed documents: invoices, receipts, estimates and statements printable in Arabic (RTL) or bilingual FR/AR,
-   chosen per document or from the patient's language.
-2. Staff password reset: owner/admin creates a single-use reset link (no email needed on the clinic server), plus an
+1. Staff password reset: owner/admin creates a single-use reset link (no email needed on the clinic server), plus an
    email path when SMTP is configured; sessions revoked on reset.
-3. Per-IP login rate limiting (staff and portal) before any internet exposure.
-4. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
+2. Per-IP login rate limiting (staff and portal) before any internet exposure.
+3. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
    option behind CGNAT), or the cloud copy/sync, so booking, public page and portal work from outside.
-5. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
+4. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
    consent, plain-language context and revocable access.
-6. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
+5. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
    the aftercare draft, without replacing clinician decisions.
-7. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
-8. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
+6. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
+7. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
 
 Not doable in code (user/accountant): validate the mandatory invoice mentions and retention rules with an Algerian
 accountant; run a timed restore exercise on the real clinic server.

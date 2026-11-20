@@ -23,6 +23,13 @@
     "comingSoon": "Bientôt disponible",
     "loading": "Chargement…"
   },
+  "printDocuments": {
+    "language": "Langue du document",
+    "fr": "Français",
+    "ar": "Arabe",
+    "bilingual": "Français / العربية",
+    "apply": "Appliquer"
+  },
   "nav": {
     "workspace": "Espace de travail",
     "followUps": "Relances",

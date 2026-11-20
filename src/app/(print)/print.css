@@ -44,4 +44,13 @@
   text-align: end;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.print-root .document-arabic,
+.print-root [lang="ar"] {
+  font-family: var(--font-arabic), var(--font-latin), sans-serif;
+}
+.print-root .document-bilingual {
+  line-height: 1.25;
 }

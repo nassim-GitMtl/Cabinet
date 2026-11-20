@@ -23,6 +23,13 @@
     "comingSoon": "قريبًا",
     "loading": "جارٍ التحميل…"
   },
+  "printDocuments": {
+    "language": "لغة الوثيقة",
+    "fr": "الفرنسية",
+    "ar": "العربية",
+    "bilingual": "الفرنسية / العربية",
+    "apply": "تطبيق"
+  },
   "nav": {
     "workspace": "مساحة العمل",
     "followUps": "المتابعات",
