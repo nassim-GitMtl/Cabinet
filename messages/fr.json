@@ -72,6 +72,9 @@
     "secondDigitHint": "position de la dent depuis la ligne médiane, de 1 à 8."
   },
   "auth": {
+    "forgotPassword": "Mot de passe oublié ?",
+    "passwordChanged": "Votre mot de passe a été changé. Connectez-vous avec le nouveau.",
+    "invitationAccepted": "Invitation acceptée. Vous pouvez vous connecter.",
     "loginTitle": "Connexion",
     "loginSubtitle": "Accédez à votre cabinet",
     "email": "Adresse e-mail",
@@ -110,6 +113,9 @@
     "registrationClosed": "Ce serveur de cabinet est déjà configuré. Demandez une invitation au responsable du cabinet."
   },
   "errors": {
+    "resetUnavailable": "Ce lien est invalide, expiré ou déjà utilisé. Demandez-en un nouveau.",
+    "accountShared": "Ce compte sert aussi dans un autre cabinet : la personne doit utiliser « Mot de passe oublié » par e-mail, ou le responsable du serveur peut créer un lien.",
+    "currentPasswordInvalid": "Le mot de passe actuel est incorrect.",
     "required": "Champ obligatoire",
     "invalidEmail": "Adresse e-mail invalide",
     "invalidDate": "Date invalide (JJ/MM/AAAA)",
@@ -2187,5 +2193,45 @@
       "nameColumnRequired": "Choisissez les colonnes Nom et Prénom (ou Nom complet).",
       "nothingToImport": "Aucun patient à importer."
     }
+  },
+  "passwordReset": {
+    "resetTitle": "Choisir un nouveau mot de passe",
+    "resetSubtitle": "Ce lien ne fonctionne qu'une fois.",
+    "resetSubtitleClinic": "Lien créé par {clinic}. Il ne fonctionne qu'une fois.",
+    "unavailable": "Ce lien est invalide, expiré ou déjà utilisé.",
+    "askAgain": "Demander un nouveau lien",
+    "mfaWillReset": "La vérification en deux étapes sera désactivée : configurez-la de nouveau après la connexion, dans Paramètres → Sécurité.",
+    "signOutEverywhere": "Tous les appareils connectés à ce compte seront déconnectés.",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "passwordHint": "10 caractères minimum. Une phrase facile à retenir est idéale.",
+    "save": "Enregistrer le mot de passe",
+    "forgotTitle": "Mot de passe oublié",
+    "forgotByEmail": "Saisissez votre adresse : si un compte existe, vous recevrez un lien valable une heure.",
+    "forgotNoEmail": "Ce serveur n'envoie pas d'e-mails. Un nouveau mot de passe se demande au cabinet.",
+    "email": {
+      "subject": "Nouveau mot de passe — Cabinet Dentaire Pro",
+      "body": "Bonjour {name},\n\nPour choisir un nouveau mot de passe, ouvrez ce lien (valable {minutes} minutes, une seule fois) :\n{link}\n\nSi vous n'avez rien demandé, ignorez ce message : votre mot de passe actuel reste valable."
+    },
+    "emailLabel": "Adresse e-mail",
+    "sendLink": "Recevoir un lien",
+    "emailSent": "Si un compte existe avec cette adresse, un e-mail vient d'être envoyé. Pensez à vérifier les courriers indésirables.",
+    "askAdmin": "Le responsable du cabinet (ou un administrateur) peut créer un lien de réinitialisation depuis Paramètres → Équipe.",
+    "ownerHelp": "Vous êtes le responsable ? La personne qui gère le serveur du cabinet peut créer un lien avec la commande de réinitialisation (voir le guide d'installation).",
+    "backToLogin": "Retour à la connexion",
+    "changeTitle": "Changer mon mot de passe",
+    "changeHint": "Vos autres appareils seront déconnectés.",
+    "currentPassword": "Mot de passe actuel",
+    "changeSubmit": "Changer le mot de passe",
+    "changed": "Mot de passe changé. Vos autres appareils ont été déconnectés.",
+    "adminOpen": "Mot de passe oublié ? Créer un lien",
+    "adminTitle": "Lien de réinitialisation",
+    "adminHint": "Valable 24 heures, une seule fois. Remettez-le à la personne (en main propre, WhatsApp…) : elle choisira elle-même son nouveau mot de passe.",
+    "adminResetMfa": "Désactiver aussi la vérification en deux étapes (téléphone perdu)",
+    "adminCreate": "Créer le lien",
+    "adminExpires": "Valable jusqu'au {date, date, medium} à {date, time, short}",
+    "copy": "Copier le lien",
+    "copied": "Copié",
+    "cancel": "Annuler"
   }
 }

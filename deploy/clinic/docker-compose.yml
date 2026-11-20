@@ -47,6 +47,14 @@ services:
       # Optional public address (domain pointing to this server) for the clinic page and QR posters.
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-}
       MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?run install.sh first}
+      # Optional outgoing email, used only for staff "forgot password" links. Empty SMTP_HOST = off
+      # (staff then get a reset link from the owner/admin, the owner from ./reset-password.sh).
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
       CLINICAL_STORAGE_DIR: /data/clinical-files
       # Only the first clinic can self-register; staff join through invitations.
       REGISTRATION_MODE: ${REGISTRATION_MODE:-first-only}

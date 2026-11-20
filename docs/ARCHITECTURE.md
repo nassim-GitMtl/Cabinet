@@ -335,3 +335,21 @@ never summed. "Paid to date" is as of generation time.
 - Duplicate keys: `phone:<E.164>`, `name:<last>|<first>|<birthDate>`; `nameonly:` is used only when a row has neither phone
   nor birth date. Archived patients count as existing.
 
+
+## Staff password reset (`src/server/auth/password-reset.ts`, migration 0041)
+
+- `staff_password_resets` is a **platform auth table** (like `staff_mfa_challenges`): no `organization_id` column,
+  so no tenant RLS; `cabinet_app` has SELECT/INSERT/UPDATE only (no DELETE: rows are the reset history). The
+  issuing clinic is `issued_by_organization_id` (null for email/server links). A trigger freezes every column except
+  a single `used_at` / `revoked_at`. Only the SHA-256 of the token is stored.
+- Three channels: **admin_link** (owner/admin with `org.staff.manage`, 24 h, Settings → Team), **email** (only when
+  `SMTP_HOST` + `SMTP_FROM` and a configured base URL exist; 1 h; max 3 per account per hour; no answer difference
+  for unknown addresses, work done in `after()`), **server_command** (`scripts/staff-reset-link.ts`, bundled into
+  the migrate image, `deploy/clinic/reset-password.sh`; 2 h) for the owner, whom nobody in the app can reset.
+- A clinic may reset only an account that is active, not a platform operator and **active in no other clinic**
+  (`app_private.staff_reset_scope`, SECURITY DEFINER, checked at creation and again at use): otherwise an admin of
+  clinic A could take over the person's access to clinic B. Never self (use "change my password") or the owner role.
+- Using a link: password policy, new hash, lockout cleared, **all sessions revoked**, pending MFA challenges closed,
+  other open links revoked; optional "lost phone" flag turns MFA off. Emailed links use `PUBLIC_APP_URL`/`APP_URL`
+  only, never the request Host (reset-link poisoning). Admin links are built client-side from `location.origin`.
+- Changing one's own password (Settings → Security) needs the current one and revokes the other sessions.

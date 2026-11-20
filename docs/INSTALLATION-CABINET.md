@@ -85,6 +85,24 @@ cd deploy/clinic
 ./update.sh               # sauvegarde, nouvelles images, redémarrage, migrations automatiques
 ```
 
+## Mot de passe oublié
+
+- **Un membre de l'équipe** : le responsable (ou un administrateur) ouvre Paramètres › Équipe, choisit la personne
+  et « Mot de passe oublié ? Créer un lien ». Le lien est valable 24 h, une seule fois ; la personne choisit
+  elle-même son nouveau mot de passe et tous ses appareils sont déconnectés. Cocher « téléphone perdu »
+  désactive aussi la double authentification, à reconfigurer ensuite.
+- **Le responsable du cabinet** (personne ne peut créer de lien pour lui) : sur le serveur,
+
+  ```bash
+  cd deploy/clinic
+  ./reset-password.sh adresse@du-responsable [--reset-mfa]
+  ```
+
+  affiche un lien valable 2 h à ouvrir depuis un appareil du cabinet.
+- **Par e-mail (facultatif)** : si le serveur peut envoyer des e-mails, renseignez `SMTP_HOST`, `SMTP_PORT`,
+  `SMTP_USER`, `SMTP_PASSWORD` et `SMTP_FROM` dans `deploy/clinic/.env`, puis `docker compose up -d`. Le lien
+  « Mot de passe oublié ? » de la page de connexion envoie alors un lien valable 1 h (3 demandes par heure au plus).
+
 ## Fonctionnement en cas de coupure
 
 - **Internet coupé** : aucun effet sur l'application dans le cabinet.

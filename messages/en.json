@@ -72,6 +72,9 @@
     "secondDigitHint": "tooth position from the midline, 1 through 8."
   },
   "auth": {
+    "forgotPassword": "Forgot your password?",
+    "passwordChanged": "Your password has been changed. Sign in with the new one.",
+    "invitationAccepted": "Invitation accepted. You can sign in now.",
     "loginTitle": "Sign in",
     "loginSubtitle": "Access your clinic",
     "email": "Email address",
@@ -110,6 +113,9 @@
     "registrationClosed": "This clinic server is already set up. Ask the clinic manager for an invitation."
   },
   "errors": {
+    "resetUnavailable": "This link is invalid, expired or already used. Ask for a new one.",
+    "accountShared": "This account is also used at another clinic: the person must use “Forgot password” by email, or the server administrator can create a link.",
+    "currentPasswordInvalid": "The current password is incorrect.",
     "required": "Required",
     "invalidEmail": "Invalid email address",
     "invalidDate": "Invalid date (DD/MM/YYYY)",
@@ -2180,5 +2186,45 @@
       "nameColumnRequired": "Choose the Last name and First name columns (or Full name).",
       "nothingToImport": "No patient to import."
     }
+  },
+  "passwordReset": {
+    "resetTitle": "Choose a new password",
+    "resetSubtitle": "This link works only once.",
+    "resetSubtitleClinic": "Link created by {clinic}. It works only once.",
+    "unavailable": "This link is invalid, expired or already used.",
+    "askAgain": "Ask for a new link",
+    "mfaWillReset": "Two-step verification will be turned off: set it up again after signing in, in Settings → Security.",
+    "signOutEverywhere": "Every device signed in to this account will be signed out.",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm the new password",
+    "passwordHint": "At least 10 characters. An easy-to-remember phrase works best.",
+    "save": "Save password",
+    "forgotTitle": "Forgot password",
+    "forgotByEmail": "Enter your address: if an account exists, you will receive a link valid for one hour.",
+    "forgotNoEmail": "This server does not send emails. Ask the clinic for a new password.",
+    "email": {
+      "subject": "New password — Cabinet Dentaire Pro",
+      "body": "Hello {name},\n\nTo choose a new password, open this link (valid for {minutes} minutes, once):\n{link}\n\nIf you did not ask for this, ignore this message: your current password still works."
+    },
+    "emailLabel": "Email address",
+    "sendLink": "Send me a link",
+    "emailSent": "If an account exists with this address, an email has just been sent. Check your spam folder too.",
+    "askAdmin": "The clinic owner (or an administrator) can create a reset link from Settings → Team.",
+    "ownerHelp": "Are you the owner? Whoever runs the clinic server can create a link with the reset command (see the installation guide).",
+    "backToLogin": "Back to sign in",
+    "changeTitle": "Change my password",
+    "changeHint": "Your other devices will be signed out.",
+    "currentPassword": "Current password",
+    "changeSubmit": "Change password",
+    "changed": "Password changed. Your other devices have been signed out.",
+    "adminOpen": "Forgot password? Create a link",
+    "adminTitle": "Reset link",
+    "adminHint": "Valid for 24 hours, once. Give it to the person (in person, WhatsApp…): they choose their new password themselves.",
+    "adminResetMfa": "Also turn off two-step verification (lost phone)",
+    "adminCreate": "Create the link",
+    "adminExpires": "Valid until {date, date, medium} at {date, time, short}",
+    "copy": "Copy link",
+    "copied": "Copied",
+    "cancel": "Cancel"
   }
 }

@@ -247,6 +247,30 @@ export const staffMfaChallenges = pgTable("staff_mfa_challenges", {
   createdAt: createdAt(),
 }, (t) => [index("staff_mfa_challenges_user_idx").on(t.userId, t.expiresAt)]);
 
+/**
+ * Single-use staff password reset link (platform auth table, like MFA challenges: no clinical data, no RLS).
+ * Created by a clinic admin for one of its staff, by email when SMTP is configured, or by the server
+ * command for the owner. The column is deliberately not named organization_id: email/server links have none.
+ */
+export const staffPasswordResetChannel = pgEnum("staff_password_reset_channel", ["admin_link", "email", "server_command"]);
+export const staffPasswordResets = pgTable("staff_password_resets", {
+  id: id(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  tokenHash: text("token_hash").notNull(),
+  channel: staffPasswordResetChannel("channel").notNull(),
+  issuedByOrganizationId: uuid("issued_by_organization_id").references(() => organizations.id),
+  issuedByUserId: uuid("issued_by_user_id").references(() => users.id),
+  /** Also turn off two-step verification (lost phone); the person sets it up again. */
+  resetMfa: boolean("reset_mfa").notNull().default(false),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  usedAt: timestamp("used_at", { withTimezone: true }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [
+  uniqueIndex("staff_password_resets_token_uq").on(t.tokenHash),
+  index("staff_password_resets_user_idx").on(t.userId, t.createdAt),
+]);
+
 /** Concurrency-safe per-tenant sequences (patient numbers, invoice numbers...). */
 export const counters = pgTable(
   "counters",

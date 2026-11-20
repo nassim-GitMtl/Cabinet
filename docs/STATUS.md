@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Codex (session 33 — Arabic and bilingual financial documents).
+Last updated: 2026-11-20 by Claude (session 34 — staff password reset).
 
 ## How to verify the current state
 
@@ -370,6 +370,23 @@ financial-record mutation was needed. 172/172 tests, typecheck and full lint gre
 hits the documented runner-only helper-port `EPERM`; `npx next build --webpack` is green. Browser-checked Arabic and
 bilingual invoices, a bilingual receipt and an Arabic statement; no fictitious estimate was created merely for QA.
 
+Session 34 (Claude): launch essential — staff password reset. Verified and pushed Codex's unpushed session 33 commit
+(08d1cf4) with this one. Owner/admin creates a single-use 24 h link per colleague from Settings → Team ("Mot de passe
+oublié ? Créer un lien", optional "téléphone perdu" also turns two-step verification off); the person opens
+`/reset-password/[token]`, chooses the password; lockout cleared, every session signed out, link consumed and other
+open links revoked. Refused for self, the owner role, deactivated members, other clinics' members and accounts that are
+also active in another clinic (`app_private.staff_reset_scope`, re-checked at use). Owner who forgot: server command
+`npm run staff:reset-link -- email [--reset-mfa]` / `deploy/clinic/reset-password.sh` (2 h link, bundled into the
+migrate image). Optional email path when `SMTP_*` is configured (nodemailer 10.3.1 pinned; 1 h link, 3/hour/account,
+same answer for unknown addresses, links only from configured URLs). `/forgot-password` explains the right path
+when email is off; login page links to it and shows "password changed" / "invitation accepted" notices. Settings →
+Security gained "Changer mon mot de passe" (current password required; other devices signed out). 181/181 tests
+(+6 integration, +3 unit), typecheck, lint, `next build` green; the bundled command was run (usage + unknown email).
+Browser-checked: link creation on the demo receptionist (owner row has no button), reset page, mismatch error,
+successful reset (password set back to the demo value), used link shows "invalide, expiré ou déjà utilisé",
+forgot-password page in FR and Arabic RTL, wrong current password error. Email sending was verified with a stub
+sender in tests, not against a real SMTP server.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -379,7 +396,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Multi-tenant orgs, legal entity, branch (§2, §25) | ✅ | Created at registration; clinic identity screen (legal name, NIF/NIS/RC/AI, address, contact, logo) ✅, issuer details frozen on issued documents. Multi-branch/multi-entity management UI ⏳ |
 | Postgres RLS tenant isolation (§4A, §27) | ✅ | Integration tests: cross-tenant read/write denied, no-context = 0 rows |
 | Roles & permission templates (§4) | ✅ | Permission-key templates, tenant custom role editor, owner-role protection and exact membership assignment |
-| Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | Invite activation, password lockout, encrypted TOTP + recovery codes, MFA challenge, active session list/revocation. Account recovery ⏳ |
+| Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | Invite activation, password lockout, encrypted TOTP + recovery codes, MFA challenge, active session list/revocation. Password reset ✅ (admin link, optional email, server command for the owner) and change-own-password ✅. Per-IP login rate limiting ⏳ |
 | Clinic onboarding (§25) | 🟡 | Self-service register creates clinic + catalog; dashboard setup checklist from real data ✅. Verification workflow ⏳ |
 | Active clinic switching for multi-org staff (§4A) | ✅ | `/select-clinic`, membership re-checked per request |
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
@@ -427,17 +444,15 @@ Distinctive product pillars to preserve in future work:
 
 Launch essentials first (user decision 2026-11-20), then the patient features.
 
-1. Staff password reset: owner/admin creates a single-use reset link (no email needed on the clinic server), plus an
-   email path when SMTP is configured; sessions revoked on reset.
-2. Per-IP login rate limiting (staff and portal) before any internet exposure.
-3. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
+1. Per-IP login rate limiting (staff and portal login, plus `/forgot-password`) before any internet exposure.
+2. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
    option behind CGNAT), or the cloud copy/sync, so booking, public page and portal work from outside.
-4. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
+3. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
    consent, plain-language context and revocable access.
-5. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
+4. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
    the aftercare draft, without replacing clinician decisions.
-6. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
-7. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
+5. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
+6. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
 
 Not doable in code (user/accountant): validate the mandatory invoice mentions and retention rules with an Algerian
 accountant; run a timed restore exercise on the real clinic server.

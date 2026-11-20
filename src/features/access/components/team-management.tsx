@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createStaffInvitationAction, updateMembershipAction } from "@/features/access/actions";
 import { initialActionState } from "@/lib/action-state";
+import { MemberResetLink } from "./password-forms";
 
 type Role = { id: string; key: string; name: string };
 type Staff = { id: string; userId: string; displayName: string; email: string; title: string | null; isProvider: boolean; status: string; roleId: string; roleKey: string; roleName: string };
@@ -42,5 +43,6 @@ function MemberRow({ member, roles, protectedMember }: { member: Staff; roles: R
   const t = useTranslations("access"); const all = useTranslations(); const [state, action] = useActionState(updateMembershipAction.bind(null, member.id), initialActionState);
   return <div className="py-4"><div className="flex flex-wrap items-center justify-between gap-2"><div><p className="font-medium"><bdi>{[member.title, member.displayName].filter(Boolean).join(" ")}</bdi></p><p className="text-xs text-muted-foreground"><bdi>{member.email}</bdi></p></div><div className="flex gap-2">{member.isProvider ? <Badge variant="secondary">{t("provider")}</Badge> : null}<Badge variant="outline">{t(`status.${member.status}`)}</Badge></div></div>
     <form action={action} className="mt-3 flex flex-wrap items-end gap-2"><FormError error={state.error} /><SelectField label={t("role")} name="roleId" options={roles.map((r) => ({ value: r.id, label: all.has(`roles.${r.key}` as never) ? all(`roles.${r.key}` as never) : r.name }))} defaultValue={member.roleId} required fieldClassName="min-w-48 flex-1" /><SelectField label={t("statusLabel")} name="status" options={[{ value: "active", label: t("status.active") }, { value: "deactivated", label: t("status.deactivated") }]} defaultValue={member.status === "deactivated" ? "deactivated" : "active"} fieldClassName="min-w-40" /><SubmitButton variant="outline" disabled={protectedMember}>{t("save")}</SubmitButton></form>
+    {!protectedMember && member.status === "active" ? <MemberResetLink membershipId={member.id} /> : null}
   </div>;
 }

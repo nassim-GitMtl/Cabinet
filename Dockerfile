@@ -18,15 +18,18 @@ RUN npx next build
 # Migration runner bundled into one file (drizzle + postgres driver), so the
 # one-shot migrate image needs no node_modules.
 FROM deps AS migrate-build
-COPY scripts/migrate.ts ./scripts/migrate.ts
-RUN npx esbuild scripts/migrate.ts --bundle --platform=node --format=esm --target=node22 \
-      --banner:js="import { createRequire } from 'module'; const require = createRequire(import.meta.url);" \
-      --outfile=dist/migrate.mjs
+COPY scripts/migrate.ts scripts/staff-reset-link.ts ./scripts/
+RUN for name in migrate staff-reset-link; do \
+      npx esbuild scripts/$name.ts --bundle --platform=node --format=esm --target=node22 \
+        --banner:js="import { createRequire } from 'module'; const require = createRequire(import.meta.url);" \
+        --outfile=dist/$name.mjs || exit 1; \
+    done
 
-# One-shot job that applies database migrations, then exits.
+# One-shot job that applies database migrations, then exits. Also carries the owner reset-link command
+# (deploy/clinic/reset-password.sh).
 FROM node:24-alpine AS migrate
 WORKDIR /app
-COPY --from=migrate-build /app/dist/migrate.mjs ./scripts/migrate.mjs
+COPY --from=migrate-build /app/dist/migrate.mjs /app/dist/staff-reset-link.mjs ./scripts/
 COPY drizzle ./drizzle
 USER node
 CMD ["node", "scripts/migrate.mjs"]
