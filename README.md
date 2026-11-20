@@ -30,6 +30,7 @@ npx next build
 ```
 
 ## Documentation
+- `docs/GUIDE-UTILISATEUR-FR.md` — guide complet en français pour le personnel du cabinet et les patients.
 - `docs/ARCHITECTURE.md` — stack, tenant isolation (PostgreSQL RLS), consent model, money/date rules.
 - `docs/STATUS.md` — requirement coverage map and ordered next steps.
 - `AGENTS.md` — rules for coding agents (also loaded by Claude via `CLAUDE.md`).

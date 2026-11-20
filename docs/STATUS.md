@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Codex (session 35 — per-IP authentication throttles).
+Last updated: 2026-11-20 by Codex (session 36 — complete French user guide).
 
 ## How to verify the current state
 
@@ -399,6 +399,12 @@ tests (+3 integration, +3 unit), typecheck and full lint green. Standard Turbopa
 helper-port `EPERM`; `npx next build --webpack` is green. Migration 0042 applied locally, Docker Compose and Caddy configs
 validated, and the protected portal login was browser-checked without changing product data.
 
+Session 36 (Codex): added `docs/GUIDE-UTILISATEUR-FR.md`, a complete French user guide covering every currently
+available staff module, public booking, the patient portal, permissions, security, mobile/offline behavior and the
+recommended daily workflows. The guide distinguishes implemented functions from planned integrations and links to the
+server installation/restore guide for administrator-only operations. `README.md` now links to the guide. Documentation
+format and links were checked; no application behavior changed.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -477,5 +483,4 @@ form), treatment consent capture (§12A), lab cases (§22).
 
 - Role names for custom roles are stored as entered; system roles are translated via `messages.*.roles`.
 - `next dev` must be started with an explicit `--port` if 3000 is busy (see `.claude/launch.json`).
-- Login rate limiting is per-account lockout only; add per-IP limiting before public exposure.
 - Legal/regulatory items (invoice mentions, tax, retention, data hosting) are configurable placeholders pending local professional validation (§2, §25).
