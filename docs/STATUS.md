@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Claude (session 29 — clinic identity, frozen issuer details, setup checklist).
+Last updated: 2026-11-20 by Claude (session 30 — import existing patients).
 
 ## How to verify the current state
 
@@ -328,6 +328,21 @@ trigger compared `status` across tables with different enums. 160/160 tests (2 i
 its original header; estimate prints new legal details with logo; public logo 200, unknown 404, staff route requires login.
 Legal content (which mentions are mandatory) still needs validation by an Algerian accountant.
 
+Session 30 (Claude): launch essential 2 — import existing patients (§26). `/patients/import` (patient.create; button on
+the patients list): CSV or XLSX up to 5 MB / 3,000 rows, read without a spreadsheet library (fflate unzip + XML for XLSX;
+CSV with ; , tab detection, quotes, BOM, UTF-8 or Windows-1256/1252 for Excel exports). Columns guessed from FR/EN/AR
+headers and editable; preview re-checks every row: names required (or a "full name" column split as NOM Prénom), phones
+normalized, dates DD/MM/YY(YY), ISO, year-only or Excel serials (never future/pre-1900), sex M/F/H/Homme/Femme/ذكر/أنثى; bad
+optional values are dropped with a warning. Possible duplicates (same phone, or same names + birth date; names alone only
+when a row has neither) against the clinic and within the file are skipped unless the user ticks "importer aussi".
+Import = one transaction: patient numbers reserved as a block (`reserveCounterBlock`), batch inserts, one audit event per
+patient + one per import, append-only `patient_imports` history (migration 0040; file itself never stored). New
+`patients.legacy_number` (old file number) is found by the patient search. Downloadable CSV template (UTF-8 BOM, ;).
+168/168 tests (8 new: 6 unit, 2 integration), typecheck, lint, `next build` green. Browser-checked: template download,
+fictitious 4-row CSV → mapping guessed, 2 ready / 1 already at clinic (HAMDI Nour) / 1 without name → 2 imported,
+"2001" search finds MEZIANE Sofia (P-000015) with Arabic name. Test found and fixed: rows without phone or birth date
+were re-imported as new patients (name-only fallback added).
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -361,7 +376,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Messaging/reminders (§20) | 🟡 | Relances ✅: reminders, after-visit care + review requests, referral thanks, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic sending through an SMS/WhatsApp Business provider ⏳ 🔌 |
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
 | Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
-| Imports/FHIR/integrations (§26) | ⏳ 🔌 | |
+| Imports/FHIR/integrations (§26) | 🟡 | Patient list import (CSV/XLSX, mapping, preview, duplicates, history) ✅. Clinical/financial history import, FHIR and other integrations ⏳ 🔌 |
 | Backups/restore exercise (§27, scenario 32) | 🟡 | Daily dump + clinical-files archive with sha256, `restore.sh` restores both. Timed restore exercise on a real clinic server ⏳ |
 | Platform operations console (§25) | ⏳ | |
 
@@ -385,21 +400,19 @@ Distinctive product pillars to preserve in future work:
 
 Launch essentials first (user decision 2026-11-20), then the patient features.
 
-1. Import existing patients (§26): upload an Excel/CSV list, map columns (name, Arabic name, phone, birth date, sex,
-   address, notes), preview with validation and duplicate detection, then import in one audited batch; downloadable template.
-2. Arabic printed documents: invoices, receipts, estimates and statements printable in Arabic (RTL) or bilingual FR/AR,
+1. Arabic printed documents: invoices, receipts, estimates and statements printable in Arabic (RTL) or bilingual FR/AR,
    chosen per document or from the patient's language.
-3. Staff password reset: owner/admin creates a single-use reset link (no email needed on the clinic server), plus an
+2. Staff password reset: owner/admin creates a single-use reset link (no email needed on the clinic server), plus an
    email path when SMTP is configured; sessions revoked on reset.
-4. Per-IP login rate limiting (staff and portal) before any internet exposure.
-5. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
+3. Per-IP login rate limiting (staff and portal) before any internet exposure.
+4. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
    option behind CGNAT), or the cloud copy/sync, so booking, public page and portal work from outside.
-6. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
+5. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
    consent, plain-language context and revocable access.
-7. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
+6. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
    the aftercare draft, without replacing clinician decisions.
-8. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
-9. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
+7. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
+8. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
 
 Not doable in code (user/accountant): validate the mandatory invoice mentions and retention rules with an Algerian
 accountant; run a timed restore exercise on the real clinic server.

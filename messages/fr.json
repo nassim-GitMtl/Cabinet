@@ -2096,5 +2096,89 @@
         "publicPage": "Une page à partager, avec affiche QR code."
       }
     }
+  },
+  "patientImport": {
+    "button": "Importer",
+    "title": "Importer des patients",
+    "subtitle": "Reprenez votre liste existante (Excel ou CSV) : les colonnes sont reconnues automatiquement, vous vérifiez avant d'importer.",
+    "legacyNumber": "Ancien n° de dossier",
+    "step1": "1. Fichier",
+    "step1Hint": "Fichier Excel (.xlsx) ou CSV, première ligne = titres des colonnes. 3 000 patients et 5 Mo maximum par fichier.",
+    "downloadTemplate": "Télécharger le modèle",
+    "template": {
+      "legacyNumber": "N° dossier",
+      "lastName": "Nom",
+      "firstName": "Prénom",
+      "lastNameAr": "Nom en arabe",
+      "firstNameAr": "Prénom en arabe",
+      "sex": "Sexe",
+      "birthDate": "Date de naissance",
+      "phone": "Téléphone",
+      "phoneAlt": "Téléphone 2",
+      "email": "E-mail",
+      "address": "Adresse",
+      "city": "Ville",
+      "notes": "Remarques"
+    },
+    "file": "Fichier",
+    "fileHint": "Le fichier n'est pas conservé : seuls les patients importés sont enregistrés.",
+    "reading": "Lecture du fichier…",
+    "step2": "2. Colonnes",
+    "step2Hint": "Vérifiez la colonne utilisée pour chaque information (l'exemple est tiré de la première ligne).",
+    "notImported": "— Ne pas importer —",
+    "step3": "3. Vérification",
+    "step3Hint": "Chaque ligne est contrôlée. Les doublons possibles et les lignes sans nom ne sont pas importés.",
+    "status": {
+      "ready": "Prêt",
+      "duplicateClinic": "Déjà au cabinet ?",
+      "duplicateFile": "Doublon dans le fichier",
+      "invalid": "À corriger"
+    },
+    "issues": {
+      "nameRequired": "nom et prénom obligatoires",
+      "invalidDate": "date de naissance ignorée",
+      "invalidPhone": "téléphone ignoré",
+      "invalidEmail": "e-mail ignoré",
+      "invalidSex": "sexe ignoré"
+    },
+    "totalRows": "{count, plural, one {# ligne} other {# lignes}}",
+    "line": "Ligne",
+    "name": "Patient",
+    "statusColumn": "Contrôle",
+    "previewLimited": "Aperçu des {shown} premières lignes sur {total}.",
+    "includeDuplicates": "Importer aussi les doublons possibles",
+    "includeDuplicatesHint": "Même téléphone, ou mêmes nom, prénom et date de naissance qu'un patient existant ou qu'une autre ligne.",
+    "import": "{count, plural, =0 {Aucun patient à importer} one {Importer # patient} other {Importer # patients}}",
+    "done": "{count, plural, one {# patient importé} other {# patients importés}}",
+    "doneHint": "Non importés : {duplicates} doublons possibles, {invalid} lignes à corriger.",
+    "seePatients": "Voir les patients",
+    "another": "Importer un autre fichier",
+    "history": "Imports précédents",
+    "historyLine": "{imported} importés · {duplicates} doublons · {invalid} à corriger",
+    "fields": {
+      "legacyNumber": "Ancien n° de dossier",
+      "lastName": "Nom",
+      "firstName": "Prénom",
+      "fullName": "Nom complet (si une seule colonne)",
+      "lastNameAr": "Nom en arabe",
+      "firstNameAr": "Prénom en arabe",
+      "sex": "Sexe",
+      "birthDate": "Date de naissance",
+      "phone": "Téléphone",
+      "phoneAlt": "Autre téléphone",
+      "email": "E-mail",
+      "address": "Adresse",
+      "city": "Ville / commune",
+      "notes": "Notes administratives"
+    },
+    "errors": {
+      "tooLarge": "Le fichier dépasse 5 Mo.",
+      "empty": "Le fichier est vide ou n'a pas de ligne de données.",
+      "unsupported": "Format non reconnu : utilisez un fichier Excel (.xlsx) ou CSV.",
+      "tooManyRows": "Plus de 3 000 lignes : découpez le fichier.",
+      "invalidMapping": "Correspondance des colonnes invalide.",
+      "nameColumnRequired": "Choisissez les colonnes Nom et Prénom (ou Nom complet).",
+      "nothingToImport": "Aucun patient à importer."
+    }
   }
 }

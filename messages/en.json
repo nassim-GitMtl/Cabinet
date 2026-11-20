@@ -2089,5 +2089,89 @@
         "publicPage": "A page to share, with a QR poster."
       }
     }
+  },
+  "patientImport": {
+    "button": "Import",
+    "title": "Import patients",
+    "subtitle": "Bring in your existing list (Excel or CSV): columns are recognised automatically and you check before importing.",
+    "legacyNumber": "Old file number",
+    "step1": "1. File",
+    "step1Hint": "Excel (.xlsx) or CSV file, first row = column titles. 3,000 patients and 5 MB maximum per file.",
+    "downloadTemplate": "Download template",
+    "template": {
+      "legacyNumber": "File no.",
+      "lastName": "Last name",
+      "firstName": "First name",
+      "lastNameAr": "Last name (Arabic)",
+      "firstNameAr": "First name (Arabic)",
+      "sex": "Sex",
+      "birthDate": "Date of birth",
+      "phone": "Phone",
+      "phoneAlt": "Phone 2",
+      "email": "Email",
+      "address": "Address",
+      "city": "City",
+      "notes": "Notes"
+    },
+    "file": "File",
+    "fileHint": "The file is not kept: only the imported patients are saved.",
+    "reading": "Reading the file…",
+    "step2": "2. Columns",
+    "step2Hint": "Check the column used for each piece of information (the example comes from the first row).",
+    "notImported": "— Do not import —",
+    "step3": "3. Review",
+    "step3Hint": "Every row is checked. Possible duplicates and rows without a name are not imported.",
+    "status": {
+      "ready": "Ready",
+      "duplicateClinic": "Already at the clinic?",
+      "duplicateFile": "Duplicate in file",
+      "invalid": "To fix"
+    },
+    "issues": {
+      "nameRequired": "last and first name required",
+      "invalidDate": "date of birth ignored",
+      "invalidPhone": "phone ignored",
+      "invalidEmail": "email ignored",
+      "invalidSex": "sex ignored"
+    },
+    "totalRows": "{count, plural, one {# row} other {# rows}}",
+    "line": "Row",
+    "name": "Patient",
+    "statusColumn": "Check",
+    "previewLimited": "Preview of the first {shown} rows out of {total}.",
+    "includeDuplicates": "Also import possible duplicates",
+    "includeDuplicatesHint": "Same phone, or same last name, first name and date of birth as an existing patient or another row.",
+    "import": "{count, plural, =0 {No patient to import} one {Import # patient} other {Import # patients}}",
+    "done": "{count, plural, one {# patient imported} other {# patients imported}}",
+    "doneHint": "Not imported: {duplicates} possible duplicates, {invalid} rows to fix.",
+    "seePatients": "See patients",
+    "another": "Import another file",
+    "history": "Previous imports",
+    "historyLine": "{imported} imported · {duplicates} duplicates · {invalid} to fix",
+    "fields": {
+      "legacyNumber": "Old file number",
+      "lastName": "Last name",
+      "firstName": "First name",
+      "fullName": "Full name (single column)",
+      "lastNameAr": "Last name in Arabic",
+      "firstNameAr": "First name in Arabic",
+      "sex": "Sex",
+      "birthDate": "Date of birth",
+      "phone": "Phone",
+      "phoneAlt": "Other phone",
+      "email": "Email",
+      "address": "Address",
+      "city": "City / commune",
+      "notes": "Administrative notes"
+    },
+    "errors": {
+      "tooLarge": "The file exceeds 5 MB.",
+      "empty": "The file is empty or has no data row.",
+      "unsupported": "Unrecognised format: use an Excel (.xlsx) or CSV file.",
+      "tooManyRows": "More than 3,000 rows: split the file.",
+      "invalidMapping": "Invalid column mapping.",
+      "nameColumnRequired": "Choose the Last name and First name columns (or Full name).",
+      "nothingToImport": "No patient to import."
+    }
   }
 }

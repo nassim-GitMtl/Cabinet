@@ -5,6 +5,7 @@ import {
   boolean,
   date,
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -100,6 +101,10 @@ export const patients = pgTable(
     referredBy: text("referred_by"),
     /** Patient of this clinic who recommended them (same clinic, never self; DB guard). */
     referredByPatientId: uuid("referred_by_patient_id").references((): AnyPgColumn => patients.id),
+    /** File number from the clinic's previous system or paper records (searchable, not unique). */
+    legacyNumber: text("legacy_number"),
+    /** Import batch that created this patient, if any. */
+    importId: uuid("import_id").references((): AnyPgColumn => patientImports.id),
     /** Administrative only. Clinical content never goes here. */
     administrativeNotes: text("administrative_notes"),
     status: patientStatus("status").notNull().default("active"),
@@ -119,6 +124,7 @@ export const patients = pgTable(
     index("patients_org_phone_idx").on(t.organizationId, t.phone),
     index("patients_org_created_idx").on(t.organizationId, t.createdAt),
     index("patients_referrer_idx").on(t.organizationId, t.referredByPatientId),
+    index("patients_legacy_number_idx").on(t.organizationId, t.legacyNumber),
     index("patients_search_trgm_idx").using("gin", sql`${t.searchText} gin_trgm_ops`),
   ],
 );
@@ -200,4 +206,22 @@ export const patientIdentityLinks = pgTable(
       .on(t.organizationId, t.patientId)
       .where(sql`status = 'active'`),
   ],
+);
+
+/** One import of an existing patient list (history; append-only). Rows themselves are never stored. */
+export const patientImports = pgTable(
+  "patient_imports",
+  {
+    id: id(),
+    organizationId: organizationId().references(() => organizations.id),
+    fileName: text("file_name").notNull(),
+    fileSha256: text("file_sha256").notNull(),
+    totalRows: integer("total_rows").notNull(),
+    importedCount: integer("imported_count").notNull(),
+    skippedDuplicates: integer("skipped_duplicates").notNull(),
+    skippedInvalid: integer("skipped_invalid").notNull(),
+    createdByUserId: uuid("created_by_user_id").notNull().references(() => users.id),
+    createdAt: createdAt(),
+  },
+  (t) => [index("patient_imports_org_idx").on(t.organizationId, t.createdAt)],
 );

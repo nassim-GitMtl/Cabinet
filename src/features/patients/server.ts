@@ -56,8 +56,10 @@ export async function searchPatients(
       )!;
     });
     const phone = normalizePhone(opts.q, ctx.organization.countryCode);
+    // An old file number from the previous system finds its patient too.
+    const legacy = eq(patients.legacyNumber, (opts.q ?? "").trim());
     filters.push(
-      phone ? or(eq(patients.phone, phone), eq(patients.phoneAlt, phone), and(...termFilters))! : and(...termFilters)!,
+      phone ? or(eq(patients.phone, phone), eq(patients.phoneAlt, phone), legacy, and(...termFilters))! : or(legacy, and(...termFilters))!,
     );
   }
 

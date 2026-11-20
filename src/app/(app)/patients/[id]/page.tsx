@@ -293,6 +293,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                     } />
                   ) : null}
                   <Info label={t("patients.fields.referredBy")} value={p.referredBy ? <bdi>{p.referredBy}</bdi> : null} />
+                  {p.legacyNumber ? <Info label={t("patientImport.legacyNumber")} value={<bdi>{p.legacyNumber}</bdi>} /> : null}
                   {referredCount ? <Info label={t("acquisition.referredOthers")} value={t("acquisition.report.referred", { count: referredCount })} /> : null}
                   <div className="sm:col-span-2">
                     <Info label={t("patients.fields.administrativeNotes")} value={p.administrativeNotes ? <span className="whitespace-pre-line">{p.administrativeNotes}</span> : null} />

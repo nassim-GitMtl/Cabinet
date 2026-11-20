@@ -40,6 +40,18 @@ export async function setTxOrganization(tx: Tx, organizationId: string) {
 }
 
 /** Allocates the next value of a per-tenant counter under a row lock. */
+/** Reserves `count` consecutive numbers at once (bulk imports); returns the first one. */
+export async function reserveCounterBlock(tx: Tx, organizationId: string, scope: string, count: number): Promise<number> {
+  if (!Number.isInteger(count) || count < 1) throw new Error("reserveCounterBlock: count must be a positive integer");
+  const rows = await tx.execute<{ value: string }>(sql`
+    insert into counters (organization_id, scope, next_value)
+    values (${organizationId}, ${scope}, ${count + 1})
+    on conflict (organization_id, scope)
+      do update set next_value = counters.next_value + ${count}
+    returning next_value - ${count} as value`);
+  return Number(rows[0]!.value);
+}
+
 export async function nextCounter(tx: Tx, organizationId: string, scope: string): Promise<number> {
   const rows = await tx.execute<{ value: string }>(sql`
     insert into counters (organization_id, scope, next_value)

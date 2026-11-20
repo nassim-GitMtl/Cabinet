@@ -325,3 +325,13 @@ never summed. "Paid to date" is as of generation time.
 - Logo bytes live in `clinic_logos` (bytea, ≤ 300 KB, PNG/JPEG/WebP from magic bytes, never SVG), served privately at
   `/api/clinic/logo` and publicly at `/c/<slug>/logo` only for published pages.
 
+## Patient import (`src/features/patients/import`, migration 0040)
+
+- Pure parsing (`parse.ts`: CSV/XLSX → strings) and mapping/validation (`mapping.ts`) are unit-tested; the server re-runs the
+  full analysis on import (stateless: the browser sends the file again with the confirmed mapping), so the preview and the
+  import can never disagree. Files are never stored.
+- Inserts bypass `createPatient` for speed but keep its rules: same field normalization, one audit event per patient in the
+  same transaction, patient numbers from the same `patient` counter (reserved as a block).
+- Duplicate keys: `phone:<E.164>`, `name:<last>|<first>|<birthDate>`; `nameonly:` is used only when a row has neither phone
+  nor birth date. Archived patients count as existing.
+

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { ChevronRightIcon, UserPlusIcon, UsersIcon } from "lucide-react";
+import { ChevronRightIcon, FileUpIcon, UserPlusIcon, UsersIcon } from "lucide-react";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { Pagination } from "@/components/app/pagination";
 import { SearchInput } from "@/components/app/search-input";
@@ -48,10 +48,16 @@ export default async function PatientsPage({ searchParams }: PageProps<"/patient
         description={t("common.results", { count: result.total })}
         actions={
           can(ctx, "patient.create") ? (
-            <ButtonLink href="/patients/new">
-              <UserPlusIcon aria-hidden />
-              {t("patients.new")}
-            </ButtonLink>
+            <div className="flex flex-wrap gap-2">
+              <ButtonLink href="/patients/import" variant="outline">
+                <FileUpIcon aria-hidden />
+                {t("patientImport.button")}
+              </ButtonLink>
+              <ButtonLink href="/patients/new">
+                <UserPlusIcon aria-hidden />
+                {t("patients.new")}
+              </ButtonLink>
+            </div>
           ) : null
         }
       />
