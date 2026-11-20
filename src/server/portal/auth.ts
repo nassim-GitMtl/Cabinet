@@ -2,6 +2,7 @@ import "server-only";
 import { sql, eq } from "drizzle-orm";
 import { audit } from "@/server/audit";
 import { hashPassword, passwordPolicyError, verifyPassword } from "@/server/auth/password";
+import { consumeAuthRateLimit } from "@/server/auth/rate-limit";
 import { db, type Database } from "@/server/db/client";
 import { patientAccounts } from "@/server/db/schema";
 import { withDbContext } from "@/server/db/tenant";
@@ -78,9 +79,16 @@ export async function resetPortalPassword(token: string, password: string, datab
   });
 }
 
-export type PatientAuthResult = { ok: true; identity: PatientIdentity } | { ok: false; reason: "invalid" | "locked" | "disabled" };
+export type PatientAuthResult = { ok: true; identity: PatientIdentity } | { ok: false; reason: "invalid" | "locked" | "disabled" | "rateLimited" };
 
-export async function authenticatePatient(email: string, password: string, database: Database = db): Promise<PatientAuthResult> {
+export async function authenticatePatient(
+  email: string,
+  password: string,
+  ipAddress: string | null = null,
+  database: Database = db,
+): Promise<PatientAuthResult> {
+  const rate = await consumeAuthRateLimit("patient_login", ipAddress, database);
+  if (!rate.allowed) return { ok: false, reason: "rateLimited" };
   const rows = await database.execute<{
     account_id: string; network_patient_id: string; email: string; password_hash: string; locale: string;
     status: "active" | "disabled"; failed_login_count: number; locked_until: Date | null;

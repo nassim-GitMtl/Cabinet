@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -269,6 +270,26 @@ export const staffPasswordResets = pgTable("staff_password_resets", {
 }, (t) => [
   uniqueIndex("staff_password_resets_token_uq").on(t.tokenHash),
   index("staff_password_resets_user_idx").on(t.userId, t.createdAt),
+]);
+
+/**
+ * Shared authentication throttle buckets. This is platform infrastructure rather than tenant data:
+ * the runtime role reaches it only through app_private.consume_auth_rate_limit(), and keyHash is an
+ * HMAC fingerprint of the client address rather than the address itself.
+ */
+export const authRateLimits = pgTable("auth_rate_limits", {
+  scope: text("scope").notNull(),
+  keyHash: text("key_hash").notNull(),
+  windowStartedAt: timestamp("window_started_at", { withTimezone: true }).notNull().defaultNow(),
+  attemptCount: integer("attempt_count").notNull().default(0),
+  blockedUntil: timestamp("blocked_until", { withTimezone: true }),
+  updatedAt: updatedAt(),
+}, (t) => [
+  primaryKey({ columns: [t.scope, t.keyHash] }),
+  index("auth_rate_limits_updated_idx").on(t.updatedAt),
+  check("auth_rate_limits_scope_ck", sql`${t.scope} in ('staff_login', 'patient_login', 'password_reset')`),
+  check("auth_rate_limits_key_hash_ck", sql`char_length(${t.keyHash}) = 64`),
+  check("auth_rate_limits_attempt_count_ck", sql`${t.attemptCount} >= 0`),
 ]);
 
 /** Concurrency-safe per-tenant sequences (patient numbers, invoice numbers...). */

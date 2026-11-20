@@ -5,6 +5,7 @@ import { db, type Database } from "../db/client";
 import { memberships, organizations, users } from "../db/schema";
 import { withDbContext } from "../db/tenant";
 import { hashPassword, verifyPassword } from "../auth/password";
+import { consumeAuthRateLimit } from "../auth/rate-limit";
 
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_MINUTES = 15;
@@ -16,7 +17,7 @@ const getDummyHash = () => (dummyHash ??= hashPassword("not-a-real-password-plac
 
 export type AuthResult =
   | { ok: true; userId: string; mfaRequired: boolean }
-  | { ok: false; reason: "invalid" | "locked" | "disabled" };
+  | { ok: false; reason: "invalid" | "locked" | "disabled" | "rateLimited" };
 
 export async function authenticate(
   email: string,
@@ -24,6 +25,8 @@ export async function authenticate(
   ipAddress: string | null,
   database: Database = db,
 ): Promise<AuthResult> {
+  const rate = await consumeAuthRateLimit("staff_login", ipAddress, database);
+  if (!rate.allowed) return { ok: false, reason: "rateLimited" };
   const [user] = await database
     .select()
     .from(users)

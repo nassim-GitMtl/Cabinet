@@ -127,6 +127,15 @@ tests/                    integration tests + support (global setup resets cabin
 ## Security notes
 
 - Passwords: scrypt (N=2^15, r=8, p=3), NFKC-normalized, 10-char minimum. Uniform timing for unknown emails; lockout 15 min after 5 failures. TOTP MFA is available to every staff account.
+- Authentication entry points also have a shared PostgreSQL per-client throttle before password hashing/account lookup:
+  staff and portal login each allow 30 attempts per 15 minutes, then block that client for 15 minutes; forgot-password
+  allows 10 requests per hour, then blocks for one hour (the existing 3/hour/account email limit remains). Buckets are
+  concurrency-locked by `app_private.consume_auth_rate_limit()` and survive restarts/multiple app processes. The runtime
+  role cannot read or mutate `auth_rate_limits` directly; its key is an HMAC of the address using
+  `AUTH_RATE_LIMIT_SECRET`, never the raw address. Missing/invalid addresses share a conservative `unknown-client` bucket.
+- The clinic Caddy proxy overwrites `X-CDP-Client-IP` from the socket address and the app container has no published port.
+  Other internet deployments must likewise use a trusted reverse proxy that overwrites forwarding headers; never expose
+  the Next.js process directly and trust caller-supplied `X-Forwarded-For`.
 - Sessions: opaque 32-byte token in httpOnly SameSite=Lax cookie; DB stores SHA-256; 12 h sliding; revocable (`revokeAllSessions`).
 - Staff invitations are tenant-owned, single-use SHA-256 token links with a seven-day expiry. Acceptance creates one
   membership for the invitation's exact role; existing global accounts prove their password and new accounts set one.

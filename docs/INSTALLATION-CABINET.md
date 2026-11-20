@@ -36,7 +36,7 @@ cd deploy/clinic
 ./install.sh
 ```
 
-Le script demande l'adresse IP du serveur, génère les mots de passe dans `deploy/clinic/.env`
+Le script demande l'adresse IP du serveur, génère les mots de passe et clés de sécurité dans `deploy/clinic/.env`
 (à garder secret et à sauvegarder), construit les images et démarre tout.
 
 ### B. Le serveur n'a jamais internet
@@ -114,6 +114,12 @@ cd deploy/clinic
 ## Sécurité
 
 - Accès uniquement depuis le réseau du cabinet. N'ouvrez **pas** les ports 80/443 du routeur vers internet.
+- Caddy transmet l'adresse réelle de l'appareil dans un en-tête qu'il remplace lui-même. L'application limite dans
+  PostgreSQL les tentatives de connexion du personnel et des patients (30 par 15 minutes et par adresse), ainsi que les
+  demandes « mot de passe oublié » (10 par heure). Le limiteur ne conserve qu'une empreinte HMAC de l'adresse. Ne publiez jamais
+  directement le port 3000 de l'application : un accès internet doit rester derrière un proxy de confiance.
+- `AUTH_RATE_LIMIT_SECRET` est généré automatiquement dans `.env`. `update.sh` l'ajoute également aux anciennes
+  installations sans modifier leurs autres secrets.
 - Mettez le serveur dans une pièce fermée, avec un mot de passe de session et le chiffrement du disque
   (BitLocker / FileVault / LUKS).
 - Activez la double authentification pour les comptes du propriétaire et de la comptabilité.

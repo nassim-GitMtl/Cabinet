@@ -8,6 +8,7 @@ import { db, type Database } from "@/server/db/client";
 import { memberships, organizations, roles, sessions, staffMfaChallenges, staffPasswordResets, users } from "@/server/db/schema";
 import { withDbContext } from "@/server/db/tenant";
 import { hashPassword, passwordPolicyError, verifyPassword } from "./password";
+import { consumeAuthRateLimit } from "./rate-limit";
 
 /** Link handed over by an admin (in person, WhatsApp…): valid one day. */
 export const ADMIN_RESET_HOURS = 24;
@@ -124,6 +125,8 @@ export type ResetEmail = { to: string; fullName: string; locale: string; link: s
 export async function requestPasswordResetEmail(
   email: string, deps: { baseUrl: string; send: (mail: ResetEmail) => Promise<void> }, ipAddress: string | null = null, database: Database = db,
 ): Promise<void> {
+  const rate = await consumeAuthRateLimit("password_reset", ipAddress, database);
+  if (!rate.allowed) return;
   const [user] = await database.select({ id: users.id, email: users.email, fullName: users.fullName, locale: users.locale, status: users.status })
     .from(users).where(sql`lower(${users.email}) = lower(${email.trim()})`).limit(1);
   if (!user || user.status !== "active") return;

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { fieldErrorsOf, formValues, type ActionState } from "@/lib/action-state";
 import { activatePortalAccount, authenticatePatient, resetPortalPassword } from "@/server/portal/auth";
 import { createPatientSession, requirePatientSession, revokePatientSession } from "@/server/portal/session";
+import { requestMeta } from "@/server/auth/session";
 import { portalLoginSchema, portalPasswordSchema } from "./schemas";
 import { decideConsentRequest, PatientConsentError, revokeConsentGrant } from "./portal";
 
@@ -32,7 +33,8 @@ export async function patientLoginAction(_state: ActionState, formData: FormData
   const values = formValues(formData);
   const parsed = portalLoginSchema.safeParse(values);
   if (!parsed.success) return { error: "fixErrors", fieldErrors: fieldErrorsOf(parsed.error), values: { email: values.email ?? "" } };
-  const result = await authenticatePatient(parsed.data.email, parsed.data.password);
+  const { ipAddress } = await requestMeta();
+  const result = await authenticatePatient(parsed.data.email, parsed.data.password, ipAddress);
   if (!result.ok) return { error: `portal.${result.reason}`, values: { email: parsed.data.email } };
   await createPatientSession(result.identity);
   redirect("/portal");

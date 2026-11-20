@@ -10,7 +10,10 @@
 https://{$CLINIC_HOST}, https://cabinet.local {
 	tls internal
 	encode zstd gzip
-	reverse_proxy app:3000
+	reverse_proxy app:3000 {
+		# Overwrite any caller-supplied value; authentication throttles trust only this proxy header.
+		header_up X-CDP-Client-IP {remote_host}
+	}
 }
 
 http://{$CLINIC_HOST}, http://cabinet.local {

@@ -7,6 +7,7 @@ import { sessions, users } from "../db/schema";
 import { withDbContext } from "../db/tenant";
 import { audit } from "../audit";
 import type { ClinicContext } from "./context";
+import { clientIpFromHeaders } from "./client-ip";
 
 export const SESSION_COOKIE = "cdp_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12h absolute idle window for shared workstations
@@ -17,7 +18,7 @@ const hashToken = (token: string) => createHash("sha256").update(token).digest("
 export async function requestMeta() {
   const h = await headers();
   return {
-    ipAddress: h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? h.get("x-real-ip") ?? null,
+    ipAddress: clientIpFromHeaders(h),
     userAgent: h.get("user-agent")?.slice(0, 300) ?? null,
   };
 }

@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Claude (session 34 — staff password reset).
+Last updated: 2026-11-20 by Codex (session 35 — per-IP authentication throttles).
 
 ## How to verify the current state
 
@@ -387,6 +387,18 @@ successful reset (password set back to the demo value), used link shows "invalid
 forgot-password page in FR and Arabic RTL, wrong current password error. Email sending was verified with a stub
 sender in tests, not against a real SMTP server.
 
+Session 35 (Codex): launch essential — shared per-IP authentication throttles. Staff login and patient-portal login
+each allow 30 attempts per 15 minutes before a 15-minute block; forgot-password allows 10 requests per hour before a
+one-hour block, in addition to its existing 3/hour/account email limit. PostgreSQL owns the atomic bucket/row lock, so
+limits survive restarts and hold across app processes; the runtime role can only call the narrow SECURITY DEFINER
+function and cannot read or mutate the table. Stored keys are HMAC fingerprints using a generated
+`AUTH_RATE_LIMIT_SECRET`, never raw addresses. Clinic Caddy now overwrites `X-CDP-Client-IP` from the socket address;
+upgrades generate the new key without changing existing secrets. Invalid/missing addresses share a conservative bucket.
+FR/EN/AR network-limit messages are complete; forgot-password deliberately keeps the same generic response. 187/187
+tests (+3 integration, +3 unit), typecheck and full lint green. Standard Turbopack still hits the documented runner-only
+helper-port `EPERM`; `npx next build --webpack` is green. Migration 0042 applied locally, Docker Compose and Caddy configs
+validated, and the protected portal login was browser-checked without changing product data.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -396,7 +408,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Multi-tenant orgs, legal entity, branch (§2, §25) | ✅ | Created at registration; clinic identity screen (legal name, NIF/NIS/RC/AI, address, contact, logo) ✅, issuer details frozen on issued documents. Multi-branch/multi-entity management UI ⏳ |
 | Postgres RLS tenant isolation (§4A, §27) | ✅ | Integration tests: cross-tenant read/write denied, no-context = 0 rows |
 | Roles & permission templates (§4) | ✅ | Permission-key templates, tenant custom role editor, owner-role protection and exact membership assignment |
-| Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | Invite activation, password lockout, encrypted TOTP + recovery codes, MFA challenge, active session list/revocation. Password reset ✅ (admin link, optional email, server command for the owner) and change-own-password ✅. Per-IP login rate limiting ⏳ |
+| Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | Invite activation, account lockout, PostgreSQL per-IP throttles for staff/portal login and forgot-password, encrypted TOTP + recovery codes, MFA challenge, active session list/revocation. Password reset ✅ (admin link, optional email, server command for the owner) and change-own-password ✅. |
 | Clinic onboarding (§25) | 🟡 | Self-service register creates clinic + catalog; dashboard setup checklist from real data ✅. Verification workflow ⏳ |
 | Active clinic switching for multi-org staff (§4A) | ✅ | `/select-clinic`, membership re-checked per request |
 | Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
@@ -444,15 +456,14 @@ Distinctive product pillars to preserve in future work:
 
 Launch essentials first (user decision 2026-11-20), then the patient features.
 
-1. Per-IP login rate limiting (staff and portal login, plus `/forgot-password`) before any internet exposure.
-2. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
+1. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
    option behind CGNAT), or the cloud copy/sync, so booking, public page and portal work from outside.
-3. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
+2. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
    consent, plain-language context and revocable access.
-4. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
+3. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
    the aftercare draft, without replacing clinician decisions.
-5. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
-6. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
+4. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
+5. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
 
 Not doable in code (user/accountant): validate the mandatory invoice mentions and retention rules with an Algerian
 accountant; run a timed restore exercise on the real clinic server.
