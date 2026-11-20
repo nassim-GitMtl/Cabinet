@@ -59,13 +59,14 @@ export function ClinicalFilesPanel({ patientId, rows, comparisons, canWrite, tod
   }
 
   return <div className="space-y-6">
-    {canWrite ? <form onSubmit={submit} className="space-y-4 rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
-      <div><h2 className="font-semibold">{t("uploadTitle")}</h2><p className="text-sm text-muted-foreground">{t("uploadHint")}</p></div>
+    {canWrite ? <form onSubmit={submit} className="relative space-y-5 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent" aria-hidden />
+      <div className="relative flex items-start gap-3"><div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><UploadIcon className="size-5" aria-hidden /></div><div><h2 className="font-semibold">{t("uploadTitle")}</h2><p className="text-sm text-muted-foreground">{t("uploadHint")}</p></div></div>
       <FormError error={error} />
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="grid gap-1.5 md:col-span-2"><Label htmlFor="clinical-file">{t("file")}</Label><Input id="clinical-file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,application/dicom,.dcm" onChange={(event) => setSelected(event.target.files?.[0] ?? null)} /><p className="text-xs text-muted-foreground">{t("fileHint")}</p></div>
+        <div className="grid gap-1.5 md:col-span-2"><Label htmlFor="clinical-file">{t("file")}</Label><Input id="clinical-file" className="sr-only" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,application/dicom,.dcm" onChange={(event) => setSelected(event.target.files?.[0] ?? null)} /><Label htmlFor="clinical-file" className="group flex cursor-pointer items-center gap-3 rounded-xl border border-dashed bg-muted/25 p-4 transition hover:border-primary/50 hover:bg-primary/5"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-background text-muted-foreground transition group-hover:text-primary"><UploadIcon className="size-5" aria-hidden /></span><span className="min-w-0"><span className="block truncate text-sm font-medium"><bdi>{selected?.name ?? t("file")}</bdi></span><span className="block text-xs font-normal text-muted-foreground">{t("fileHint")}</span></span></Label></div>
         <input ref={cameraRef} className="sr-only" tabIndex={-1} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(event) => setSelected(event.target.files?.[0] ?? null)} />
-        <div className="md:col-span-2"><Button type="button" variant="outline" onClick={() => cameraRef.current?.click()}><CameraIcon />{t("takePhoto")}</Button>{selected ? <span className="ms-3 text-sm"><bdi>{selected.name}</bdi></span> : null}</div>
+        <div className="md:col-span-2"><Button type="button" variant="outline" onClick={() => cameraRef.current?.click()}><CameraIcon />{t("takePhoto")}</Button></div>
         <div className="grid gap-1.5"><Label htmlFor="clinical-category">{t("category")}</Label><NativeSelect id="clinical-category" name="category" required defaultValue="intraoral_photo">{CLINICAL_FILE_CATEGORIES.map((category) => <NativeSelectOption key={category} value={category}>{t(`categories.${category}`)}</NativeSelectOption>)}</NativeSelect></div>
         <TextField name="clinicalDate" type="date" label={t("clinicalDate")} required defaultValue={today} max={today} />
         <TextField name="title" label={t("titleField")} optionalLabel maxLength={200} dir="auto" />

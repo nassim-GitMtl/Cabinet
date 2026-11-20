@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { HeartPulseIcon } from "lucide-react";
-import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, InfoIcon, MailIcon, PencilIcon, PhoneIcon, PlusIcon, ShieldAlertIcon, ShieldCheckIcon, TriangleAlertIcon, WalletIcon } from "lucide-react";
+import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, ImagesIcon, InfoIcon, LayoutDashboardIcon, MailIcon, PencilIcon, PhoneIcon, PlusIcon, ShieldAlertIcon, ShieldCheckIcon, StethoscopeIcon, TriangleAlertIcon, UserRoundIcon, WalletIcon } from "lucide-react";
 import { ForbiddenState } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const TABS = ["overview", "details", "health", "clinical", "documents", "treatments", "finance"] as const;
+const TAB_ICONS = {
+  overview: LayoutDashboardIcon,
+  details: UserRoundIcon,
+  health: HeartPulseIcon,
+  clinical: StethoscopeIcon,
+  documents: ImagesIcon,
+  treatments: ClipboardListIcon,
+  finance: WalletIcon,
+} as const;
 
 function Info({ label, value, dir }: { label: string; value: React.ReactNode; dir?: "ltr" | "rtl" }) {
   return (
@@ -90,9 +99,15 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
       </Link>
 
       {/* Persistent identity header */}
-      <header className={cn("mb-4 rounded-xl border bg-card p-4 sm:p-5", criticalCount > 0 && "border-destructive/40")}>
+      <header className={cn("relative mb-5 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm sm:p-6", criticalCount > 0 && "border-destructive/40")}>
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-br from-primary/12 via-primary/5 to-transparent" aria-hidden />
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
+          <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-lg font-semibold text-primary-foreground shadow-sm sm:size-14">
+              <span aria-hidden>{p.firstName.slice(0, 1).toUpperCase()}{p.lastName.slice(0, 1).toUpperCase()}</span>
+              <span className="sr-only">{patientDisplayName(p)}</span>
+            </div>
+            <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">{patientDisplayName(p)}</h1>
               {p.status !== "active" ? <Badge variant="secondary">{t(`patients.status.${p.status}`)}</Badge> : null}
@@ -122,8 +137,9 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                 </a>
               ) : null}
             </div>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="relative flex flex-wrap gap-2">
             {can(ctx, "clinical.write") && can(ctx, "catalog.read") && p.status !== "archived" && p.status !== "deceased" ? (
               <ButtonLink href={`/patients/${p.id}/procedures/new`}>
                 <PlusIcon aria-hidden />
@@ -181,35 +197,33 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
         ) : null}
       </header>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
-        <div className="min-w-0 space-y-4">
-          <nav aria-label={t("patients.title")} className="flex gap-1 overflow-x-auto rounded-lg border bg-card p-1 text-sm">
-            {TABS.map((x) =>
-              tabAllowed(x) ? (
+      <nav aria-label={t("patients.title")} className="sticky top-2 z-20 mb-5 flex gap-1 overflow-x-auto rounded-xl border bg-card/95 p-1.5 text-sm shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/85 lg:flex-wrap lg:overflow-visible">
+            {TABS.map((x) => {
+              const Icon = TAB_ICONS[x];
+              return tabAllowed(x) ? (
                 <Link
                   key={x}
                   href={x === "overview" ? `/patients/${p.id}` : `/patients/${p.id}?tab=${x}`}
                   aria-current={tab === x ? "page" : undefined}
                   className={cn(
-                    "shrink-0 rounded-md px-3 py-2 font-medium",
-                    tab === x ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                    "group relative flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 font-medium transition-colors",
+                    tab === x ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
+                  <Icon className="size-4" aria-hidden />
                   {t(`patients.tabs.${x}`)}
                 </Link>
               ) : (
-                <span key={x} aria-disabled className="shrink-0 cursor-not-allowed rounded-md px-3 py-2 text-muted-foreground/60">
+                <span key={x} aria-disabled className="flex shrink-0 cursor-not-allowed items-center gap-1.5 rounded-lg px-3 py-2 text-muted-foreground/60">
+                  <Icon className="size-4" aria-hidden />
                   {t(`patients.tabs.${x}`)}
                 </span>
-              ),
-            )}
-            {(["history"] as const).map((x) => (
-              <span key={x} aria-disabled className="shrink-0 cursor-not-allowed rounded-md px-3 py-2 text-muted-foreground/60" title={t("common.comingSoon")}>
-                {t(`patients.tabs.${x}`)}
-              </span>
-            ))}
-          </nav>
+              );
+            })}
+      </nav>
 
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_21rem]">
+        <div className="min-w-0 space-y-4">
           {tab === "overview" ? (
             <div className="grid gap-4 sm:grid-cols-3">
               {(
@@ -219,8 +233,9 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                   { icon: WalletIcon, label: "patients.overview.balance", module: "billing" },
                 ] as const
               ).map((card) => (
-                <div key={card.label} className="rounded-xl border bg-card p-4">
-                  <card.icon className="mb-2 size-5 text-primary" aria-hidden />
+                <div key={card.label} className="group relative overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+                  <div className="absolute -end-6 -top-8 size-24 rounded-full bg-primary/5 transition group-hover:scale-110" aria-hidden />
+                  <div className="mb-3 flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary"><card.icon className="size-5" aria-hidden /></div>
                   <p className="text-sm font-medium">{t(card.label)}</p>
                   {card.module === "agenda" && nextAppointment ? (
                     <Link
@@ -338,7 +353,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
           )}
         </div>
 
-        <aside className="space-y-4">
+        <aside className="space-y-4 xl:sticky xl:top-2 xl:self-start">
           {can(ctx, "patient.alerts.read") ? (
             <AlertsPanel
               patientId={p.id}

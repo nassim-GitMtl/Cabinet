@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Claude (session 30 — import existing patients).
+Last updated: 2026-11-20 by Codex (session 31 — patient workspace visual refresh).
 
 ## How to verify the current state
 
@@ -342,6 +342,14 @@ patient + one per import, append-only `patient_imports` history (migration 0040;
 fictitious 4-row CSV → mapping guessed, 2 ready / 1 already at clinic (HAMDI Nour) / 1 without name → 2 imported,
 "2001" search finds MEZIANE Sofia (P-000015) with Arabic name. Test found and fixed: rows without phone or birth date
 were re-imported as new patients (name-only fallback added).
+
+Session 31 (Codex): modernized the patient workspace without changing its clinical or financial workflows. The persistent
+identity header now has a compact patient monogram, subtle depth and clearer separation between identity, contact details
+and actions. The workspace navigation is a full-width, sticky icon tab bar so all modules remain legible beside the clinical
+sidebar; overview metrics use responsive elevated cards and the alerts/consent rail stays visible on wide screens. The
+clinical file uploader is now a clear private-file drop surface with a stronger visual hierarchy while retaining the camera,
+metadata and immutable upload flow. 168/168 tests, typecheck and full lint green. The standard Turbopack build still hits
+the known local helper-port restriction; `npx next build --webpack` is green. Browser-checked the documents workspace on desktop.
 
 ## Requirement coverage map
 
