@@ -65,12 +65,12 @@ type Props = {
 function Brand() {
   return (
     <span className="flex items-center gap-3 font-semibold tracking-tight">
-      <span aria-hidden className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-primary to-teal-700 text-primary-foreground shadow-lg shadow-primary/20">
+      <span aria-hidden className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground shadow-[0_8px_18px_-12px_color-mix(in_oklch,var(--primary),black_35%)]">
         <ToothIcon className="size-6" />
       </span>
       <span className="leading-tight">
-        <span className="block text-[15px]">Cabinet Dentaire</span>
-        <span className="block text-xs font-medium uppercase tracking-[0.22em] text-primary">Pro</span>
+        <span className="block text-[15px] tracking-[-0.015em]">Cabinet Dentaire</span>
+        <span className="block text-[10px] font-bold uppercase tracking-[0.24em] text-primary">Pro</span>
       </span>
     </span>
   );
@@ -91,11 +91,11 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
       </a>
 
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-e border-sidebar-border/70 bg-sidebar/95 shadow-[8px_0_30px_-24px_rgba(15,23,42,.32)] backdrop-blur-xl lg:flex no-print">
-        <div className="px-5 pt-5 pb-4">
+      <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col border-e border-sidebar-border bg-sidebar/94 shadow-[7px_0_28px_-25px_rgba(48,39,25,.38)] lg:flex no-print">
+        <div className="px-5 pt-5 pb-5">
           <Brand />
         </div>
-        <div className="mx-4 mb-5 rounded-2xl border border-primary/10 bg-gradient-to-br from-primary/10 via-background to-background p-3.5 shadow-sm">
+        <div className="mx-4 mb-5 rounded-xl border border-primary/12 bg-accent/45 p-3.5">
           <p className="truncate text-sm font-semibold" title={clinicName} dir="auto">
             {clinicName}
           </p>
@@ -107,8 +107,8 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
             </Link>
           ) : null}
         </div>
-        <p className="px-6 pb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">{t("workspace")}</p>
-        <nav aria-label={t("mainNavigation")} className="flex-1 space-y-1 overflow-y-auto px-3">
+        <p className="px-6 pb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground/85">{t("workspace")}</p>
+        <nav aria-label={t("mainNavigation")} className="flex-1 space-y-0.5 overflow-y-auto px-3">
           {nav.map((key) => {
             const item = NAV[key];
             const active = isActive(item.href);
@@ -118,9 +118,9 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                  "group relative flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-sm font-medium transition-all",
                   active
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/15"
+                    ? "bg-primary text-primary-foreground shadow-[0_8px_18px_-14px_color-mix(in_oklch,var(--primary),black_40%)]"
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                 )}
               >
@@ -131,9 +131,9 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
           })}
         </nav>
         <div className="mx-3 mb-2"><ToothNumberGuide /></div>
-        <div className="space-y-3 border-t border-sidebar-border/70 p-4">
-          <div className="flex items-center gap-3 rounded-xl bg-muted/55 p-2.5">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-bold text-primary" aria-hidden>
+        <div className="space-y-3 border-t border-sidebar-border p-4">
+          <div className="flex items-center gap-3 px-1 py-1.5">
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent text-sm font-bold text-accent-foreground" aria-hidden>
               {userName.trim().charAt(0).toUpperCase()}
             </span>
             <div className="min-w-0">
@@ -151,11 +151,11 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
         </div>
       </aside>
 
-      <div className="relative flex min-w-0 flex-1 flex-col bg-[radial-gradient(circle_at_top_right,color-mix(in_oklch,var(--primary)_8%,transparent),transparent_34rem)]">
+      <div className="relative flex min-w-0 flex-1 flex-col">
         {/* Mobile top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border/60 bg-background/85 px-4 py-2.5 shadow-sm backdrop-blur-xl lg:hidden no-print">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-2.5 shadow-[0_8px_18px_-16px_rgba(48,39,25,.3)] backdrop-blur-xl lg:hidden no-print">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-primary to-teal-700 text-primary-foreground shadow-md shadow-primary/20">
+            <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary text-primary-foreground">
               <ToothIcon className="size-5" />
             </span>
             <div className="min-w-0">
@@ -174,14 +174,14 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
           </div>
         </header>
 
-        <main id="main" className="mx-auto w-full max-w-[90rem] flex-1 px-4 pt-5 pb-32 sm:px-6 lg:px-8 lg:pt-8 lg:pb-12 xl:px-10">
+        <main id="main" className="mx-auto w-full max-w-[92rem] flex-1 px-4 pt-5 pb-32 sm:px-6 lg:px-9 lg:pt-8 lg:pb-12 xl:px-12">
           {children}
         </main>
 
         {/* Mobile bottom navigation */}
         <nav
           aria-label={t("mainNavigation")}
-          className="fixed inset-x-3 bottom-3 z-30 overflow-hidden rounded-2xl border border-border/70 bg-background/90 pb-[env(safe-area-inset-bottom)] shadow-[0_12px_40px_-12px_rgba(15,23,42,.35)] backdrop-blur-xl lg:hidden no-print"
+          className="fixed inset-x-3 bottom-3 z-30 overflow-hidden rounded-2xl border border-border bg-card/92 pb-[env(safe-area-inset-bottom)] shadow-[0_14px_34px_-18px_rgba(48,39,25,.38)] backdrop-blur-xl lg:hidden no-print"
         >
           <ul className="mx-auto flex max-w-lg items-stretch justify-around">
             {nav.filter((key) => MOBILE_PRIMARY.includes(key)).map((key) => {

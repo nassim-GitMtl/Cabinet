@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Codex (session 31 — patient workspace visual refresh).
+Last updated: 2026-11-20 by Codex (session 32 — product-wide Human Practice visual system).
 
 ## How to verify the current state
 
@@ -350,6 +350,16 @@ sidebar; overview metrics use responsive elevated cards and the alerts/consent r
 clinical file uploader is now a clear private-file drop surface with a stronger visual hierarchy while retaining the camera,
 metadata and immutable upload flow. 168/168 tests, typecheck and full lint green. The standard Turbopack build still hits
 the known local helper-port restriction; `npx next build --webpack` is green. Browser-checked the documents workspace on desktop.
+
+Session 32 (Codex): applied the user-selected “Human Practice” direction across the shared product UI. Semantic tokens now
+use a warm ivory canvas, forest teal, quiet sage, charcoal and clay warning tones; shared buttons, inputs, badges, cards,
+page headers, desktop/mobile chrome and responsive navigation use softer natural elevation and less decorative gradient.
+Latin page/section headings use a web-safe editorial serif while bundled Inter remains the dense UI face and IBM Plex Arabic
+remains unchanged for Arabic/offline reliability. The patient command header, active module ribbon and clinical upload surface
+were aligned to the same system; the active module now scrolls into view on narrow screens. Product Design QA compared the
+selected concept with browser evidence and passed after that responsive fix (`design-qa.md`). Browser-checked dashboard,
+agenda, inventory and patient documents in the in-app browser. 168/168 tests, typecheck and full lint green. Standard
+Turbopack still hits the documented helper-port `EPERM`; `npx next build --webpack` is green.
 
 ## Requirement coverage map
 
