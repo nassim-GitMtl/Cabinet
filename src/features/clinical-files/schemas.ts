@@ -2,6 +2,8 @@ import { z } from "zod";
 import { isFdiTooth } from "@/features/procedures/schemas";
 import { parseDateOnly } from "@/lib/dates";
 
+export const MAX_CLINICAL_FILE_BYTES = 20 * 1024 * 1024;
+
 export const CLINICAL_FILE_CATEGORIES = [
   "intraoral_photo", "extraoral_photo", "radiograph", "scan", "referral",
   "prescription", "lab_report", "consent", "other",

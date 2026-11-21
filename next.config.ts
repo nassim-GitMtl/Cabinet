@@ -7,8 +7,9 @@ import createNextIntlPlugin from "next-intl/plugin";
 const nextConfig: NextConfig = {
   cacheComponents: false,
   poweredByHeader: false,
-  // Self-contained server bundle for the clinic Docker image (no node_modules at runtime).
-  output: "standalone",
+  // Self-contained server bundle for the clinic Docker image. Vercel's native
+  // Next.js adapter creates its own function bundles and must control output.
+  output: process.env.VERCEL ? undefined : "standalone",
   experimental: {
     // src/proxy.ts makes Next buffer request bodies, silently truncating them past this size (default 10 MB).
     // Clinical images/documents go up to 20 MB (MAX_CLINICAL_FILE_BYTES) plus multipart overhead.

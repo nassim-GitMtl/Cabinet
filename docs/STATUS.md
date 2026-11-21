@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-21 by Codex (session 38 — deployable Neon + cloud VPS stack).
+Last updated: 2026-11-21 by Codex (session 39 — native Vercel + Neon + private Blob deployment).
 
 ## How to verify the current state
 
@@ -430,6 +430,17 @@ important limitation that Neon does not store clinical files. 193/193 tests (+5 
 resolution and both migration/runtime Docker image builds green; the runtime image's exact Turbopack `npx next build` is
 green. Local webpack build is also green; the host sandbox's direct Turbopack build retains the known helper-port `EPERM`.
 
+Session 39 (Codex): native Vercel deployment is complete. `next.config.ts` lets Vercel's Next.js adapter own function
+bundling while Docker keeps standalone output. Clinical files can now use `CLINICAL_STORAGE_BACKEND=vercel-blob`: an
+authorized, patient-scoped, short-lived token sends up to 20 MB directly from the browser to a private Blob store; the
+server rereads the bytes, validates their magic signature and clinical rules, computes sha256, moves the object to its
+immutable organization/patient key, then records metadata and audit in the tenant transaction. Reads remain permissioned,
+RLS-isolated, audited and streamed through a private no-store route; abandoned pending uploads expire after one day and
+the health endpoint checks Blob configuration. `docs/DEPLOYMENT-VERCEL.md` covers the Vercel/Neon/Blob setup, production
+secrets, preview isolation, migrations, verification and coordinated backups. 195/195 tests (+2 unit), typecheck and full
+lint green; the Vercel-mode Webpack production build is green. The host's standard Turbopack build reaches the unchanged
+CSS helper-port `EPERM` sandbox restriction, not an application compile error.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -456,7 +467,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
 | Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Printable estimate, portal view, payment schedules with per-installment receipts and reminders ✅. Consent capture/signatures ⏳. |
 | Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and treatment links. Structured draft notes, review, signing, amendments and hash-chain integrity ✅. Primary visual chart and periodontal chart ⏳. |
-| Images/documents, object storage (§12A, §15) | ✅ | Private clinic-server storage, camera upload, magic-byte type check, sha256, append-only metadata, before/after pairs, audited views, included in backups. DICOM viewer, annotations/measurements, cloud object storage 🔌 ⏳ |
+| Images/documents, object storage (§12A, §15) | ✅ | Private filesystem or Vercel Blob storage, direct browser upload on Vercel, magic-byte type check, sha256, append-only metadata, before/after pairs and audited private views. DICOM viewer and annotations/measurements ⏳ |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Acquisition report ✅ (sources, treated share, production, booking funnel, referrers). `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
@@ -487,9 +498,9 @@ Distinctive product pillars to preserve in future work:
 
 Launch essentials first (user decision 2026-11-20), then the patient features.
 
-1. ✅ Internet access for patients: the Neon + VPS cloud deployment provides a public domain, automatic HTTPS and
-   `PUBLIC_APP_URL`; configuration and operation are documented in `docs/DEPLOYMENT-NEON.md`. A tunnel for the offline
-   clinic-server variant remains an optional later deployment path, not required by the cloud stack.
+1. ✅ Internet access for patients: Neon + VPS and native Vercel + Neon + private Blob deployments provide a public domain,
+   HTTPS and `PUBLIC_APP_URL`; configuration and operation are documented in `docs/DEPLOYMENT-NEON.md` and
+   `docs/DEPLOYMENT-VERCEL.md`. A tunnel for the offline clinic-server variant remains an optional later deployment path.
 2. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
    consent, plain-language context and revocable access.
 3. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and

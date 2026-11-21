@@ -202,6 +202,19 @@ never summed. "Paid to date" is as of generation time.
 - Caddy is the only published service and overwrites `X-CDP-Client-IP`; the Next.js process remains on the private Docker
   network. Clinical uploads remain on the persistent `clinical-files` volume and require a backup independent of Neon.
 
+## Deployment: Vercel + Neon + private Blob (`docs/DEPLOYMENT-VERCEL.md`)
+
+- Vercel uses its native Next.js adapter (`output: "standalone"` is enabled only outside Vercel). The runtime gets only the
+  pooled Neon URL for restricted `cabinet_app`; the direct owner URL remains in a separate operator/CI migration context.
+- `CLINICAL_STORAGE_BACKEND=vercel-blob` replaces the ephemeral filesystem with a private Vercel Blob store. Browser
+  uploads use a short-lived server-authorized token restricted to one active patient, accepted MIME declarations and
+  20 MB. The finalizer downloads the object, validates magic bytes/date/comparison rules, computes sha256, then renames it
+  from `pending/<patient>/<uuid>.bin` to the canonical immutable organization/patient key before the DB transaction.
+- Private reads still pass through `GET /api/clinical-files/[id]`: permission, tenant RLS and view audit run before the
+  Blob stream is returned with `private, no-store`. The Blob URL/token is never sent to readers.
+- Temporary direct uploads have a one-day TTL. A DB failure removes the finalized object; accepted clinical objects have
+  no product delete path. Neon and Blob require coordinated, independently verified backups.
+
 ## Medical history (`src/features/health`, migrations 0021/0022/0031)
 - `questionnaire_versions` (wording immutable; one-time clinician approval), append-only `questionnaire_responses`
   (every update is a new row) and `health_history_reviews` ("reviewed" / "no_changes" events).
@@ -264,15 +277,16 @@ never summed. "Paid to date" is as of generation time.
 
 ## Clinical images & documents (`src/features/clinical-files`, migration 0032)
 
-- Bytes live on the clinic server's disk (`CLINICAL_STORAGE_DIR`; Docker volume `clinical-files`), never under `/public`.
-  The storage key `<org>/<patient>/<uuid>.<ext>` is generated server-side, validated by regex and confined to the root;
-  it is never accepted from or shown to a client. Files are written with `wx` (no overwrite) and 0600; a failed DB
-  transaction removes the just-written file (the only delete path).
+- Bytes live either on the clinic server's disk (`CLINICAL_STORAGE_DIR`; Docker volume `clinical-files`) or in private
+  Vercel Blob, never under `/public`. The canonical storage key `<org>/<patient>/<uuid>.<ext>` is generated server-side
+  and validated by regex; it is never shown to a client. Filesystem writes use `wx` (no overwrite) and 0600. Vercel direct
+  uploads first use a patient-scoped pending key, then become canonical only after server-side content validation.
 - Media type comes from magic bytes (JPEG/PNG/WebP → image, PDF/DICOM → document), never from the browser. sha256 and
   size are stored. `clinical_files` and `clinical_file_comparisons` are append-only; corrections are new uploads.
-- Upload is a route handler (`POST /api/patients/[id]/clinical-files`, multipart) because server actions cap bodies at
-  1 MB. `src/proxy.ts` makes Next buffer request bodies, so `experimental.proxyClientMaxBodySize` must stay above the
-  20 MB limit plus multipart overhead, or larger files are silently truncated.
+- Filesystem upload is a route handler (`POST /api/patients/[id]/clinical-files`, multipart). `src/proxy.ts` makes Next
+  buffer request bodies, so `experimental.proxyClientMaxBodySize` must stay above the 20 MB limit plus multipart overhead.
+  Vercel uses direct browser-to-Blob upload to avoid the function request-body limit; the token and finalization routes
+  enforce the same permission, patient, size and content rules.
 - `GET /api/clinical-files/[id]` checks `clinical.images.read`, audits `clinical_file.viewed`, and returns
   `private, no-store`, `nosniff`; `CSP: sandbox` for images/DICOM (not PDFs: browsers refuse to render them sandboxed).
 - `path.resolve` calls on runtime data carry `/*turbopackIgnore: true*/` so the standalone build doesn't trace the

@@ -1635,7 +1635,8 @@
       "emptyFile": "Choisissez un fichier.", "tooLarge": "Le fichier dépasse 20 Mo.", "unsupportedType": "Type de fichier non pris en charge ou contenu invalide.",
       "futureDate": "La date clinique ne peut pas être dans le futur.", "invalidTeeth": "Utilisez uniquement des numéros de dents FDI valides.", "patientUnavailable": "Ce patient n’est pas disponible.",
       "comparisonImagesOnly": "Un comparatif avant/après nécessite une image.", "comparisonUnavailable": "Cette image ne peut plus être utilisée dans ce comparatif.",
-      "comparisonDate": "L’image « après » ne peut pas être antérieure à l’image « avant ».", "storageMissing": "Le fichier original est absent du stockage privé."
+      "comparisonDate": "L’image « après » ne peut pas être antérieure à l’image « avant ».", "storageMissing": "Le fichier original est absent du stockage privé.",
+      "storageUnavailable": "Le stockage privé n’est pas disponible. Réessayez ou contactez l’administrateur."
     }
   },
   "health": {

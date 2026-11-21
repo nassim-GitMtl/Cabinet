@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState, type FormEvent } from "react";
+import { upload } from "@vercel/blob/client";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -12,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { formatDateOnly } from "@/lib/dates";
-import { CLINICAL_FILE_CATEGORIES } from "../schemas";
+import { CLINICAL_FILE_CATEGORIES, MAX_CLINICAL_FILE_BYTES } from "../schemas";
 
 type FileRow = {
   file: {
@@ -23,8 +24,8 @@ type FileRow = {
 };
 type Comparison = { id: string; beforeFileId: string; afterFileId: string };
 
-export function ClinicalFilesPanel({ patientId, rows, comparisons, canWrite, today }: {
-  patientId: string; rows: FileRow[]; comparisons: Comparison[]; canWrite: boolean; today: string;
+export function ClinicalFilesPanel({ patientId, rows, comparisons, canWrite, today, directBlobUpload }: {
+  patientId: string; rows: FileRow[]; comparisons: Comparison[]; canWrite: boolean; today: string; directBlobUpload: boolean;
 }) {
   const t = useTranslations("clinicalFiles");
   const common = useTranslations("common");
@@ -47,10 +48,37 @@ export function ClinicalFilesPanel({ patientId, rows, comparisons, canWrite, tod
     // currentTarget is null once the handler has awaited; keep the element.
     const formElement = event.currentTarget;
     if (!selected) { setError("clinicalFiles.errors.emptyFile"); return; }
+    if (selected.size > MAX_CLINICAL_FILE_BYTES) { setError("clinicalFiles.errors.tooLarge"); return; }
     setPending(true); setError(undefined);
-    const form = new FormData(formElement); form.set("file", selected);
+    const form = new FormData(formElement);
     try {
-      const response = await fetch(`/api/patients/${patientId}/clinical-files`, { method: "POST", body: form });
+      let response: Response;
+      if (directBlobUpload) {
+        const pathname = `pending/${patientId}/${crypto.randomUUID()}.bin`;
+        const blob = await upload(pathname, selected, {
+          access: "private",
+          handleUploadUrl: "/api/clinical-files/blob-upload",
+          clientPayload: JSON.stringify({ patientId }),
+          contentType: selected.type || "application/octet-stream",
+          multipart: selected.size > 5 * 1024 * 1024,
+        });
+        response = await fetch(`/api/patients/${patientId}/clinical-files`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            category: form.get("category"),
+            title: form.get("title"),
+            clinicalDate: form.get("clinicalDate"),
+            toothNumbers: form.get("toothNumbers"),
+            compareToFileId: form.get("compareToFileId"),
+            storageKey: blob.pathname,
+            originalFilename: selected.name,
+          }),
+        });
+      } else {
+        form.set("file", selected);
+        response = await fetch(`/api/patients/${patientId}/clinical-files`, { method: "POST", body: form });
+      }
       const body = await response.json().catch(() => ({})) as { error?: string };
       if (!response.ok) { setError(body.error ?? "errors.generic"); return; }
       formElement.reset(); setSelected(null); router.refresh();

@@ -1635,7 +1635,8 @@
       "emptyFile": "Choose a file.", "tooLarge": "The file exceeds 20 MB.", "unsupportedType": "Unsupported file type or invalid content.",
       "futureDate": "The clinical date cannot be in the future.", "invalidTeeth": "Use valid FDI tooth numbers only.", "patientUnavailable": "This patient is unavailable.",
       "comparisonImagesOnly": "A before/after comparison requires an image.", "comparisonUnavailable": "This image can no longer be used in this comparison.",
-      "comparisonDate": "The “after” image cannot predate the “before” image.", "storageMissing": "The original file is missing from private storage."
+      "comparisonDate": "The “after” image cannot predate the “before” image.", "storageMissing": "The original file is missing from private storage.",
+      "storageUnavailable": "Private storage is unavailable. Try again or contact the administrator."
     }
   },
   "health": {

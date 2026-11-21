@@ -30,7 +30,7 @@ import { getAgendaSetup } from "@/features/agenda/server";
 import { HealthPanel } from "@/features/health/components/health-panel";
 import { healthStatus } from "@/features/health/server";
 import { ClinicalFilesPanel } from "@/features/clinical-files/components/clinical-files-panel";
-import { listClinicalFiles } from "@/features/clinical-files/server";
+import { clinicalFilesUseDirectUpload, listClinicalFiles } from "@/features/clinical-files/server";
 import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
 import { cn } from "@/lib/utils";
@@ -294,7 +294,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
           ) : tab === "documents" && clinicalFiles ? (
             <ClinicalFilesPanel patientId={p.id} rows={clinicalFiles.files} comparisons={clinicalFiles.comparisons}
               canWrite={can(ctx, "clinical.images.write") && p.status !== "archived" && p.status !== "deceased"}
-              today={todayInZone(ctx.organization.timezone)} />
+              today={todayInZone(ctx.organization.timezone)} directBlobUpload={clinicalFilesUseDirectUpload()} />
           ) : tab === "finance" ? (
             <PatientFinance ctx={ctx} patientId={p.id} canBill={can(ctx, "invoice.create")} />
           ) : tab === "treatments" ? (
