@@ -1,7 +1,7 @@
 import "dotenv/config";
 import postgres from "postgres";
 import { runMigrations } from "../../scripts/migrate";
-import { PEER_DATABASE, SYNC_TEST_PASSWORD, withDatabase } from "./urls";
+import { NODE_DATABASE, PEER_DATABASE, SYNC_TEST_PASSWORD, withDatabase } from "./urls";
 
 async function resetSchemas(url: string) {
   const sql = postgres(url, { max: 1, onnotice: () => {} });
@@ -26,15 +26,19 @@ export default async function setup() {
   await runMigrations(url);
 
   const admin = postgres(url, { max: 1, onnotice: () => {} });
-  const [exists] = await admin`select 1 as one from pg_database where datname = ${PEER_DATABASE}`;
-  if (!exists) await admin.unsafe(`CREATE DATABASE ${PEER_DATABASE} OWNER "${decodeURIComponent(new URL(url).username)}"`);
+  for (const name of [PEER_DATABASE, NODE_DATABASE]) {
+    const [exists] = await admin`select 1 as one from pg_database where datname = ${name}`;
+    if (!exists) await admin.unsafe(`CREATE DATABASE ${name} OWNER "${decodeURIComponent(new URL(url).username)}"`);
+  }
   await admin.unsafe(`ALTER ROLE cabinet_sync WITH LOGIN PASSWORD '${SYNC_TEST_PASSWORD}'`);
   await admin.end();
 
-  const peerUrl = withDatabase(url, PEER_DATABASE);
-  await resetSchemas(peerUrl);
-  await runMigrations(peerUrl);
-  const peer = postgres(peerUrl, { max: 1, onnotice: () => {} });
-  await peer`update app_private.node_settings set node_role = 'clinic'`;
-  await peer.end();
+  for (const name of [PEER_DATABASE, NODE_DATABASE]) {
+    const peerUrl = withDatabase(url, name);
+    await resetSchemas(peerUrl);
+    await runMigrations(peerUrl);
+    const peer = postgres(peerUrl, { max: 1, onnotice: () => {} });
+    await peer`update app_private.node_settings set node_role = 'clinic'`;
+    await peer.end();
+  }
 }

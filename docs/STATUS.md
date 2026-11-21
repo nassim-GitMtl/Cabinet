@@ -13,10 +13,12 @@ User chose "Clinic PC + cloud sync" (like Dentus). Design: docs/ARCHITECTURE.md 
   the cloud copy, pairing functions), engine `src/server/sync/{types,engine,pairing,secret,connection}.ts`, cloud
   pairing service `src/features/sync/server.ts`; `tests/integration/sync.test.ts` runs both copies (peer database
   `cabinet_test_peer`, created by the test setup).
-- ⏳ Step 3: cloud HTTP endpoints `/api/sync/{pair,snapshot,push,pull}` (node key auth, schema-version check, batch size).
-- ⏳ Step 4: clinic computer worker (`instrumentation.ts`, push/pull every ~15 s, bootstrap), pairing screen on a fresh
-  clinic computer, sync status chip; cloud settings page (pairing code, status, unpair); read-only banner and friendly
-  `clinic_read_only` error in the cloud.
+- ✅ Step 3 (committed): cloud endpoints `/api/sync/{pair,snapshot,push,pull}` (node key, schema-version header, body
+  limits; cloud node only) and the clinic worker `src/server/sync/{client,worker}.ts` started by `src/instrumentation.ts`
+  (15 s loop, resumable first copy, push then pull, offline recorded as `last_error = offline`). End-to-end test
+  `tests/integration/sync-worker.test.ts` (third database `cabinet_test_node`, endpoints called in-process).
+- ⏳ Step 4: screens: pairing page on a fresh clinic computer, sync status chip, cloud settings page (pairing code, status,
+  unpair); in the cloud, staff of a clinic-homed clinic get read permissions only + a banner.
 - ⏳ Step 5: deployment: `cabinet_sync` role + `SYNC_DATABASE_URL` in `deploy/clinic` (node role clinic) and Neon setup
   script; docs for both.
 

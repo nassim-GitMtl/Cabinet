@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { getServicePickerData, setServiceFavorite, updateService } from "@/features/catalog/server";
 import { getDashboardStats } from "@/features/dashboard/server";
@@ -196,7 +196,7 @@ describe("visits and completed procedures", () => {
 
     const events = await withDbContext(
       { organizationId: fixture.ctx.organizationId, userId: fixture.ctx.userId, actorType: "staff" },
-      (tx) => tx.select().from(auditEvents).where(eq(auditEvents.entityId, created.id)),
+      (tx) => tx.select().from(auditEvents).where(eq(auditEvents.entityId, created.id)).orderBy(asc(auditEvents.occurredAt), asc(auditEvents.id)),
     );
     expect(events.map((event) => event.action)).toEqual([
       "performed_procedure.created",
