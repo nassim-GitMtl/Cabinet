@@ -13,7 +13,14 @@ export default defineConfig({
     projects: [
       {
         resolve: { alias },
-        test: { name: "unit", include: ["src/**/*.test.ts"], environment: "node" },
+        test: {
+          name: "unit",
+          include: ["src/**/*.test.ts"],
+          environment: "node",
+          // A few pure service modules import the lazily-used database client.
+          // Give construction a test URL without opening a connection.
+          setupFiles: ["tests/support/env.ts"],
+        },
       },
       {
         resolve: { alias },

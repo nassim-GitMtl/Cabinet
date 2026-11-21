@@ -188,6 +188,20 @@ never summed. "Paid to date" is as of generation time.
   unreachable. `ConnectionBanner` polls `/api/health` and warns that nothing is saved while disconnected.
   No patient, clinical or financial data is stored on devices; there is no offline write queue (deliberate).
 
+## Deployment: Neon PostgreSQL + cloud VPS (`deploy/neon`, guide `docs/DEPLOYMENT-NEON.md`)
+
+- The application uses two physically separate connection strings: the direct Neon owner endpoint exists only in the
+  one-shot migration container; the web process receives a pooled `-pooler` URL for `cabinet_app`.
+- `scripts/setup-neon.ts` creates the runtime role through SQL (never the Neon Console), removes inherited roles, verifies
+  `NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE`, applies migrations, then verifies the role and a context-free RLS read
+  through the pooled endpoint. The owner URL must never be used as `DATABASE_URL`.
+- Tenant context uses transaction-local `set_config(..., true)` inside `tenantTx` / `withDbContext`, which is compatible
+  with PgBouncer transaction pooling. Postgres.js protocol prepared statements remain enabled on the runtime pool.
+- Postgres.js URL normalization removes only the unsupported libpq `channel_binding` query hint; Neon TLS remains mandatory
+  through `sslmode=require`.
+- Caddy is the only published service and overwrites `X-CDP-Client-IP`; the Next.js process remains on the private Docker
+  network. Clinical uploads remain on the persistent `clinical-files` volume and require a backup independent of Neon.
+
 ## Medical history (`src/features/health`, migrations 0021/0022/0031)
 - `questionnaire_versions` (wording immutable; one-time clinician approval), append-only `questionnaire_responses`
   (every update is a new row) and `health_history_reviews` ("reviewed" / "no_changes" events).

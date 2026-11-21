@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Claude (session 37 — whole-app check and display fixes).
+Last updated: 2026-11-21 by Codex (session 38 — deployable Neon + cloud VPS stack).
 
 ## How to verify the current state
 
@@ -419,6 +419,17 @@ and portal are built); (4) phone pages get enough bottom space to clear the floa
 cards show formatted phone numbers instead of raw E.164. 188/188 tests (+1 unit), typecheck, lint, `next build` green;
 browser-checked each fix (booking form opens with the patient, closes back to `/agenda?date=`; Arabic message order).
 
+Session 38 (Codex): production deployment with Neon PostgreSQL is complete. `npm run db:setup:neon` creates the
+restricted `cabinet_app` role through SQL, removes inherited Neon roles, verifies that it has no superuser/BYPASSRLS/
+database-creation privileges, applies migrations through the direct owner endpoint, and reconnects through the pooled
+endpoint to verify a context-free RLS read. Postgres.js strips Neon's unsupported libpq `channel_binding` URL hint while
+preserving `sslmode=require`; runtime pool size is configurable. `deploy/neon` supplies a production Compose stack with
+separate migration/web secrets, non-root standalone app, persistent clinical-file volume and public Caddy HTTPS proxy that
+overwrites the trusted client-IP header. `docs/DEPLOYMENT-NEON.md` covers setup, secrets, deploy, updates, backups and the
+important limitation that Neon does not store clinical files. 193/193 tests (+5 unit), typecheck, full lint, Compose
+resolution and both migration/runtime Docker image builds green; the runtime image's exact Turbopack `npx next build` is
+green. Local webpack build is also green; the host sandbox's direct Turbopack build retains the known helper-port `EPERM`.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -476,8 +487,9 @@ Distinctive product pillars to preserve in future work:
 
 Launch essentials first (user decision 2026-11-20), then the patient features.
 
-1. Internet access for patients: guide + config to expose the clinic server safely (domain, HTTPS, PUBLIC_APP_URL, tunnel
-   option behind CGNAT), or the cloud copy/sync, so booking, public page and portal work from outside.
+1. ✅ Internet access for patients: the Neon + VPS cloud deployment provides a public domain, automatic HTTPS and
+   `PUBLIC_APP_URL`; configuration and operation are documented in `docs/DEPLOYMENT-NEON.md`. A tunnel for the offline
+   clinic-server variant remains an optional later deployment path, not required by the cloud stack.
 2. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
    consent, plain-language context and revocable access.
 3. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and

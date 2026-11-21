@@ -2,11 +2,18 @@ import "server-only";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+import { databasePoolMax, normalizeDatabaseUrl } from "@/server/deployment/database-url";
 
 type Db = ReturnType<typeof createDb>;
 
-export function createDb(url: string, max = 10) {
-  const client = postgres(url, { max, prepare: true, idle_timeout: 30 });
+export function createDb(url: string, max = databasePoolMax()) {
+  const client = postgres(normalizeDatabaseUrl(url), {
+    max,
+    prepare: true,
+    idle_timeout: 30,
+    connect_timeout: 30,
+    connection: { application_name: "cabinet-dentaire-web" },
+  });
   return drizzle(client, { schema, casing: "snake_case" });
 }
 

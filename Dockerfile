@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
-# Cabinet Dentaire Pro — images for the clinic server (see docs/INSTALLATION-CABINET.md).
-# Build once on a machine with internet, or on the clinic server itself; the
-# running application never needs internet access.
+# Cabinet Dentaire Pro — standalone application and migration images.
+# Used by the offline clinic server and the Neon deployment. See
+# docs/INSTALLATION-CABINET.md and docs/DEPLOYMENT-NEON.md.
 
 FROM node:24-alpine AS deps
 WORKDIR /app
@@ -19,6 +19,7 @@ RUN npx next build
 # one-shot migrate image needs no node_modules.
 FROM deps AS migrate-build
 COPY scripts/migrate.ts scripts/staff-reset-link.ts ./scripts/
+COPY src/server/deployment/database-url.ts ./src/server/deployment/database-url.ts
 RUN for name in migrate staff-reset-link; do \
       npx esbuild scripts/$name.ts --bundle --platform=node --format=esm --target=node22 \
         --banner:js="import { createRequire } from 'module'; const require = createRequire(import.meta.url);" \

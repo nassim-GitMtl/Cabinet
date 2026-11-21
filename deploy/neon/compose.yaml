@@ -1,0 +1,68 @@
+name: cabinet-neon
+
+services:
+  migrate:
+    image: cabinet-dentaire-pro-migrate:${APP_VERSION:-local}
+    build:
+      context: ../..
+      target: migrate
+    environment:
+      # Direct Neon owner endpoint. This secret is never passed to the web app.
+      DATABASE_URL_ADMIN: ${DATABASE_URL_ADMIN:?direct Neon owner URL required}
+    restart: "no"
+
+  app:
+    image: cabinet-dentaire-pro:${APP_VERSION:-local}
+    build:
+      context: ../..
+      target: runtime
+    restart: unless-stopped
+    environment:
+      # Pooled Neon endpoint using the SQL-created cabinet_app role.
+      DATABASE_URL: ${DATABASE_URL:?pooled cabinet_app Neon URL required}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-5}
+      APP_URL: https://${APP_HOST:?public hostname required}
+      PUBLIC_APP_URL: https://${APP_HOST}
+      MFA_ENCRYPTION_KEY: ${MFA_ENCRYPTION_KEY:?32-byte secret required}
+      AUTH_RATE_LIMIT_SECRET: ${AUTH_RATE_LIMIT_SECRET:?32-byte secret required}
+      CLINICAL_STORAGE_DIR: /data/clinical-files
+      REGISTRATION_MODE: ${REGISTRATION_MODE:-first-only}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      TZ: ${TZ:-Africa/Algiers}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    volumes:
+      - clinical-files:/data/clinical-files
+    networks: [internal]
+
+  proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      APP_HOST: ${APP_HOST:?public hostname required}
+      TLS_EMAIL: ${TLS_EMAIL:?certificate contact email required}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [internal]
+
+volumes:
+  clinical-files:
+  caddy-data:
+  caddy-config:
+
+networks:
+  internal:

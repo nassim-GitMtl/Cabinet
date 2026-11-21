@@ -5,9 +5,16 @@ import "dotenv/config";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
+import { normalizeDatabaseUrl } from "../src/server/deployment/database-url";
 
 export async function runMigrations(url: string) {
-  const client = postgres(url, { max: 1, onnotice: () => {} });
+  const client = postgres(normalizeDatabaseUrl(url), {
+    max: 1,
+    prepare: false,
+    connect_timeout: 30,
+    onnotice: () => {},
+    connection: { application_name: "cabinet-dentaire-migrate" },
+  });
   try {
     await migrate(drizzle(client), { migrationsFolder: "./drizzle" });
   } finally {

@@ -1,0 +1,11 @@
+{
+	email {$TLS_EMAIL}
+}
+
+{$APP_HOST} {
+	encode zstd gzip
+	reverse_proxy app:3000 {
+		# Authentication throttles trust this private header. Always overwrite it.
+		header_up X-CDP-Client-IP {remote_host}
+	}
+}
