@@ -6,6 +6,20 @@ alternate on this repo; this file is the shared memory between them.
 
 Last updated: 2026-11-21 by Codex (session 39 — native Vercel + Neon + private Blob deployment).
 
+## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
+
+User chose "Clinic PC + cloud sync" (like Dentus). Design: docs/ARCHITECTURE.md "Offline clinic computer and cloud sync".
+- ✅ Step 1–2 (committed): migration 0043 (sync login `cabinet_sync`, change log, trigger bypass, read-only guard for
+  the cloud copy, pairing functions), engine `src/server/sync/{types,engine,pairing,secret,connection}.ts`, cloud
+  pairing service `src/features/sync/server.ts`; `tests/integration/sync.test.ts` runs both copies (peer database
+  `cabinet_test_peer`, created by the test setup).
+- ⏳ Step 3: cloud HTTP endpoints `/api/sync/{pair,snapshot,push,pull}` (node key auth, schema-version check, batch size).
+- ⏳ Step 4: clinic computer worker (`instrumentation.ts`, push/pull every ~15 s, bootstrap), pairing screen on a fresh
+  clinic computer, sync status chip; cloud settings page (pairing code, status, unpair); read-only banner and friendly
+  `clinic_read_only` error in the cloud.
+- ⏳ Step 5: deployment: `cabinet_sync` role + `SYNC_DATABASE_URL` in `deploy/clinic` (node role clinic) and Neon setup
+  script; docs for both.
+
 ## How to verify the current state
 
 ```bash

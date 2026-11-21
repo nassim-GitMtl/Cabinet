@@ -390,3 +390,42 @@ never summed. "Paid to date" is as of generation time.
   other open links revoked; optional "lost phone" flag turns MFA off. Emailed links use `PUBLIC_APP_URL`/`APP_URL`
   only, never the request Host (reset-link poisoning). Admin links are built client-side from `location.origin`.
 - Changing one's own password (Settings → Security) needs the current one and revokes the other sessions.
+
+## Offline clinic computer and cloud sync (`src/server/sync`, `src/features/sync`, migration 0043)
+
+User decision 2026-11-21: like Dentus, the clinic keeps working without internet. One clinic computer runs the app
+and its own PostgreSQL ("clinic" node, `deploy/clinic`); all clinic devices on the Wi-Fi use it. The hosted copy
+(Neon + Vercel, "cloud" node) stays in sync when internet is up and serves everything used from outside (online
+booking, public page, patient portal, the owner's phone). Per-device offline copies were rejected: invoice numbering
+and double bookings are only safe with one copy in charge.
+
+- **Who is in charge.** `organizations.data_home`: `cloud` (default, hosted copy only) or `clinic` (a paired clinic
+  computer). For a clinic-homed clinic the cloud copy is **read-only for staff**: the `sync_writer_guard` trigger
+  refuses any `staff` write there (`clinic_read_only`); patients' own online actions (`system`/`patient` actors) and
+  audit events are accepted and travel down. `app_private.node_settings.node_role` says what a database is.
+- **Change capture.** `sync_capture` (AFTER row trigger on every replicated table, SECURITY DEFINER) appends the full
+  row (`to_jsonb`) or the delete key to `sync_changes` (append-only) for clinic-homed clinics, on both copies. Shared
+  rows a row depends on are captured just before it (the staff account of a new membership, the network patient of a
+  linked patient). Replicated = every table with `organization_id` except `sync_*`, plus `organizations`, `users`
+  (clinic → cloud only), `consent_requests`, `consent_grants`; node-local and never copied: sessions, MFA challenges,
+  password resets, rate limits, patient portal accounts/sessions.
+- **Reading in order.** Readers take only finished transactions: `txid` in `[from, to)` with `to` =
+  `pg_snapshot_xmin` when the window opens, paged by id inside a fixed window (`SyncCursor`). A transaction that
+  commits late can never be skipped.
+- **Applying.** A separate login, `cabinet_sync` (NOBYPASSRLS, member of `cabinet_app`), sets `app.sync_apply = on`;
+  `app_private.sync_applying()` is true only for that login, so `cabinet_app` cannot switch checks off. Every business
+  trigger has `WHEN (NOT app_private.sync_applying())`: rows were checked where they were written, and replaying
+  them must not re-run actor/time-dependent checks. `apply_security()` adds the condition to new triggers
+  automatically; `tests/integration/sync.test.ts` fails if one is missing. (Neon refuses
+  `session_replication_role`, hence this design.) `app_private.sync_apply_row` upserts by primary key
+  (append-only tables: insert-only) with the tenant context set, so RLS still applies. `sync_row_versions` keeps the
+  last change id per row and origin: an older change never overwrites a newer one; re-sending a batch is harmless.
+  A row whose parent has not arrived (FK violation) waits in `sync_pending` and is retried after each batch.
+- **Pairing and first copy.** The owner creates a 30-minute single-use code in the cloud (`createPairingCode`,
+  `org.settings.manage`); the clinic computer exchanges it for a long-lived node key (`claim_sync_pairing`: from
+  this moment the clinic computer is in charge). Only SHA-256 hashes are stored in the cloud; the clinic computer
+  stores its key AES-GCM-encrypted. The first copy (`exportSnapshotPage`, parents first, `organizations` first) is
+  read once every transaction older than the pairing has finished (`snapshotReady`); pulling cloud changes starts
+  at that point. The clinic computer always opens the connection (no inbound port, works behind any router).
+- **Not yet copied (later phase):** patient portal accounts and portal account recovery for clinic-homed clinics,
+  and clinical file bytes (only their records are copied).

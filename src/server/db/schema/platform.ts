@@ -135,6 +135,12 @@ export const organizations = pgTable("organizations", {
     .notNull()
     .default(sql`'{}'::text[]`),
   settings: jsonb("settings").$type<OrganizationSettings>().notNull().default({}),
+  /**
+   * Which copy is in charge of this clinic's data: "cloud" (the hosted copy is the only one) or "clinic"
+   * (a computer at the clinic is in charge and works offline; the hosted copy is kept in sync and is
+   * read-only for staff). See docs/ARCHITECTURE.md "Offline clinic computer and cloud sync".
+   */
+  dataHome: text("data_home").$type<"cloud" | "clinic">().notNull().default("cloud"),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 });
