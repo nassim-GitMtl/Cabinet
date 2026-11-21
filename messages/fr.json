@@ -186,8 +186,6 @@
     "demoPricesTitle": "Tarifs de démonstration",
     "demoPricesBody": "{count, plural, one {# prestation utilise} other {# prestations utilisent}} encore un tarif de démonstration. Ces montants ne sont pas des tarifs officiels : remplacez-les par vos propres prix.",
     "demoPricesCta": "Vérifier les tarifs",
-    "roadmapTitle": "Modules en cours de construction",
-    "roadmapBody": "Les consentements et le portail patient arrivent dans les prochaines étapes. Rien n'est simulé : ces écrans apparaîtront lorsqu'ils seront fonctionnels.",
     "newPatient": "Nouveau patient",
     "openCatalog": "Ouvrir le catalogue"
   },
@@ -392,12 +390,8 @@
       "nextAppointment": "Prochain rendez-vous",
       "outstanding": "Soins en cours",
       "balance": "Solde",
-      "pendingModule": "Disponible avec le module {module}."
-    },
-    "modules": {
-      "agenda": "Agenda",
-      "treatments": "Plans de traitement",
-      "billing": "Facturation"
+      "noAppointment": "Aucun rendez-vous prévu.",
+      "book": "Prendre rendez-vous"
     },
     "editTitle": "Modifier le patient",
     "archive": "Archiver",

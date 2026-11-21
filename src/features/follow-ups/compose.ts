@@ -71,7 +71,7 @@ export function composeMessage(
     careInstructions: reason === "after_visit" ? careInstructionsFor(row.categoryIds ?? [], locale, context.aftercare) : "",
     reviewLink: context.reviewUrl ?? "",
     amount: row.amount ?? "",
-  });
+  }, { isolate: locale === "ar" });
   // After a visit, ask for a review when the clinic set a link (unless its own wording already places it).
   if (reason === "after_visit" && context.reviewUrl && !template.includes("{reviewLink}")) {
     return `${text} ${fillTemplate(REVIEW_SENTENCE[locale], { reviewLink: context.reviewUrl })}`;

@@ -174,7 +174,8 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
           </div>
         </header>
 
-        <main id="main" className="mx-auto w-full max-w-[92rem] flex-1 px-4 pt-5 pb-32 sm:px-6 lg:px-9 lg:pt-8 lg:pb-12 xl:px-12">
+        {/* Phone bottom space clears the bottom bar and the floating "+" button (top edge ≈ 9.25rem + safe area). */}
+        <main id="main" className="mx-auto w-full max-w-[92rem] flex-1 px-4 pt-5 pb-[calc(10.5rem+env(safe-area-inset-bottom))] sm:px-6 lg:px-9 lg:pt-8 lg:pb-12 xl:px-12">
           {children}
         </main>
 

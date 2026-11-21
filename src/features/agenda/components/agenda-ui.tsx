@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { formatPhone } from "@/lib/phone";
 import { useTranslations } from "next-intl";
 import { CalendarPlusIcon, Clock3Icon, FileTextIcon, MoveIcon, PlusIcon, SearchIcon, UserRoundIcon } from "lucide-react";
 import { ButtonLink } from "@/components/button-link";
@@ -69,34 +70,41 @@ function typeDurationSync(setup: Setup) {
   };
 }
 
-export function NewAppointmentButton({ setup, date }: { setup: Setup; date: string }) {
+/** `patient`: preselected when coming from a patient file ("Prendre rendez-vous"); the form then opens directly. */
+export function NewAppointmentButton({ setup, date, patient = null }: { setup: Setup; date: string; patient?: PatientResult | null }) {
   const t = useTranslations("agenda");
-  const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const [open, setOpen] = useState(patient !== null);
+  const change = (next: boolean) => {
+    setOpen(next);
+    // Drop ?patient= once used, so a refresh does not reopen the form.
+    if (!next && patient) router.replace(`/agenda?date=${date}`);
+  };
   return (
     <>
       <Button onClick={() => setOpen(true)}>
         <CalendarPlusIcon aria-hidden />
         {t("new")}
       </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={change}>
         <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{t("new")}</DialogTitle>
             <DialogDescription>{t("newHint")}</DialogDescription>
           </DialogHeader>
-          {open ? <AppointmentForm setup={setup} date={date} close={() => setOpen(false)} /> : null}
+          {open ? <AppointmentForm setup={setup} date={date} initialPatient={patient} close={() => change(false)} /> : null}
         </DialogContent>
       </Dialog>
     </>
   );
 }
 
-function AppointmentForm({ setup, date, close }: { setup: Setup; date: string; close: () => void }) {
+function AppointmentForm({ setup, date, close, initialPatient = null }: { setup: Setup; date: string; close: () => void; initialPatient?: PatientResult | null }) {
   const t = useTranslations("agenda");
   const router = useRouter();
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialPatient ? `${initialPatient.firstName} ${initialPatient.lastName}` : "");
   const [results, setResults] = useState<PatientResult[]>([]);
-  const [selected, setSelected] = useState<PatientResult | null>(null);
+  const [selected, setSelected] = useState<PatientResult | null>(initialPatient);
   const [searching, startSearch] = useTransition();
   const [state, action] = useActionState(async (previous: ActionState, formData: FormData) => {
     const result = await createAppointmentAction(previous, formData);
@@ -239,7 +247,7 @@ export function AppointmentCard({ item, canManage, reception = false, setup }: {
           <div className="space-y-4">
             <div className="rounded-lg border p-3">
               <Link href={`/patients/${item.patientId}`} className="font-semibold hover:underline"><bdi>{item.patientName}</bdi></Link>
-              <p className="text-xs text-muted-foreground"><bdi>{item.patientNumber}</bdi>{item.phone ? <> · <bdi dir="ltr">{item.phone}</bdi></> : null}</p>
+              <p className="text-xs text-muted-foreground"><bdi>{item.patientNumber}</bdi>{item.phone ? <> · <bdi dir="ltr">{formatPhone(item.phone)}</bdi></> : null}</p>
               <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
                 <div><dt className="text-xs text-muted-foreground">{t("type")}</dt><dd><bdi>{item.typeName ?? t("noType")}</bdi></dd></div>
                 <div><dt className="text-xs text-muted-foreground">{t("chair")}</dt><dd><bdi>{item.chairName ?? t("noChair")}</bdi></dd></div>

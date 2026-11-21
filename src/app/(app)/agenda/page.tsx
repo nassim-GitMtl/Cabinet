@@ -7,7 +7,7 @@ import { ButtonLink } from "@/components/button-link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppointmentCard, EmptyAgenda, NewAppointmentButton, type AppointmentViewItem } from "@/features/agenda/components/agenda-ui";
-import { getAgendaSetup, listAppointments } from "@/features/agenda/server";
+import { getAgendaSetup, getBookingPatient, listAppointments } from "@/features/agenda/server";
 import { countPendingRequests } from "@/features/booking/server";
 import { addDays, isoWeekday, parseDateOnly, timeInZone, todayInZone, zonedToUtc } from "@/lib/dates";
 import { can, requireClinicContext } from "@/server/auth/context";
@@ -31,7 +31,10 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   const to = zonedToUtc(addDays(days[days.length - 1]!, 1), "00:00", ctx.organization.timezone);
   const step = view === "week" ? 7 : 1;
   const href = (d: string) => `/agenda?date=${d}${view === "week" ? "&view=week" : ""}`;
-  const [setup, rows, locale, pendingRequests] = await Promise.all([getAgendaSetup(ctx), listAppointments(ctx, from, to), getLocale(), countPendingRequests(ctx)]);
+  const bookFor = typeof sp.patient === "string" && can(ctx, "appointment.manage") ? sp.patient : null;
+  const [setup, rows, locale, pendingRequests, bookingPatient] = await Promise.all([
+    getAgendaSetup(ctx), listAppointments(ctx, from, to), getLocale(), countPendingRequests(ctx), bookFor ? getBookingPatient(ctx, bookFor) : null,
+  ]);
   const tb = await getTranslations("booking");
   const ts = await getTranslations("agendaSettings");
   const language = locale === "ar" || locale === "en" ? locale : "fr";
@@ -74,7 +77,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
               {tb("requests")}
               {pendingRequests ? <span className="rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular">{pendingRequests}</span> : null}
             </ButtonLink>
-            {can(ctx, "appointment.manage") ? <NewAppointmentButton setup={setupView} date={date} /> : null}
+            {can(ctx, "appointment.manage") ? <NewAppointmentButton key={bookingPatient?.id ?? "new"} setup={setupView} date={date} patient={bookingPatient} /> : null}
           </>
         }
       />

@@ -196,15 +196,15 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
             <div className="grid gap-4 sm:grid-cols-3">
               {(
                 [
-                  { icon: CalendarIcon, label: "patients.overview.nextAppointment", module: "agenda" },
-                  { icon: ClipboardListIcon, label: "patients.overview.outstanding", module: "treatments" },
-                  { icon: WalletIcon, label: "patients.overview.balance", module: "billing" },
+                  { icon: CalendarIcon, label: "patients.overview.nextAppointment", module: "agenda", show: patientAppointments !== null },
+                  { icon: ClipboardListIcon, label: "patients.overview.outstanding", module: "treatments", show: can(ctx, "treatment_plan.read") },
+                  { icon: WalletIcon, label: "patients.overview.balance", module: "billing", show: account !== null },
                 ] as const
-              ).map((card) => (
+              ).filter((card) => card.show).map((card) => (
                 <div key={card.label} className="group relative overflow-hidden rounded-2xl border border-border/80 bg-card/90 p-4 shadow-[0_10px_26px_-24px_rgba(48,39,25,.4)] transition hover:border-primary/20">
                   <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-accent text-accent-foreground"><card.icon className="size-5" aria-hidden /></div>
                   <p className="text-sm font-medium">{t(card.label)}</p>
-                  {card.module === "agenda" && nextAppointment ? (
+                  {card.module === "agenda" ? (nextAppointment ? (
                     <Link
                       href={`/agenda?date=${todayInZone(ctx.organization.timezone, nextAppointment.startsAt)}`}
                       className="mt-1 block hover:underline"
@@ -216,7 +216,16 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                         <bdi>{[nextAppointment.providerTitle, nextAppointment.providerName].filter(Boolean).join(" ")}</bdi>
                       </span>
                     </Link>
-                  ) : card.module === "billing" && account && fmt ? (
+                  ) : (
+                    <>
+                      <p className="mt-1 text-xs text-muted-foreground">{t("patients.overview.noAppointment")}</p>
+                      {can(ctx, "appointment.manage") && p.status !== "archived" ? (
+                        <ButtonLink href={`/agenda?patient=${p.id}`} variant="outline" size="sm" className="mt-2">
+                          <CalendarIcon aria-hidden />{t("patients.overview.book")}
+                        </ButtonLink>
+                      ) : null}
+                    </>
+                  )) : card.module === "billing" && account && fmt ? (
                     <Link href={`/patients/${p.id}?tab=finance`} className="mt-1 block hover:underline">
                       <span className="block text-lg font-semibold tabular">
                         {fmt.money(account.outstandingMinor, ctx.organization.defaultCurrency)}
@@ -227,16 +236,12 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
                         </span>
                       ) : null}
                     </Link>
-                  ) : card.module === "treatments" && fmt ? (
+                  ) : (
                     <Link href={`/patients/${p.id}?tab=treatments`} className="mt-1 block hover:underline">
                       <span className="block text-lg font-semibold tabular">
                         {t("treatmentPlans.activeCount", { count: treatmentPlans.filter((plan) => !["completed", "cancelled"].includes(plan.status)).length })}
                       </span>
                     </Link>
-                  ) : (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {t("patients.overview.pendingModule", { module: t(`patients.modules.${card.module}`) })}
-                    </p>
                   )}
                 </div>
               ))}

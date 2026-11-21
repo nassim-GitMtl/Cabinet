@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-20 by Codex (session 36 — complete French user guide).
+Last updated: 2026-11-20 by Claude (session 37 — whole-app check and display fixes).
 
 ## How to verify the current state
 
@@ -404,6 +404,20 @@ available staff module, public booking, the patient portal, permissions, securit
 recommended daily workflows. The guide distinguishes implemented functions from planned integrations and links to the
 server installation/restore guide for administrator-only operations. `README.md` now links to the guide. Documentation
 format and links were checked; no application behavior changed.
+
+Session 37 (Claude): whole-app check, then fixes. All 70 pages/downloads opened as the demo owner with no server error,
+no missing translation and no fresh console error; phone + Arabic walk of the public page, online booking, portal
+login, dashboard, patient file and follow-ups. `npm audit --omit=dev`: 4 moderate advisories, all inside the `shadcn`
+CLI (minimatch via ts-morph), not in the running app. Fixed: (1) patient overview said "Disponible avec le module
+Agenda" when no appointment was booked — now "Aucun rendez-vous prévu" + "Prendre rendez-vous", which opens the agenda
+booking form with the patient preselected (`/agenda?patient=`, `getBookingPatient`, archived excluded,
+`appointment.manage`); cards are shown only with their read permission; (2) Arabic follow-up messages: inserted values
+(names, clinic, date, time, phone, amount) are wrapped in Unicode direction isolates so Latin text and phone numbers
+keep their order in WhatsApp/SMS (links and care text left bare; French/English untouched so SMS stay GSM-encoded);
+(3) phone dashboard: counters compact on one row; removed the stale "modules en cours de construction" card (consents
+and portal are built); (4) phone pages get enough bottom space to clear the floating "+" button; dashboard and agenda
+cards show formatted phone numbers instead of raw E.164. 188/188 tests (+1 unit), typecheck, lint, `next build` green;
+browser-checked each fix (booking form opens with the patient, closes back to `/agenda?date=`; Arabic message order).
 
 ## Requirement coverage map
 

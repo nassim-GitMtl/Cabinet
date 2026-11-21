@@ -18,13 +18,30 @@ export function asMessageLocale(value: string | null | undefined): MessageLocale
   return value === "ar" || value === "en" ? value : "fr";
 }
 
+const FSI = "\u2068"; // first-strong isolate
+const PDI = "\u2069"; // pop directional isolate
+/** Links must stay bare so WhatsApp/SMS apps still detect them; care text is already in the message language. */
+const NOT_ISOLATED = new Set(["bookingLink", "reviewLink", "careInstructions"]);
+
 /**
+ * With `isolate` (Arabic messages), each inserted value is wrapped in invisible Unicode direction isolates so
+ * Latin names, dates, phone numbers and amounts keep their own order inside right-to-left text
+ * ("0661 00 00 99" would otherwise show as "99 00 00 0661").
+ *
  * Replaces `{name}` placeholders. Unknown placeholders are kept as typed so a typo is visible;
  * empty values are removed together with the doubled spaces/punctuation spacing they leave.
  */
-export function fillTemplate(template: string, values: Partial<Record<(typeof TEMPLATE_PLACEHOLDERS)[number], string | null | undefined>>): string {
+export function fillTemplate(
+  template: string,
+  values: Partial<Record<(typeof TEMPLATE_PLACEHOLDERS)[number], string | null | undefined>>,
+  opts: { isolate?: boolean } = {},
+): string {
   return template
-    .replace(/\{(\w+)\}/g, (match, key: string) => (key in values ? (values as Record<string, string | null | undefined>)[key] ?? "" : match))
+    .replace(/\{(\w+)\}/g, (match, key: string) => {
+      if (!(key in values)) return match;
+      const value = (values as Record<string, string | null | undefined>)[key] ?? "";
+      return opts.isolate && value && !NOT_ISOLATED.has(key) ? `${FSI}${value}${PDI}` : value;
+    })
     .replace(/[ \t]{2,}/g, " ")
     .replace(/ ([.,،])/g, "$1")
     .trim();

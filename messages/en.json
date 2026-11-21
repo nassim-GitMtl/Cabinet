@@ -186,8 +186,6 @@
     "demoPricesTitle": "Demonstration prices",
     "demoPricesBody": "{count, plural, one {# service still uses} other {# services still use}} a demonstration price. These amounts are not official tariffs: replace them with your own prices.",
     "demoPricesCta": "Review prices",
-    "roadmapTitle": "Modules being built",
-    "roadmapBody": "Consent and the patient portal arrive in the next steps. Nothing is simulated: those screens will appear once they work.",
     "newPatient": "New patient",
     "openCatalog": "Open catalog"
   },
@@ -392,12 +390,8 @@
       "nextAppointment": "Next appointment",
       "outstanding": "Ongoing treatment",
       "balance": "Balance",
-      "pendingModule": "Available with the {module} module."
-    },
-    "modules": {
-      "agenda": "Schedule",
-      "treatments": "Treatment plans",
-      "billing": "Billing"
+      "noAppointment": "No appointment booked.",
+      "book": "Book an appointment"
     },
     "editTitle": "Edit patient",
     "archive": "Archive",

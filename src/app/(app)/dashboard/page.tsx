@@ -5,13 +5,13 @@ import {
   ActivityIcon,
   BookOpenIcon,
   ClipboardCheckIcon,
-  ConstructionIcon,
   StethoscopeIcon,
   TriangleAlertIcon,
   UserPlusIcon,
   UsersIcon,
 } from "lucide-react";
 import { PageHeader } from "@/components/app/page-header";
+import { formatPhone } from "@/lib/phone";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/button-link";
@@ -29,12 +29,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 function Stat({ label, value, href }: { label: string; value: number; href?: string }) {
   const body = (
-    <Card className="h-full transition-colors hover:bg-accent/40">
-      <CardHeader className="pb-1">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
+    // Compact on phones: three counters fit on one row so today's work stays on the first screen.
+    <Card size="sm" className="h-full transition-colors hover:bg-accent/40 sm:[--card-spacing:--spacing(4)]">
+      <CardHeader className="pb-0 sm:pb-1">
+        <CardTitle className="text-xs leading-snug font-medium text-muted-foreground sm:text-sm">{label}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-3xl font-semibold tabular">{value}</p>
+      <CardContent className="mt-auto">
+        <p className="text-2xl font-semibold tabular sm:text-3xl">{value}</p>
       </CardContent>
     </Card>
   );
@@ -93,7 +94,7 @@ export default async function DashboardPage() {
               {t("todayActivity")}
             </h2>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <Stat label={t("visitsToday")} value={stats.clinicalStats.visits} />
             <Stat label={t("proceduresToday")} value={stats.clinicalStats.procedures} />
             <Stat label={t("patientsSeenToday")} value={stats.clinicalStats.patients} />
@@ -194,7 +195,7 @@ export default async function DashboardPage() {
                         <span className="min-w-0">
                           <span className="block truncate font-medium"><bdi>{patientName(patient)}</bdi></span>
                           <span className="mt-0.5 block text-xs text-muted-foreground">
-                            <bdi>{patient.patientNumber}</bdi>{patient.phone ? <> · <bdi dir="ltr">{patient.phone}</bdi></> : null}
+                            <bdi>{patient.patientNumber}</bdi>{patient.phone ? <> · <bdi dir="ltr">{formatPhone(patient.phone, ctx.organization.countryCode)}</bdi></> : null}
                           </span>
                         </span>
                         <span className="shrink-0 text-xs text-muted-foreground">
@@ -228,7 +229,7 @@ export default async function DashboardPage() {
         <h2 id="clinic-overview-heading" className="font-heading text-lg font-semibold">
           {t("clinicOverview")}
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           {stats.patientStats ? (
             <>
               <Stat label={t("patientsTotal")} value={stats.patientStats.active} href="/patients" />
@@ -238,16 +239,6 @@ export default async function DashboardPage() {
           {stats.catalogStats ? <Stat label={t("servicesActive")} value={stats.catalogStats.active} href="/catalog" /> : null}
         </div>
       </section>
-
-      <Card className="mt-6 border-dashed">
-        <CardContent className="flex gap-3 pt-6">
-          <ConstructionIcon className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
-          <div>
-            <p className="font-medium">{t("roadmapTitle")}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{t("roadmapBody")}</p>
-          </div>
-        </CardContent>
-      </Card>
 
       {stats.patientStats && stats.patientStats.active === 0 && can(ctx, "patient.create") ? (
         <div className="mt-6 flex justify-center">

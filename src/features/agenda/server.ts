@@ -317,3 +317,15 @@ export async function listPatientAppointments(ctx: ClinicContext, patientId: str
     return { upcoming, past };
   });
 }
+
+/** Patient preselected when booking from the patient file (`/agenda?patient=…`); archived patients are not offered. */
+export async function getBookingPatient(ctx: ClinicContext, patientId: string) {
+  requirePermission(ctx, "appointment.manage");
+  if (!/^[0-9a-f-]{36}$/i.test(patientId)) return null;
+  return tenantTx(ctx, async (tx) => {
+    const [patient] = await tx.select({
+      id: patients.id, patientNumber: patients.patientNumber, firstName: patients.firstName, lastName: patients.lastName, phone: patients.phone,
+    }).from(patients).where(and(eq(patients.id, patientId), ne(patients.status, "archived"))).limit(1);
+    return patient ?? null;
+  });
+}
