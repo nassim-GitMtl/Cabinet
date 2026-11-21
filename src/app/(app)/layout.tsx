@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { ConnectionBanner } from "@/components/app/connection-banner";
 import { AppShell, type NavKey } from "@/components/app/app-shell";
+import { SyncNotice } from "@/features/sync/components/sync-notice";
 import { can, requireClinicContext } from "@/server/auth/context";
 import { listMyClinics } from "@/server/services/auth";
 
@@ -25,7 +26,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     can(ctx, "org.settings.manage") ||
     can(ctx, "org.staff.manage") ||
     can(ctx, "questionnaire.manage") ||
-    can(ctx, "questionnaire.approve")
+    can(ctx, "questionnaire.approve") ||
+    ctx.canManageClinicComputer
   ) nav.push("settings");
 
   return (
@@ -38,6 +40,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       hasMultipleClinics={clinics.length > 1}
     >
       <ConnectionBanner />
+      <SyncNotice ctx={ctx} />
       {children}
     </AppShell>
   );

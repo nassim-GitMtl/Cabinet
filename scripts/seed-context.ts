@@ -23,6 +23,8 @@ export async function contextFromIds(userId: string, organizationId: string): Pr
       roleKey: row.r.key,
       roleName: row.r.name,
       permissions: row.r.permissions,
+      readOnlyCopy: false,
+      canManageClinicComputer: row.r.permissions.includes("org.settings.manage"),
       organization: {
         id: row.o.id,
         name: row.o.name,

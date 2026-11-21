@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSession } from "@/server/auth/context";
 import { isRegistrationAllowed } from "@/server/deployment/registration";
+import { nodeRole } from "@/server/sync/node";
 import { RegisterForm } from "./register-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,6 +35,11 @@ export default async function RegisterPage() {
         <CardDescription>{t("registerSubtitle")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {(await nodeRole()) === "clinic" ? (
+          <Link href="/sync-setup" className="block rounded-lg border border-primary/30 bg-primary/5 p-3 text-sm font-medium text-primary hover:underline">
+            {(await getTranslations("sync.setup"))("registerLink")}
+          </Link>
+        ) : null}
         <RegisterForm />
         <p className="text-center text-sm text-muted-foreground">
           {t("haveAccount")}{" "}

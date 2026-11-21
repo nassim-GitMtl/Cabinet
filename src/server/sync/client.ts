@@ -51,7 +51,7 @@ export function cloudClient(baseUrl: string, nodeKey: string | null, fetchImpl: 
 /** Short, translatable reason for the status screen (never a stack trace or a secret). */
 export function syncErrorCode(error: unknown): string {
   if (error instanceof SyncHttpError) {
-    if (["schemaMismatch", "unknownNode", "pairingUnavailable", "syncDisabled", "notCloud"].includes(error.code)) return error.code;
+    if (["schemaMismatch", "unknownNode", "pairingUnavailable", "syncDisabled", "notCloud", "notPairable", "invalidUrl"].includes(error.code)) return error.code;
     return error.status >= 500 ? "cloudUnavailable" : "rejected";
   }
   if (error instanceof TypeError || (error as { name?: string })?.name === "TimeoutError" || (error as { name?: string })?.name === "AbortError") return "offline";

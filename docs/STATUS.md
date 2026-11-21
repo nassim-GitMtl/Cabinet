@@ -17,8 +17,15 @@ User chose "Clinic PC + cloud sync" (like Dentus). Design: docs/ARCHITECTURE.md 
   limits; cloud node only) and the clinic worker `src/server/sync/{client,worker}.ts` started by `src/instrumentation.ts`
   (15 s loop, resumable first copy, push then pull, offline recorded as `last_error = offline`). End-to-end test
   `tests/integration/sync-worker.test.ts` (third database `cabinet_test_node`, endpoints called in-process).
-- ⏳ Step 4: screens: pairing page on a fresh clinic computer, sync status chip, cloud settings page (pairing code, status,
-  unpair); in the cloud, staff of a clinic-homed clinic get read permissions only + a banner.
+- ✅ Step 4 (committed): `/settings/clinic-computer` (cloud: create a 30-min pairing code, status, unpair; clinic
+  computer: last sent/received, problem), `/sync-setup` on a fresh clinic computer (pair, live copy progress, sign in;
+  linked from `/register`), top-of-page notice (cloud: "view only" + last sync; clinic computer: only when sync fails or
+  internet is down). On the cloud copy of a clinic-homed clinic, `ClinicContext.permissions` keeps view keys only
+  (`readOnlyCopyPermissions`), so edit buttons disappear; `canManageClinicComputer` keeps unpairing available.
+  Migration 0044 adds `clinic_node_pairable()` (checked before the cloud code is used). Browser-checked with two
+  servers (cloud dev + standalone clinic build on its own database): pair, first copy in < 5 s, sign in with the usual
+  account, new patient at the clinic visible in the cloud, view-only cloud, internet cut (notice, work continues),
+  catch-up when back, unpair.
 - ⏳ Step 5: deployment: `cabinet_sync` role + `SYNC_DATABASE_URL` in `deploy/clinic` (node role clinic) and Neon setup
   script; docs for both.
 

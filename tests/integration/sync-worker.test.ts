@@ -64,8 +64,8 @@ describe("clinic computer worker against the cloud endpoints", () => {
 
     await expect(pairWithCloud(nodeApp, "https://cloud.test", "AAAA-BBBB-CCCC-DDDD", cloudFetch)).rejects.toMatchObject({ code: "pairingUnavailable" });
     await pairWithCloud(nodeApp, "https://cloud.test", code.toLowerCase(), cloudFetch);
-    // A code works once; a paired clinic computer cannot be paired again.
-    await expect(pairWithCloud(nodeApp, "https://cloud.test", code, cloudFetch)).rejects.toMatchObject({ code: "pairingUnavailable" });
+    // A paired clinic computer cannot be paired again (checked before anything is sent to the cloud).
+    await expect(pairWithCloud(nodeApp, "https://cloud.test", code, cloudFetch)).rejects.toMatchObject({ code: "notPairable" });
 
     await runUntilActive();
     const staff = { organizationId: org, userId: owner.userId, actorType: "staff" as const };

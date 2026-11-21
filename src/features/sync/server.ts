@@ -2,11 +2,16 @@ import "server-only";
 
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { audit } from "@/server/audit";
-import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
+import { ForbiddenError, tenantTx, type ClinicContext } from "@/server/auth/context";
 import { organizations, syncNodes } from "@/server/db/schema";
 import { hashPairingCode, newPairingCode } from "@/server/sync/pairing";
 
 export const PAIRING_MINUTES = 30;
+
+/** Pairing is kept for owners even on a read-only copy (permissions are reduced to view keys there). */
+function requireClinicComputerAdmin(ctx: ClinicContext) {
+  if (!ctx.canManageClinicComputer) throw new ForbiddenError("org.settings.manage");
+}
 
 export class SyncSetupError extends Error {
   constructor(public readonly code: "nodeAlreadyPaired") { super(code); }
@@ -14,7 +19,7 @@ export class SyncSetupError extends Error {
 
 /** Cloud: what the owner sees about the clinic computer (no secrets). */
 export async function getClinicNode(ctx: ClinicContext) {
-  requirePermission(ctx, "org.settings.manage");
+  requireClinicComputerAdmin(ctx);
   return tenantTx(ctx, async (tx) => {
     const [org] = await tx.select({ dataHome: organizations.dataHome }).from(organizations).where(eq(organizations.id, ctx.organizationId)).limit(1);
     const [node] = await tx.select({
@@ -31,7 +36,7 @@ export async function getClinicNode(ctx: ClinicContext) {
  * refused while a clinic computer is already paired (unpair it first).
  */
 export async function createPairingCode(ctx: ClinicContext, label: string) {
-  requirePermission(ctx, "org.settings.manage");
+  requireClinicComputerAdmin(ctx);
   return tenantTx(ctx, async (tx) => {
     const [active] = await tx.select({ id: syncNodes.id, pairedAt: syncNodes.pairedAt }).from(syncNodes)
       .where(and(eq(syncNodes.organizationId, ctx.organizationId), isNull(syncNodes.revokedAt))).for("update").limit(1);
@@ -50,9 +55,18 @@ export async function createPairingCode(ctx: ClinicContext, label: string) {
 
 /** Cloud: unpair the clinic computer; the online copy is in charge again (changes not yet sent are lost). */
 export async function revokeClinicNode(ctx: ClinicContext) {
-  requirePermission(ctx, "org.settings.manage");
+  requireClinicComputerAdmin(ctx);
   await tenantTx(ctx, async (tx) => {
     await tx.execute(sql`select app_private.revoke_sync_node()`);
     await audit(tx, { organizationId: ctx.organizationId, actorType: "staff", actorUserId: ctx.userId, action: "sync.node_revoked", entityType: "organization", entityId: ctx.organizationId });
+  });
+}
+
+/** Cloud, any staff of the clinic: when the clinic computer last synced (for the view-only banner). */
+export async function lastClinicSync(ctx: ClinicContext): Promise<Date | null> {
+  return tenantTx(ctx, async (tx) => {
+    const [node] = await tx.select({ lastSeenAt: syncNodes.lastSeenAt }).from(syncNodes)
+      .where(and(eq(syncNodes.organizationId, ctx.organizationId), isNull(syncNodes.revokedAt))).limit(1);
+    return node?.lastSeenAt ?? null;
   });
 }

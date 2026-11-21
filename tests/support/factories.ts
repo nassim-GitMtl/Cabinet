@@ -33,6 +33,8 @@ export function contextFor(
     roleKey: role,
     roleName: ROLE_TEMPLATES[role].name,
     permissions: ROLE_TEMPLATES[role].permissions,
+    readOnlyCopy: false,
+    canManageClinicComputer: ROLE_TEMPLATES[role].permissions.includes("org.settings.manage"),
     organization: {
       id: base.organizationId,
       name: base.name ?? "Cabinet",

@@ -4,7 +4,26 @@
     {
       "name": "web",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["next", "dev", "--port", "3010"],
+      "runtimeArgs": [
+        "next",
+        "dev",
+        "--port",
+        "3010"
+      ],
+      "port": 3010,
+      "autoPort": false
+    },
+    {
+      "name": "web-localdb",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "DATABASE_URL=postgres://cabinet_app:cabinet_app_dev@localhost:54329/cabinet",
+        "npx",
+        "next",
+        "dev",
+        "--port",
+        "3010"
+      ],
       "port": 3010,
       "autoPort": false
     }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { BellRingIcon, Building2Icon, ClipboardListIcon, GlobeIcon, ShieldCheckIcon, ShieldQuestionIcon, UsersIcon, KeyRoundIcon, SmartphoneIcon } from "lucide-react";
+import { BellRingIcon, Building2Icon, ClipboardListIcon, GlobeIcon, MonitorSmartphoneIcon, ShieldCheckIcon, ShieldQuestionIcon, UsersIcon, KeyRoundIcon, SmartphoneIcon } from "lucide-react";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +18,8 @@ export default async function SettingsPage() {
     !can(ctx, "org.settings.manage") &&
     !can(ctx, "org.staff.manage") &&
     !can(ctx, "questionnaire.manage") &&
-    !can(ctx, "questionnaire.approve")
+    !can(ctx, "questionnaire.approve") &&
+    !ctx.canManageClinicComputer
   ) {
     return <ForbiddenState message={t("errors.forbiddenPage")} />;
   }
@@ -36,7 +37,7 @@ export default async function SettingsPage() {
       <PageHeader
         title={t("settings.title")}
         actions={
-          <div className="flex flex-wrap gap-2">{can(ctx, "org.settings.manage") ? <><ButtonLink href="/settings/clinic" variant="outline"><Building2Icon />{t("clinicIdentity.title")}</ButtonLink><ButtonLink href="/settings/security" variant="outline"><SmartphoneIcon />{t("access.securityTitle")}</ButtonLink><ButtonLink href="/settings/agenda" variant="outline">{t("agendaSettings.title")}</ButtonLink><ButtonLink href="/settings/follow-ups" variant="outline"><BellRingIcon />{t("followUps.settings.link")}</ButtonLink><ButtonLink href="/settings/public-page" variant="outline"><GlobeIcon />{t("publicPage.title")}</ButtonLink></> : null}{can(ctx, "org.staff.manage") ? <ButtonLink href="/settings/team" variant="outline"><UsersIcon />{t("access.teamTitle")}</ButtonLink> : null}{can(ctx, "org.roles.manage") ? <ButtonLink href="/settings/roles" variant="outline"><KeyRoundIcon />{t("access.rolesTitle")}</ButtonLink> : null}{can(ctx, "questionnaire.manage") || can(ctx, "questionnaire.approve") ? <ButtonLink href="/settings/questionnaire" variant="outline"><ClipboardListIcon />{t("health.editor.shortTitle")}</ButtonLink> : null}</div>
+          <div className="flex flex-wrap gap-2">{can(ctx, "org.settings.manage") ? <><ButtonLink href="/settings/clinic" variant="outline"><Building2Icon />{t("clinicIdentity.title")}</ButtonLink><ButtonLink href="/settings/security" variant="outline"><SmartphoneIcon />{t("access.securityTitle")}</ButtonLink><ButtonLink href="/settings/agenda" variant="outline">{t("agendaSettings.title")}</ButtonLink><ButtonLink href="/settings/follow-ups" variant="outline"><BellRingIcon />{t("followUps.settings.link")}</ButtonLink><ButtonLink href="/settings/public-page" variant="outline"><GlobeIcon />{t("publicPage.title")}</ButtonLink></> : null}{can(ctx, "org.staff.manage") ? <ButtonLink href="/settings/team" variant="outline"><UsersIcon />{t("access.teamTitle")}</ButtonLink> : null}{ctx.canManageClinicComputer ? <ButtonLink href="/settings/clinic-computer" variant="outline"><MonitorSmartphoneIcon />{t("sync.settings.link")}</ButtonLink> : null}{can(ctx, "org.roles.manage") ? <ButtonLink href="/settings/roles" variant="outline"><KeyRoundIcon />{t("access.rolesTitle")}</ButtonLink> : null}{can(ctx, "questionnaire.manage") || can(ctx, "questionnaire.approve") ? <ButtonLink href="/settings/questionnaire" variant="outline"><ClipboardListIcon />{t("health.editor.shortTitle")}</ButtonLink> : null}</div>
         }
       />
       <div className="grid gap-4 lg:grid-cols-2">

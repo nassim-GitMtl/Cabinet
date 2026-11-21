@@ -5,7 +5,8 @@ import { cache } from "react";
 import type { Tx } from "../db/client";
 import { memberships, organizations, roles, type OrganizationSettings } from "../db/schema";
 import { withDbContext } from "../db/tenant";
-import { hasPermission, type Permission } from "../authz/permissions";
+import { hasPermission, readOnlyCopyPermissions, type Permission } from "../authz/permissions";
+import { nodeRole } from "../sync/node";
 import { readSession, type SessionRecord } from "./session";
 
 export type ClinicContext = {
@@ -18,6 +19,13 @@ export type ClinicContext = {
   roleKey: string;
   roleName: string;
   permissions: readonly string[];
+  /**
+   * True on the cloud copy of a clinic whose clinic computer is in charge: `permissions` then only holds view
+   * keys (see readOnlyCopyPermissions) and every staff write is refused by the database.
+   */
+  readOnlyCopy: boolean;
+  /** May pair/unpair the clinic computer (kept even on a read-only copy, so the owner can take control back). */
+  canManageClinicComputer: boolean;
   organization: {
     id: string;
     name: string;
@@ -83,6 +91,7 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
     },
   );
   if (!row || row.org.status === "suspended" || row.org.status === "closed") return null;
+  const readOnlyCopy = row.org.dataHome === "clinic" && (await nodeRole()) === "cloud";
 
   return {
     sessionId: session.sessionId,
@@ -93,7 +102,9 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
     displayName: row.displayName,
     roleKey: row.roleKey,
     roleName: row.roleName,
-    permissions: row.permissions,
+    permissions: readOnlyCopy ? readOnlyCopyPermissions(row.permissions) : row.permissions,
+    readOnlyCopy,
+    canManageClinicComputer: hasPermission(row.permissions, "org.settings.manage"),
     organization: {
       id: row.org.id,
       name: row.org.name,

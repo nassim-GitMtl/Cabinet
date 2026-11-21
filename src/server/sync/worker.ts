@@ -24,6 +24,8 @@ const WORKER_LOCK = 734_221_905; // pg advisory lock: one worker at a time per c
 export async function pairWithCloud(sql: Sql, rawUrl: string, code: string, fetchImpl: FetchLike = fetch) {
   const url = normalizeCloudUrl(rawUrl);
   if (!url) throw new SyncHttpError(400, "invalidUrl");
+  const [check] = await sql<{ ok: boolean }[]>`select app_private.clinic_node_pairable() as ok`;
+  if (!check?.ok) throw new SyncHttpError(409, "notPairable");
   const claim = await cloudClient(url, null, fetchImpl).pair(code);
   await sql`select app_private.begin_clinic_node(${claim.organizationId}::uuid, ${url}, ${protectNodeKey(claim.nodeKey)}, ${claim.pullFrom})`;
   return { organizationId: claim.organizationId };
