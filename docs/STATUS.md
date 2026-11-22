@@ -28,6 +28,12 @@ User chose "Clinic PC + cloud sync" (like Dentus). Design: docs/ARCHITECTURE.md 
   catch-up when back, unpair.
 - ⏳ Step 5: deployment: `cabinet_sync` role + `SYNC_DATABASE_URL` in `deploy/clinic` (node role clinic) and Neon setup
   script; docs for both.
+- Hosting (user decision 2026-11-21, "Yes, Frankfurt"): Vercel project **cabinet-dentaire** runs in `fra1`
+  (`vercel.json`); its Production/Preview `DATABASE_URL` points to the Neon project **Cabinet Frankfurt**
+  (`frosty-poetry-90310081`, aws-eu-central-1, PG 18, set up with `npm run db:setup:neon`, migrations through 0044).
+  The older Neon project "Cabinet" (us-east-2) still backs the Vercel Development variables and the local `.env`.
+  Testing inside v0's preview pane signs you out on every click (embedded site: the browser refuses the session
+  cookie, by design: `X-Frame-Options: DENY`, `SameSite=Lax`); open the deployment URL directly.
 
 ## How to verify the current state
 

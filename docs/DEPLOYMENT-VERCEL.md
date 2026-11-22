@@ -17,7 +17,16 @@ un workflow CI protégé. Ne placez jamais `DATABASE_URL_ADMIN` dans les variabl
 
 ## 2. Initialiser Neon
 
-Choisissez une région Neon proche de la région d'exécution Vercel. Depuis une machine sûre qui possède le dépôt :
+**Région : Francfort pour les deux.** Les cabinets et les patients sont en Algérie : `vercel.json` fixe l'exécution
+Vercel à `fra1` (Francfort) et le projet Neon doit être créé dans `aws-eu-central-1` (Francfort), la région d'un projet
+Neon ne pouvant pas être changée ensuite. Les deux doivent rester ensemble : chaque page fait plusieurs allers-retours
+vers la base, et un serveur à Francfort qui parlerait à une base aux États-Unis serait plus lent qu'avant.
+
+```bash
+neon projects create --name "Cabinet Frankfurt" --region-id aws-eu-central-1 --pg-version 18
+```
+
+Depuis une machine sûre qui possède le dépôt :
 
 ```bash
 npm ci
