@@ -67,6 +67,8 @@ export const services = pgTable(
     taxRateBp: integer("tax_rate_bp"),
     /** Internal estimate, separate from selling price. */
     materialCostMinor: bigint("material_cost_minor", { mode: "number" }),
+    /** When true, the laboratory fee entered at checkout is taken off before the practitioner share is calculated. */
+    deductLabBeforeShare: boolean("deduct_lab_before_share").notNull().default(false),
     noteTemplate: text("note_template"),
     /** True for seeded demonstration prices: never official tariffs. */
     isDemoPrice: boolean("is_demo_price").notNull().default(false),

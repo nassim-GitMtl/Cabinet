@@ -125,6 +125,7 @@ export default async function NewProcedurePage({
           patientId={patient.id}
           picker={picker}
           providers={providers}
+          providerPrices={support.providerPrices}
           branches={support.branches}
           defaultProviderId={defaultProviderId}
           defaultBranchId={support.branches[0]!.id}

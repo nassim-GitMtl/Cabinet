@@ -21,6 +21,8 @@ import { nextCounter } from "@/server/db/tenant";
 import { todayInZone } from "@/lib/dates";
 import { assertCashDayOpen } from "@/features/cash/server";
 import { applyBasisPoints } from "@/lib/money";
+import { isValidRule, type FeeRule } from "@/features/honoraria/calculation";
+import { snapshotInvoiceHonoraria } from "@/features/honoraria/server";
 import {
   invoiceBalanceSql,
   invoiceCreditedSql,
@@ -82,6 +84,8 @@ export async function listUnbilledProcedures(ctx: ClinicContext, patientId: stri
         unitPriceMinor: performedProcedures.unitPriceMinor,
         currency: performedProcedures.currency,
         serviceDate: performedProcedures.serviceDate,
+        providerId: performedProcedures.performingProviderId,
+        serviceId: performedProcedures.serviceId,
         providerName: memberships.displayName,
         providerTitle: memberships.title,
       })
@@ -92,10 +96,22 @@ export async function listUnbilledProcedures(ctx: ClinicContext, patientId: stri
   );
 }
 
+/**
+ * Practitioner-fee details typed at checkout for one procedure: who is paid for it (defaults to who performed it),
+ * the lab fee, and optionally a one-off rule with its reason. Frozen on the invoice line.
+ */
+export type CheckoutLineOption = {
+  procedureId: string;
+  providerId?: string | null;
+  labFeeMinor?: number;
+  rule?: FeeRule | null;
+  ruleReason?: string | null;
+};
+
 export async function createInvoiceFromProcedures(
   ctx: ClinicContext,
   patientId: string,
-  input: { procedureIds: string[]; issueNow: boolean; notes?: string | null; dueDate?: string | null },
+  input: { procedureIds: string[]; issueNow: boolean; notes?: string | null; dueDate?: string | null; lineOptions?: CheckoutLineOption[] },
 ) {
   requirePermission(ctx, "invoice.create");
   if (input.issueNow) requirePermission(ctx, "invoice.issue");
@@ -123,10 +139,33 @@ export async function createInvoiceFromProcedures(
     const le = await defaultLegalEntity(tx);
     if (le.currency !== currency) throw new BillingError("currencyMismatch");
 
+    const options = new Map((input.lineOptions ?? []).map((o) => [o.procedureId, o]));
+    // A practitioner other than the one who performed the act must be an active practitioner of this clinic.
+    const reassigned = [
+      ...new Set(
+        procs.flatMap((p) => {
+          const id = options.get(p.id)?.providerId;
+          return id && id !== p.performingProviderId ? [id] : [];
+        }),
+      ),
+    ];
+    if (reassigned.length) {
+      const valid = await tx
+        .select({ id: memberships.id })
+        .from(memberships)
+        .where(and(inArray(memberships.id, reassigned), eq(memberships.isProvider, true), eq(memberships.status, "active")));
+      if (valid.length !== reassigned.length) throw new BillingError("providerUnavailable");
+    }
     const lines = procs
       .sort((a, b) => a.serviceDate.localeCompare(b.serviceDate) || a.createdAt.getTime() - b.createdAt.getTime())
       .map((p, i) => {
         const net = p.quantity * p.unitPriceMinor;
+        const option = options.get(p.id);
+        const labFeeMinor = option?.labFeeMinor ?? 0;
+        if (!Number.isSafeInteger(labFeeMinor) || labFeeMinor < 0 || labFeeMinor > net) throw new BillingError("invalidLabFee");
+        const rule = option?.rule ?? null;
+        if (rule && !isValidRule(rule)) throw new BillingError("invalidFeeRule");
+        if (rule && !option?.ruleReason?.trim()) throw new BillingError("feeRuleReasonRequired");
         const taxRateBp = p.serviceSnapshot.taxRateBp ?? null;
         const taxMinor = taxRateBp ? applyBasisPoints(net, taxRateBp) : 0;
         return {
@@ -139,11 +178,15 @@ export async function createInvoiceFromProcedures(
           quantity: p.quantity,
           unitPriceMinor: p.unitPriceMinor,
           discountMinor: 0,
+          labFeeMinor,
+          honorariumRuleType: rule?.type ?? null,
+          honorariumRuleValue: rule?.value ?? null,
+          honorariumOverrideReason: rule ? option!.ruleReason!.trim() : null,
           taxRateBp,
           taxMinor,
           totalMinor: net + taxMinor,
           serviceDate: p.serviceDate,
-          providerId: p.performingProviderId,
+          providerId: option?.providerId || p.performingProviderId,
           sortOrder: i,
         };
       });
@@ -192,6 +235,7 @@ async function issueInTx(tx: Tx, ctx: ClinicContext, invoiceId: string) {
     .update(invoices)
     .set({ status: "issued", number, documentDate, issuerSnapshot: issuerSnapshotOf(le!.id), issuedAt: new Date(), issuedByUserId: ctx.userId, updatedAt: new Date(), version: sql`${invoices.version} + 1` })
     .where(eq(invoices.id, invoiceId));
+  await snapshotInvoiceHonoraria(tx, ctx, invoiceId);
   await audit(tx, { ...staff(ctx), action: "invoice.issued", entityType: "invoice", entityId: invoiceId, patientId: inv.patientId, metadata: { number } });
   return number;
 }

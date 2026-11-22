@@ -4,6 +4,7 @@ export * from "./consent";
 export * from "./catalog";
 export * from "./clinical";
 export * from "./finance";
+export * from "./honoraria";
 export * from "./cash";
 export * from "./scheduling";
 export * from "./booking";

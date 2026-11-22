@@ -209,6 +209,10 @@ export const memberships = pgTable(
     displayName: text("display_name").notNull(),
     /** Professional title shown on documents, e.g. "Dr". */
     title: text("title"),
+    /** Provider profile used by the honoraria (practitioner fees) ledger. */
+    specialty: text("specialty"),
+    /** Default practitioner share of the fees, in basis points (3000 = 30%). */
+    defaultFeeRateBp: integer("default_fee_rate_bp").notNull().default(0),
     isProvider: boolean("is_provider").notNull().default(false),
     /** null = all branches of the organization. */
     branchIds: uuid("branch_ids").array(),
@@ -218,6 +222,7 @@ export const memberships = pgTable(
   (t) => [
     uniqueIndex("memberships_org_user_uq").on(t.organizationId, t.userId),
     index("memberships_user_idx").on(t.userId),
+    check("memberships_default_fee_rate_valid", sql`${t.defaultFeeRateBp} between 0 and 10000`),
   ],
 );
 

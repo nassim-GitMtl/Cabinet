@@ -18,7 +18,7 @@ import {
 
 function parse(values: Record<string, string>, currency: string) {
   const priceMinor = parseMoneyInput(values.price ?? "", currency);
-  const parsed = serviceInputSchema.safeParse({ ...values, priceMinor: priceMinor ?? -1 });
+  const parsed = serviceInputSchema.safeParse({ ...values, priceMinor: priceMinor ?? -1, deductLabBeforeShare: values.deductLabBeforeShare === "on" });
   const fieldErrors = parsed.success ? {} : fieldErrorsOf(parsed.error);
   if (priceMinor === null || priceMinor < 0) {
     delete fieldErrors.priceMinor;

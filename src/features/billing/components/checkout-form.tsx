@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { initialActionState } from "@/lib/action-state";
 import { formatDateOnly } from "@/lib/dates";
 import { INTL_LOCALE, isLocale } from "@/i18n/config";
+import { LineFeeFields, type CheckoutFeeSupport } from "@/features/honoraria/components/line-fee-fields";
 import type { LocalizedText } from "@/server/db/schema/_shared";
 import { createInvoiceAction } from "../actions";
 import { moneyFormatter } from "../format";
@@ -23,6 +24,8 @@ export type UnbilledItem = {
   currency: string;
   serviceDate: string;
   provider: string;
+  providerId: string;
+  serviceId: string;
 };
 
 export function CheckoutForm({
@@ -30,11 +33,14 @@ export function CheckoutForm({
   items,
   symbol,
   canIssue,
+  fees,
 }: {
   patientId: string;
   items: UnbilledItem[];
   symbol: string;
   canIssue: boolean;
+  /** Practitioner fees: per-line fields shown only when the clinic has set fee rules. */
+  fees: CheckoutFeeSupport;
 }) {
   const t = useTranslations("billing");
   const tc = useTranslations("common");
@@ -79,6 +85,11 @@ export function CheckoutForm({
               </span>
               <span className="font-semibold tabular">{money(i.amountMinor, i.currency)}</span>
             </label>
+            {fees.enabled ? (
+              <div className="px-4 pb-3">
+                <LineFeeFields item={i} fees={fees} disabled={!selected.has(i.id)} money={money} />
+              </div>
+            ) : null}
           </li>
         ))}
       </ul>

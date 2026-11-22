@@ -111,6 +111,12 @@ export const invoiceLines = pgTable(
     unitPriceMinor: bigint("unit_price_minor", { mode: "number" }).notNull(),
     discountMinor: bigint("discount_minor", { mode: "number" }).notNull().default(0),
     discountReason: text("discount_reason"),
+    /** Laboratory cost of this act, entered at checkout; deducted from the fee base when the service says so. */
+    labFeeMinor: bigint("lab_fee_minor", { mode: "number" }).notNull().default(0),
+    /** Optional practitioner-share rule for this line only ("percent" in basis points, "fixed" per unit), with why. */
+    honorariumRuleType: text("honorarium_rule_type"),
+    honorariumRuleValue: integer("honorarium_rule_value"),
+    honorariumOverrideReason: text("honorarium_override_reason"),
     taxRateBp: integer("tax_rate_bp"),
     taxMinor: bigint("tax_minor", { mode: "number" }).notNull().default(0),
     /** quantity * unit price - discount + tax */
@@ -130,6 +136,13 @@ export const invoiceLines = pgTable(
       .where(sql`performed_procedure_id is not null and released = false`),
     check("invoice_lines_quantity_positive", sql`${t.quantity} > 0`),
     check("invoice_lines_amounts_valid", sql`${t.unitPriceMinor} >= 0 and ${t.discountMinor} >= 0 and ${t.discountMinor} <= ${t.quantity} * ${t.unitPriceMinor}`),
+    check("invoice_lines_lab_fee_valid", sql`${t.labFeeMinor} >= 0 and ${t.labFeeMinor} <= ${t.quantity} * ${t.unitPriceMinor} - ${t.discountMinor}`),
+    check(
+      "invoice_lines_honorarium_override_valid",
+      sql`(${t.honorariumRuleType} is null and ${t.honorariumRuleValue} is null and ${t.honorariumOverrideReason} is null)
+        or (${t.honorariumRuleType} = 'percent' and ${t.honorariumRuleValue} between 0 and 10000 and length(trim(${t.honorariumOverrideReason})) > 0)
+        or (${t.honorariumRuleType} = 'fixed' and ${t.honorariumRuleValue} >= 0 and length(trim(${t.honorariumOverrideReason})) > 0)`,
+    ),
   ],
 );
 

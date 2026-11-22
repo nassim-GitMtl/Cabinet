@@ -8,6 +8,7 @@ import { ButtonLink } from "@/components/button-link";
 import { CheckoutForm } from "@/features/billing/components/checkout-form";
 import { pageFormat } from "@/features/billing/page-format";
 import { listUnbilledProcedures } from "@/features/billing/server";
+import { getCheckoutFeeSupport } from "@/features/honoraria/server";
 import { patientDisplayName } from "@/features/patients/display";
 import { getPatient } from "@/features/patients/server";
 import { can, requireClinicContext } from "@/server/auth/context";
@@ -23,7 +24,7 @@ export default async function CheckoutPage({ params }: PageProps<"/patients/[id]
   if (!can(ctx, "invoice.create")) return <ForbiddenState message={t("errors.forbiddenPage")} />;
   const data = await getPatient(ctx, id);
   if (!data) notFound();
-  const [items, fmt] = await Promise.all([listUnbilledProcedures(ctx, id), pageFormat(ctx)]);
+  const [items, fmt, fees] = await Promise.all([listUnbilledProcedures(ctx, id), pageFormat(ctx), getCheckoutFeeSupport(ctx)]);
 
   return (
     <>
@@ -47,6 +48,7 @@ export default async function CheckoutPage({ params }: PageProps<"/patients/[id]
           patientId={id}
           symbol={fmt.symbol}
           canIssue={can(ctx, "invoice.issue")}
+          fees={fees}
           items={items.map((i) => ({
             id: i.id,
             code: i.serviceSnapshot.code,
@@ -57,6 +59,8 @@ export default async function CheckoutPage({ params }: PageProps<"/patients/[id]
             currency: i.currency,
             serviceDate: i.serviceDate,
             provider: [i.providerTitle, i.providerName].filter(Boolean).join(" "),
+            providerId: i.providerId,
+            serviceId: i.serviceId ?? "",
           }))}
         />
       )}

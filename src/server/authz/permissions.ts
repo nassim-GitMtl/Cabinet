@@ -63,6 +63,11 @@ export const PERMISSIONS = [
   "expense.read",
   "expense.manage",
   "expense.approve",
+  "honorarium.read.own",
+  "honorarium.read.all",
+  "honorarium.manage",
+  "honorarium.pay",
+  "honorarium.close",
   // Reporting and audit
   "report.operational",
   "report.financial",
@@ -81,7 +86,7 @@ export type Permission = (typeof PERMISSIONS)[number];
  * On the cloud copy of a clinic whose clinic computer is in charge, staff may only look: every ".read" key plus
  * reports and the audit trail. Screens then hide what cannot be done; the database refuses staff writes anyway.
  */
-const READ_ONLY_EXTRA: readonly string[] = ["report.operational", "report.financial", "report.export", "audit.read"];
+const READ_ONLY_EXTRA: readonly string[] = ["report.operational", "report.financial", "report.export", "audit.read", "honorarium.read.own", "honorarium.read.all"];
 export function readOnlyCopyPermissions(permissions: readonly string[]): string[] {
   return permissions.filter((p) => (p.endsWith(".read") && p !== "shared_profile.read") || READ_ONLY_EXTRA.includes(p));
 }
@@ -135,6 +140,7 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "invoice.issue",
       "payment.read",
       "payment.receive",
+      "honorarium.read.own",
       "report.operational",
       "sterilization.release",
     ],
@@ -179,6 +185,9 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "payment.read",
       "expense.read",
       "expense.manage",
+      "honorarium.read.all",
+      "honorarium.pay",
+      "honorarium.close",
       "cash.manage",
       "cash.close.approve",
       "report.financial",

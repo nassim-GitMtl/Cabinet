@@ -23,6 +23,7 @@ import {
   UserPlusIcon,
   UsersIcon,
   WalletIcon,
+  HandCoinsIcon,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ import { LanguageSwitcher } from "./language-switcher";
 import { NotificationCenter } from "./notification-center";
 import { ToothIcon, ToothNumberGuide } from "./tooth-number-guide";
 
-export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "followUps" | "invoices" | "reports" | "cash" | "expenses" | "inventory" | "sterilization" | "catalog" | "settings";
+export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "followUps" | "invoices" | "honoraria" | "reports" | "cash" | "expenses" | "inventory" | "sterilization" | "catalog" | "settings";
 
 /** Shown in the phone bottom bar; everything else goes in the "More" sheet. */
 const MOBILE_PRIMARY: NavKey[] = ["dashboard", "agenda", "patients", "invoices"];
@@ -46,6 +47,7 @@ const NAV: Record<NavKey, { href: string; icon: LucideIcon; label: string; short
   patients: { href: "/patients", icon: UsersIcon, label: "patients" },
   followUps: { href: "/follow-ups", icon: BellRingIcon, label: "followUps" },
   invoices: { href: "/invoices", icon: FileTextIcon, label: "invoices" },
+  honoraria: { href: "/honoraires", icon: HandCoinsIcon, label: "honoraria" },
   reports: { href: "/reports", icon: BarChart3Icon, label: "reports" },
   cash: { href: "/cash", icon: WalletIcon, label: "cash" },
   expenses: { href: "/expenses", icon: ReceiptIcon, label: "expenses" },

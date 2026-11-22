@@ -29,6 +29,7 @@ type Props = {
   patientId: string;
   picker: ServicePickerData;
   providers: Option[];
+  providerPrices: Array<{ providerId: string; serviceId: string; priceMinor: number }>;
   branches: Option[];
   defaultProviderId: string;
   defaultBranchId: string;
@@ -41,6 +42,7 @@ export function ProcedureEntryForm({
   patientId,
   picker,
   providers,
+  providerPrices,
   branches,
   defaultProviderId,
   defaultBranchId,
@@ -58,6 +60,7 @@ export function ProcedureEntryForm({
   const initialServiceId = state.values?.serviceId ?? "";
   const initialService = services.find((service) => service.id === initialServiceId) ?? null;
   const [serviceId, setServiceId] = useState(initialServiceId);
+  const [providerId, setProviderId] = useState(state.values?.performingProviderId ?? defaultProviderId);
   const [price, setPrice] = useState(
     state.values?.price ??
       (initialService ? minorToInput(initialService.priceMinor, initialService.currency) : ""),
@@ -68,13 +71,17 @@ export function ProcedureEntryForm({
   const selected = services.find((service) => service.id === serviceId) ?? null;
   const fields = state.fieldErrors ?? {};
   const priceMinor = selected ? parseMoneyInput(price, selected.currency) : null;
-  const priceChanged = Boolean(selected && priceMinor !== null && priceMinor !== selected.priceMinor);
+  const configuredPrice = (nextServiceId: string, nextProviderId: string) =>
+    providerPrices.find((item) => item.serviceId === nextServiceId && item.providerId === nextProviderId)?.priceMinor;
+  const expectedPrice = selected ? configuredPrice(serviceId, providerId) ?? selected.priceMinor : null;
+  const priceChanged = Boolean(selected && priceMinor !== null && priceMinor !== expectedPrice);
 
   const selectService = (nextId: string) => {
     const service = services.find((item) => item.id === nextId);
     setServiceId(nextId);
     setSurfaces([]);
-    setPrice(service ? minorToInput(service.priceMinor, service.currency) : "");
+    const amount = service ? configuredPrice(nextId, providerId) ?? service.priceMinor : null;
+    setPrice(service && amount !== null ? minorToInput(amount, service.currency) : "");
   };
 
   const surfaceError = errorText(fields.surfaces);
@@ -112,7 +119,12 @@ export function ProcedureEntryForm({
             label={t("fields.provider")}
             name="performingProviderId"
             required
-            defaultValue={state.values?.performingProviderId ?? defaultProviderId}
+            value={providerId}
+            onChange={(event) => {
+              const nextProvider = event.target.value;
+              setProviderId(nextProvider);
+              if (selected) setPrice(minorToInput(configuredPrice(serviceId, nextProvider) ?? selected.priceMinor, selected.currency));
+            }}
             options={providers.map((provider) => ({ value: provider.id, label: provider.name }))}
             error={fields.performingProviderId}
           />

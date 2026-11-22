@@ -5,6 +5,7 @@ import { SyncNotice } from "@/features/sync/components/sync-notice";
 import { getOperationalNotifications } from "@/features/notifications/server";
 import { can, requireClinicContext } from "@/server/auth/context";
 import { listMyClinics } from "@/server/services/auth";
+import { canSeeHonoraria } from "@/features/honoraria/server";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const ctx = await requireClinicContext();
@@ -22,6 +23,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   if (can(ctx, "patient.read")) nav.push("patients");
   if (can(ctx, "patient.followup")) nav.push("followUps");
   if (can(ctx, "invoice.read")) nav.push("invoices");
+  if (canSeeHonoraria(ctx)) nav.push("honoraria");
   if (can(ctx, "report.operational") || can(ctx, "report.financial")) nav.push("reports");
   if (can(ctx, "cash.manage")) nav.push("cash");
   if (can(ctx, "expense.read")) nav.push("expenses");

@@ -6,6 +6,7 @@ import { EyeOffIcon, HistoryIcon, PencilIcon, PlusIcon, PowerIcon, SearchIcon } 
 import { FormError, SelectField, SubmitButton, TextField } from "@/components/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { initialActionState, type ActionState } from "@/lib/action-state";
@@ -180,6 +181,7 @@ function ServiceDialog({
     anatomy: service?.anatomy ?? "none",
     defaultDurationMin: String(service?.defaultDurationMin ?? 30),
     price: service ? minorToInput(service.priceMinor, service.currency) : "",
+    deductLabBeforeShare: service?.deductLabBeforeShare ? "on" : "",
   };
   const fe = state.fieldErrors ?? {};
 
@@ -238,6 +240,13 @@ function ServiceDialog({
               />
             ) : null}
           </div>
+          <label className="flex items-start gap-2 text-sm">
+            <Checkbox name="deductLabBeforeShare" defaultChecked={d.deductLabBeforeShare === "on"} className="mt-0.5" />
+            <span>
+              {t("fields.deductLab")}
+              <span className="block text-xs text-muted-foreground">{t("fields.deductLabHint")}</span>
+            </span>
+          </label>
           <input type="hidden" name="currency" value={currency} />
           <div className="flex flex-wrap justify-between gap-2">
             <SubmitButton>{service ? t("editTitle") : t("newService")}</SubmitButton>

@@ -14,6 +14,7 @@ import {
   memberships,
   patients,
   performedProcedures,
+  providerServiceTerms,
   services,
   type ServiceSnapshot,
 } from "@/server/db/schema";
@@ -58,7 +59,7 @@ function anatomyValues(
 export async function getProcedureEntrySupport(ctx: ClinicContext) {
   requirePermission(ctx, "clinical.write");
   return tenantTx(ctx, async (tx) => {
-    const [clinicBranches, providers] = await Promise.all([
+    const [clinicBranches, providers, providerPrices] = await Promise.all([
       tx
         .select({ id: branches.id, name: branches.name })
         .from(branches)
@@ -73,8 +74,10 @@ export async function getProcedureEntrySupport(ctx: ClinicContext) {
         .from(memberships)
         .where(and(eq(memberships.isProvider, true), eq(memberships.status, "active")))
         .orderBy(asc(memberships.displayName)),
+      tx.select({ providerId: providerServiceTerms.providerId, serviceId: providerServiceTerms.serviceId, priceMinor: providerServiceTerms.priceMinor })
+        .from(providerServiceTerms),
     ]);
-    return { branches: clinicBranches, providers };
+    return { branches: clinicBranches, providers, providerPrices: providerPrices.filter((row) => row.priceMinor !== null) as Array<{ providerId: string; serviceId: string; priceMinor: number }> };
   });
 }
 
@@ -127,7 +130,10 @@ export async function recordPerformedProcedure(
     if (!branch) throw new ProcedureReferenceError("branchUnavailable");
 
     const anatomy = anatomyValues(service.anatomy, input);
-    const isPriceOverride = input.unitPriceMinor !== service.priceMinor;
+    const [specificTerm] = await tx.select({ priceMinor: providerServiceTerms.priceMinor }).from(providerServiceTerms)
+      .where(and(eq(providerServiceTerms.providerId, input.performingProviderId), eq(providerServiceTerms.serviceId, service.id))).limit(1);
+    const expectedPrice = specificTerm?.priceMinor ?? service.priceMinor;
+    const isPriceOverride = input.unitPriceMinor !== expectedPrice;
     if (isPriceOverride) {
       if (!input.priceOverrideReason) {
         throw new ProcedureValidationError({ priceOverrideReason: "overrideReasonRequired" });

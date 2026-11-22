@@ -3,7 +3,7 @@ import { and, asc, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
 import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
 import type { Tx } from "@/server/db/client";
-import { cashMovements, cashSessions, expenses, legalEntities, payments, refunds, suppliers, users } from "@/server/db/schema";
+import { cashMovements, cashSessions, expenses, honorariumPayments, legalEntities, payments, refunds, suppliers, users } from "@/server/db/schema";
 import { todayInZone } from "@/lib/dates";
 
 export class CashError extends Error {
@@ -61,6 +61,11 @@ async function cashBreakdown(tx: Tx, date: string, sessionId: string | null) {
     .select({ total: sql<number>`coalesce(sum(${expenses.amountMinor}), 0)::bigint` })
     .from(expenses)
     .where(and(eq(expenses.status, "paid"), eq(expenses.paymentMethod, "cash"), eq(expenses.paidOn, date)));
+  // Practitioner fees handed over in cash (a reversal is a negative row: the money came back).
+  const [fees] = await tx
+    .select({ total: sql<number>`coalesce(sum(${honorariumPayments.amountMinor}), 0)::bigint` })
+    .from(honorariumPayments)
+    .where(and(eq(honorariumPayments.method, "cash"), eq(honorariumPayments.paidOn, date)));
   const movements = sessionId
     ? await tx.select().from(cashMovements).where(eq(cashMovements.cashSessionId, sessionId)).orderBy(asc(cashMovements.createdAt))
     : [];
@@ -71,6 +76,7 @@ async function cashBreakdown(tx: Tx, date: string, sessionId: string | null) {
     cashReceiptCount: Number(rec?.n ?? 0),
     cashRefundsMinor: Number(ref?.total ?? 0),
     cashExpensesMinor: Number(exp?.total ?? 0),
+    cashHonorariaMinor: Number(fees?.total ?? 0),
     transfersInMinor: transfersIn,
     transfersOutMinor: transfersOut,
     movements,
@@ -79,7 +85,7 @@ async function cashBreakdown(tx: Tx, date: string, sessionId: string | null) {
 }
 
 const expectedOf = (float: number, b: Awaited<ReturnType<typeof cashBreakdown>>) =>
-  float + b.cashReceiptsMinor - b.cashRefundsMinor - b.cashExpensesMinor + b.transfersInMinor - b.transfersOutMinor;
+  float + b.cashReceiptsMinor - b.cashRefundsMinor - b.cashExpensesMinor - b.cashHonorariaMinor + b.transfersInMinor - b.transfersOutMinor;
 
 export async function getCashDay(ctx: ClinicContext, date: string) {
   requirePermission(ctx, "cash.manage");

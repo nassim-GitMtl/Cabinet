@@ -437,3 +437,37 @@ and double bookings are only safe with one copy in charge.
   at that point. The clinic computer always opens the connection (no inbound port, works behind any router).
 - **Not yet copied (later phase):** patient portal accounts and portal account recovery for clinic-homed clinics,
   and clinical file bytes (only their records are copied).
+
+## Practitioner fees / honoraires (`src/features/honoraria`, migration 0047)
+
+Clinics with several dentists pay each one a share of the acts they perform (a percentage, sometimes a fixed amount,
+after the lab fee for prostheses). Started by Codex, finished and hardened by Claude.
+
+- **Rules.** Per practitioner: a default percentage (`memberships.default_fee_rate_bp`, basis points). Per practitioner
+  and service: `provider_service_terms` (own price and/or percent or fixed-per-unit rule; changed in place, every change
+  copied with its reason to append-only `provider_service_term_history`; never deleted). Per line at checkout: an
+  optional one-off rule with a mandatory reason, stored on `invoice_lines.honorarium_rule_*`. Resolution: line rule,
+  then service rule, then default (`resolveRule`). `services.deduct_lab_before_share` (catalog editor) says whether the
+  lab fee typed at checkout (`invoice_lines.lab_fee_minor`) comes off the base first.
+- **Ledger.** `honorarium_entries` is append-only. `snapshotInvoiceHonoraria` runs inside the invoice issue
+  transaction and writes one `earned` row per line with a practitioner, freezing the rule, base and both shares
+  (integer minor units, one rounding per line, share capped at the base, practitioner + clinic = line amount before
+  tax). Lines issued before the ledger existed are assigned one at a time after a preview (`backfill`). Corrections
+  are signed `adjustment` rows linked to the entry they correct; the corrected share must stay within [0, line amount].
+  A partial unique index allows one base entry per invoice line.
+- **What is owed.** Never stored, always derived in SQL from the invoice: share net of credit notes =
+  share × (total − credited) / total; collected share = share × min(paid, net) / total. "Still to pay" = all-time
+  collected share − all-time payouts. Void invoices are excluded.
+- **Payouts.** `honorarium_payments` is append-only; a mistake is cancelled by one negative reversal row
+  (`reverses_payment_id`, unique). Cash payouts count in the cash day (`cashHonorariaMinor` in the expected amount) and
+  are refused on a closed cash day, like expenses.
+- **Closed months.** `honorarium_period_closures` (append-only, per practitioner, only for a finished month). A fee,
+  assignment or correction whose date falls in a closed month is dated today instead; a payout cannot be dated in a
+  closed month. Nothing ever rewrites a closed month.
+- **Access.** `honorarium.read.own` (dentists: only their own rows, enforced in the service), `honorarium.read.all`,
+  `honorarium.pay`, `honorarium.close` (accountant), `honorarium.manage` (owner: rules, assignments, corrections).
+  All in the `billing` module. Read keys stay available on a view-only cloud copy. Migration 0047 adds the keys to the
+  built-in roles of existing clinics. Practitioner and service ids are re-checked inside the tenant transaction
+  (foreign keys alone do not stop another clinic's ids, since they bypass RLS).
+- **Pitfall.** Append-only tables only grant SELECT/INSERT, so `SELECT … FOR UPDATE` on them fails with
+  "permission denied": lock a parent row instead (corrections lock the invoice).

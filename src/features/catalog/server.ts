@@ -25,6 +25,8 @@ export type CatalogService = {
   currency: string;
   isDemoPrice: boolean;
   isActive: boolean;
+  /** Practitioner fees: the lab fee entered at checkout comes off before the share is calculated. */
+  deductLabBeforeShare: boolean;
   version: number;
 };
 
@@ -57,6 +59,7 @@ export async function listCatalog(ctx: ClinicContext, opts: { includeInactive?: 
         currency: services.currency,
         isDemoPrice: services.isDemoPrice,
         isActive: services.isActive,
+        deductLabBeforeShare: services.deductLabBeforeShare,
         version: services.version,
       })
       .from(services)
@@ -89,6 +92,7 @@ export async function getServicePickerData(ctx: ClinicContext): Promise<ServiceP
           currency: services.currency,
           isDemoPrice: services.isDemoPrice,
           isActive: services.isActive,
+          deductLabBeforeShare: services.deductLabBeforeShare,
           version: services.version,
         })
         .from(services)
@@ -190,6 +194,7 @@ export const serviceInputSchema = z.object({
   defaultDurationMin: z.coerce.number().int().min(0).max(600),
   priceMinor: z.number().int().min(0),
   priceChangeReason: z.string().trim().max(300).optional(),
+  deductLabBeforeShare: z.boolean().optional(),
 });
 export type ServiceInput = z.infer<typeof serviceInputSchema>;
 
@@ -222,6 +227,7 @@ export async function createService(ctx: ClinicContext, input: ServiceInput) {
         defaultDurationMin: input.defaultDurationMin,
         priceMinor: input.priceMinor,
         currency: ctx.organization.defaultCurrency,
+        deductLabBeforeShare: input.deductLabBeforeShare ?? false,
       })
       .returning({ id: services.id });
     await tx.insert(servicePrices).values({
@@ -268,6 +274,7 @@ export async function updateService(ctx: ClinicContext, id: string, input: Servi
         anatomy: input.anatomy,
         defaultDurationMin: input.defaultDurationMin,
         priceMinor: input.priceMinor,
+        deductLabBeforeShare: input.deductLabBeforeShare ?? current.deductLabBeforeShare,
         isDemoPrice: priceChanged ? false : current.isDemoPrice,
         updatedAt: new Date(),
         version: sql`${services.version} + 1`,

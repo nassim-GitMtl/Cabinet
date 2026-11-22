@@ -8,9 +8,12 @@ import { parseDateOnly, todayInZone } from "@/lib/dates";
 import { parseMoneyInput } from "@/lib/money";
 import { ForbiddenError, requireClinicContext } from "@/server/auth/context";
 import { CashError } from "@/features/cash/server";
+import { percentInputToBasisPoints, type FeeRule } from "@/features/honoraria/calculation";
+import { HonorariumError } from "@/features/honoraria/server";
 import {
   applyPaymentToInvoice,
   BillingError,
+  type CheckoutLineOption,
   createInvoiceFromProcedures,
   deleteDraftInvoice,
   issueCreditNote,
@@ -28,6 +31,7 @@ function fail(err: unknown, values?: Record<string, string>): ActionState {
   if (err instanceof ForbiddenError) return { error: "forbidden", values };
   if (err instanceof BillingError) return { error: `billing.errors.${err.code}`, values };
   if (err instanceof CashError) return { error: `cash.errors.${err.code}`, values };
+  if (err instanceof HonorariumError) return { error: `honoraria.errors.${err.code}`, values };
   throw err;
 }
 
@@ -39,17 +43,43 @@ function revalidateBilling(patientId?: string, invoiceId?: string) {
   if (patientId) revalidatePath(`/patients/${patientId}`);
 }
 
+/** Practitioner-fee fields of one checkout line; absent when the clinic does not use practitioner fees. */
+function lineOption(formData: FormData, procedureId: string, currency: string): CheckoutLineOption | "providerUnavailable" | "invalidLabFee" | "invalidFeeRule" {
+  const field = (name: string) => String(formData.get(`${name}:${procedureId}`) ?? "").trim();
+  const providerId = field("providerId");
+  if (providerId && !uuid.safeParse(providerId).success) return "providerUnavailable";
+  const labRaw = field("labFee");
+  const labFeeMinor = labRaw ? parseMoneyInput(labRaw, currency) : 0;
+  if (labFeeMinor === null || labFeeMinor < 0) return "invalidLabFee";
+  const ruleType = field("ruleType");
+  let rule: FeeRule | null = null;
+  if (ruleType === "percent" || ruleType === "fixed") {
+    const raw = field("ruleValue");
+    const value = ruleType === "percent" ? percentInputToBasisPoints(raw) : parseMoneyInput(raw, currency);
+    if (value === null || value < 0) return "invalidFeeRule";
+    rule = { type: ruleType, value };
+  }
+  return { procedureId, providerId: providerId || null, labFeeMinor, rule, ruleReason: rule ? field("ruleReason") || null : null };
+}
+
 export async function createInvoiceAction(patientId: string, _prev: ActionState, formData: FormData): Promise<ActionState> {
   const ctx = await requireClinicContext();
   const values = formValues(formData);
   const procedureIds = formData.getAll("procedureIds").map(String).filter((v) => uuid.safeParse(v).success);
   if (!procedureIds.length) return { error: "billing.errors.noLines", values };
+  const lineOptions: CheckoutLineOption[] = [];
+  for (const procedureId of procedureIds) {
+    const option = lineOption(formData, procedureId, ctx.organization.defaultCurrency);
+    if (typeof option === "string") return { error: `billing.errors.${option}`, values };
+    lineOptions.push(option);
+  }
   let id: string;
   try {
     id = await createInvoiceFromProcedures(ctx, patientId, {
       procedureIds,
       issueNow: values.mode !== "draft",
       notes: values.notes?.trim() || null,
+      lineOptions,
     });
   } catch (err) {
     return fail(err, values);

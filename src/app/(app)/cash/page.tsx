@@ -35,6 +35,7 @@ export default async function CashPage({ searchParams }: PageProps<"/cash">) {
         [t("cash.cashReceipts", { count: b.cashReceiptCount }), b.cashReceiptsMinor, "+"],
         [t("cash.cashRefunds"), -b.cashRefundsMinor, "−"],
         [t("cash.cashExpenses"), -b.cashExpensesMinor, "−"],
+        ...(b.cashHonorariaMinor ? [[t("cash.cashHonoraria"), -b.cashHonorariaMinor, "−"] as [string, number, string]] : []),
         [t("cash.transfersIn"), b.transfersInMinor, "+"],
         [t("cash.transfersOut"), -b.transfersOutMinor, "−"],
       ]

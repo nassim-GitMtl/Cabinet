@@ -330,6 +330,13 @@
       "when": 1795364396809,
       "tag": "0046_schema_version",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1795367502514,
+      "tag": "0047_honoraria",
+      "breakpoints": true
     }
   ]
 }

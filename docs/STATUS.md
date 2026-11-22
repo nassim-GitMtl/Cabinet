@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-22 by Codex (session 41 — editable booking requests + commercial platform console).
+Last updated: 2026-11-22 by Claude (session 43 — practitioner fees / honoraires, finishing Codex's draft).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -523,6 +523,21 @@ pushing**; Vercel will not put the code live until they are applied. The notific
 (errors give an empty bell); operator module changes use the `system` actor so they also apply to a clinic run from its
 clinic computer (test added). 206/206 tests, typecheck, lint, build green.
 
+Session 43 (Claude): practitioner fees ("honoraires"), finishing Codex's uncommitted draft (it had no tests, three
+unapplied migrations and several money bugs). Kept Codex's data model and merged it into one migration, 0047. Fixed:
+the collected share ignored credit notes (a half-refunded invoice paid the dentist in full); closing a month did not
+stop later invoices, assignments or payouts from changing it; nothing reached the cash day when a dentist was paid in
+cash (every close would have shown a gap); checkout broke when the fee fields were absent; another clinic's practitioner
+or service ids were accepted; no way to cancel a payout; dentists could read colleagues' rates; existing clinics' roles
+never got the new permission keys; percentages typed with a comma were rejected; the lab-deduction flag could not be
+set anywhere. Added: payout reversal, all-time "still to pay" per practitioner, cash-day line, catalog option "take the
+lab fee off first", XLSX/CSV export (details + per practitioner), folded per-line fee details at checkout with a live
+preview (hidden until a clinic sets a rate), corrections, readable screens. Design: docs/ARCHITECTURE.md "Practitioner
+fees". 219/219 tests (+7 integration in `tests/integration/honoraria.test.ts`, +6 unit), typecheck, lint, build green.
+Browser-checked on the local database: set 32,5 %, assigned an older invoice line (1 300 DA of 4 000), checkout with a
+one-off 40 % rule and reason, issued, entry listed; catalog option; Arabic RTL at 375 px without horizontal scroll.
+Production needs migration 0047 before this code goes live (the deploy guard holds the previous version until then).
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -551,7 +566,8 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and treatment links. Structured draft notes, review, signing, amendments and hash-chain integrity ✅. Primary visual chart and periodontal chart ⏳. |
 | Images/documents, object storage (§12A, §15) | ✅ | Private filesystem or Vercel Blob storage, direct browser upload on Vercel, magic-byte type check, sha256, append-only metadata, before/after pairs and audited private views. DICOM viewer and annotations/measurements ⏳ |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
-| Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
+| Practitioner fees / honoraires | ✅ | Default % per practitioner, per-service rules (own price, % or fixed), one-off line rule with reason, lab fee deducted when the service says so; append-only ledger frozen at invoice issue; share net of credit notes and collected share derived from payments; payouts with reversal and cash-day integration; closed months; older-line assignment; corrections; own-only view for dentists; XLSX/CSV. Statement per practitioner (PDF), payroll export ⏳ |
+| Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses − cash practitioner payouts ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Acquisition report ✅ (sources, treated share, production, booking funnel, referrers). `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | 🟡 | Relances ✅: reminders, after-visit care + review requests, referral thanks, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic sending through an SMS/WhatsApp Business provider ⏳ 🔌 |
 | Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
