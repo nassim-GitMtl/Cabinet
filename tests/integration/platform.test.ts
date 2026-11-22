@@ -35,6 +35,15 @@ describe("platform operator clinic provisioning", () => {
       tx.select({ enabledModules: organizations.enabledModules }).from(organizations).where(eq(organizations.id, clinic.id)),
     );
     expect(stored!.enabledModules).toEqual(["core", "inventory"]);
+
+    // A clinic run from its clinic computer: the online copy refuses staff writes, but not the operator's modules.
+    await withDbContext({ organizationId: clinic.id, actorType: "system" }, (tx) =>
+      tx.update(organizations).set({ dataHome: "clinic" }).where(eq(organizations.id, clinic.id)));
+    await setPlatformClinicModules(ctx, clinic.id, ["billing", "reports"]);
+    const [afterSync] = await withDbContext({ organizationId: clinic.id, actorType: "system" }, (tx) =>
+      tx.select({ enabledModules: organizations.enabledModules }).from(organizations).where(eq(organizations.id, clinic.id)),
+    );
+    expect(afterSync!.enabledModules).toEqual(["core", "billing", "reports"]);
   });
 
   it("rejects a non-operator at the database boundary", async () => {

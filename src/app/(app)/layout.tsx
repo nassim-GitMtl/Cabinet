@@ -9,7 +9,11 @@ import { listMyClinics } from "@/server/services/auth";
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const ctx = await requireClinicContext();
   const clinics = await listMyClinics(ctx.userId);
-  const notifications = await getOperationalNotifications(ctx);
+  // The bell is a convenience: if its counts cannot be computed, the page still opens (without them).
+  const notifications = await getOperationalNotifications(ctx).catch((error: unknown) => {
+    console.error("notifications unavailable:", error instanceof Error ? error.message : error);
+    return [];
+  });
   const t = await getTranslations("roles");
   const roleName = t.has(ctx.roleKey as never) ? t(ctx.roleKey as never) : ctx.roleName;
 

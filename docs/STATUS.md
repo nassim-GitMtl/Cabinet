@@ -513,6 +513,16 @@ tenant membership or patient-data bypass. 206/206 tests (+1 booking integration,
 typecheck and full lint green; `npx next build --webpack` is green and includes `/platform`. The standard Turbopack build
 still reaches the known runner-only CSS helper-port `EPERM`.
 
+Session 39 (Claude): hardening after Codex sessions 40–41 (notification center; editable booking requests, product
+modules and platform console). Codex's 0045 had been pushed (so deployed) without being applied to production: the
+booking-request pages failed live until it was applied (user-approved). Deploy guard against this: migration 0046
+`app_private.schema_migrations_applied()` and `scripts/check-schema.ts`, run by Vercel through the `vercel-build`
+script; it waits up to 5 min for migrations, then refuses the build (the previous version stays live) if the database
+is still behind its code. Rule for every agent: **apply new migrations to Preview and Production before or right after
+pushing**; Vercel will not put the code live until they are applied. The notification bell can no longer break pages
+(errors give an empty bell); operator module changes use the `system` actor so they also apply to a clinic run from its
+clinic computer (test added). 206/206 tests, typecheck, lint, build green.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)

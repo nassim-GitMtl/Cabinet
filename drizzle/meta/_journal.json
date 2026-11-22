@@ -323,6 +323,13 @@
       "when": 1795360112400,
       "tag": "0045_omniscient_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1795364396809,
+      "tag": "0046_schema_version",
+      "breakpoints": true
     }
   ]
 }

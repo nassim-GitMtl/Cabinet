@@ -50,7 +50,9 @@ export async function listPlatformClinics(ctx: PlatformContext): Promise<Platfor
 
 export async function setPlatformClinicModules(ctx: PlatformContext, organizationId: string, modules: readonly string[]) {
   const enabled = normalizeModules(modules);
-  return withDbContext({ organizationId, userId: ctx.userId, actorType: "staff" }, async (tx) => {
+  // Not a clinic staff action: on the online copy of a clinic run from its clinic computer, staff writes are refused
+  // (sync_writer_guard), but the operator's module change must apply (and is then synced to the clinic computer).
+  return withDbContext({ organizationId, userId: ctx.userId, actorType: "system" }, async (tx) => {
     const moduleArray = sql`ARRAY[${sql.join(enabled.map((value) => sql`${value}`), sql`, `)}]::text[]`;
     const rows = await tx.execute<{ organization_id: string }>(sql`select app_private.platform_set_modules(${organizationId}::uuid, ${moduleArray}) as organization_id`);
     if (!rows[0]?.organization_id) throw new PlatformError("clinicUnavailable");
