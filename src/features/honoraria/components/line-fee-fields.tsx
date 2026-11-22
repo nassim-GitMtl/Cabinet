@@ -10,6 +10,8 @@ import { calculateHonorarium, percentInputToBasisPoints, resolveRule, type FeeRu
 
 export type CheckoutFeeSupport = {
   enabled: boolean;
+  /** Only the owner sees rates and shares and may change who is paid or the rule. */
+  canManage: boolean;
   providers: Array<{ id: string; name: string; defaultFeeRateBp: number }>;
   terms: Array<{ providerId: string; serviceId: string; ruleType: FeeRule["type"]; ruleValue: number }>;
   deductLabServiceIds: string[];
@@ -48,6 +50,16 @@ export function LineFeeFields({
     labMinor !== null && labMinor >= 0 && labMinor <= item.amountMinor && (!ruleType || lineRule)
       ? calculateHonorarium({ unitPriceMinor: item.amountMinor / item.quantity, quantity: item.quantity, discountMinor: 0, labFeeMinor: labMinor, deductLabBeforeShare: deduct, rule })
       : null;
+  if (!fees.canManage) {
+    // Anyone else only types the lab fee, and only where it matters (services that take it off first).
+    return deduct ? (
+      <label className="ms-8 mt-1 flex max-w-xs items-center gap-2 text-xs text-muted-foreground">
+        <HandCoinsIcon className="size-3.5 shrink-0" aria-hidden />
+        <span className="shrink-0">{t("labFee")}</span>
+        <Input name={`labFee:${item.id}`} value={lab} onChange={(e) => setLab(e.target.value)} inputMode="decimal" placeholder="0" disabled={disabled} className="h-8 tabular" />
+      </label>
+    ) : null;
+  }
   const ruleLabel = rule.type === "percent" ? `${rule.value / 100} %` : t("fixedPerUnit", { amount: money(rule.value, item.currency) });
 
   return (

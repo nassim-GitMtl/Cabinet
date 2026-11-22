@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { acceptStaffInvitation } from "@/features/access/invitation";
-import { createStaffInvitation } from "@/features/access/server";
+import { createRole, createStaffInvitation } from "@/features/access/server";
 import { createInvoiceFromProcedures, issueCreditNote, issueInvoice, recordPayment, type CheckoutLineOption } from "@/features/billing/server";
 import { closeCashSession, getCashDay, openCashSession } from "@/features/cash/server";
 import { getServicePickerData, updateService } from "@/features/catalog/server";
@@ -12,6 +12,7 @@ import {
   closeHonorariumMonth,
   getCheckoutFeeSupport,
   getHonorariumReport,
+  getProviderPriceList,
   listFeeProviders,
   listUnassignedLines,
   recordHonorariumPayment,
@@ -23,7 +24,8 @@ import { createPatient } from "@/features/patients/server";
 import { getProcedureEntrySupport, recordPerformedProcedure } from "@/features/procedures/server";
 import { addDays, todayInZone } from "@/lib/dates";
 import { ForbiddenError, type ClinicContext } from "@/server/auth/context";
-import { honorariumEntries, honorariumPayments, invoiceLines, memberships, roles } from "@/server/db/schema";
+import { honorariumEntries, honorariumPayments, invoiceLines, memberships, providerServiceTermHistory, roles } from "@/server/db/schema";
+import { roleEffectivePermissions } from "@/server/authz/permissions";
 import { withDbContext } from "@/server/db/tenant";
 import { contextFor, expectDbError, makeClinic } from "../support/factories";
 
@@ -269,15 +271,67 @@ describe("practitioner fees (honoraires)", () => {
     await expect(recordHonorariumPayment(f.associateCtx, { providerId: f.associate, paidOn: f.today, amountMinor: 1, method: "cash" })).rejects.toBeInstanceOf(ForbiddenError);
     await expect(saveProviderFeeProfile(f.associateCtx, { providerId: f.associate, specialty: null, defaultFeeRateBp: 10_000 })).rejects.toBeInstanceOf(ForbiddenError);
 
-    // The accountant sees everyone and pays, but cannot change rules.
-    const accountant = contextFor({ userId: f.ctx.userId, organizationId: f.ctx.organizationId }, "accountant");
-    expect((await getHonorariumReport(accountant, { from: f.today, to: f.today })).rows).toHaveLength(2);
-    await recordHonorariumPayment(accountant, { providerId: f.associate, paidOn: f.today, amountMinor: 1_000, method: "bank_transfer" });
-    await expect(saveProviderServiceTerm(accountant, { providerId: f.associate, serviceId: f.service("CONS-01").id, priceMinor: null, rule: { type: "percent", value: 1 }, reason: "x" })).rejects.toBeInstanceOf(ForbiddenError);
+    // Only the owner and the practitioner concerned see earnings: not the accountant, not reception.
+    for (const role of ["accountant", "receptionist", "tech_admin"] as const) {
+      const other = contextFor({ userId: f.ctx.userId, organizationId: f.ctx.organizationId }, role);
+      await expect(getHonorariumReport(other, { from: f.today, to: f.today })).rejects.toBeInstanceOf(ForbiddenError);
+      await expect(recordHonorariumPayment(other, { providerId: f.associate, paidOn: f.today, amountMinor: 1_000, method: "bank_transfer" })).rejects.toBeInstanceOf(ForbiddenError);
+    }
+    // Even an owner-made custom role cannot carry the owner-only keys.
+    const roleId = await createRole(f.ctx, { name: "Gestion honoraires", permissions: ["honorarium.read.all", "honorarium.pay", "honorarium.read.own", "patient.read"] as never });
+    const [stored] = await f.asStaff((tx) => tx.select({ permissions: roles.permissions }).from(roles).where(eq(roles.id, roleId)));
+    expect(stored!.permissions).toEqual(["honorarium.read.own", "patient.read"]);
+    expect(roleEffectivePermissions("custom_x", ["honorarium.read.all", "honorarium.manage", "patient.read"])).toEqual(["patient.read"]);
+    expect(roleEffectivePermissions("owner", ["honorarium.manage"])).toEqual(["honorarium.manage"]);
+  });
 
-    // Reception has no access at all.
-    const reception = contextFor({ userId: f.ctx.userId, organizationId: f.ctx.organizationId }, "receptionist");
-    await expect(getHonorariumReport(reception, { from: f.today, to: f.today })).rejects.toBeInstanceOf(ForbiddenError);
+  it("gives each practitioner his own price list, set by the owner only", async () => {
+    const f = await setup("Honoraires Tarifs");
+    const cons = f.service("CONS-01");
+    await saveProviderFeeProfile(f.ctx, { providerId: f.associate, specialty: null, defaultFeeRateBp: 3000 });
+    // Own price only (fee = default %), then own fee only, then back to the defaults.
+    await saveProviderServiceTerm(f.ctx, { providerId: f.associate, serviceId: cons.id, priceMinor: 450_000, rule: null });
+    let list = await getProviderPriceList(f.ctx, f.associate);
+    expect(list.services.find((s) => s.id === cons.id)).toMatchObject({ ownPriceMinor: 450_000, rule: null });
+    expect((await getProcedureEntrySupport(f.ctx)).providerPrices).toContainEqual({ providerId: f.associate, serviceId: cons.id, priceMinor: 450_000 });
+    const billed = await f.bill([await f.perform("CONS-01", f.associate, 450_000)]);
+    expect((await f.entriesOf(billed))[0]).toMatchObject({ ruleType: "percent", ruleValue: 3000, physicianShareMinor: 135_000 });
+
+    await saveProviderServiceTerm(f.ctx, { providerId: f.associate, serviceId: cons.id, priceMinor: null, rule: { type: "fixed", value: 100_000 } });
+    list = await getProviderPriceList(f.ctx, f.associate);
+    expect(list.services.find((s) => s.id === cons.id)).toMatchObject({ ownPriceMinor: null, rule: { type: "fixed", value: 100_000 } });
+    await saveProviderServiceTerm(f.ctx, { providerId: f.associate, serviceId: cons.id, priceMinor: null, rule: null });
+    list = await getProviderPriceList(f.ctx, f.associate);
+    expect(list.services.find((s) => s.id === cons.id)).toMatchObject({ ownPriceMinor: null, rule: null });
+    const history = await f.asStaff((tx) => tx.select().from(providerServiceTermHistory).where(eq(providerServiceTermHistory.serviceId, cons.id)));
+    expect(history).toHaveLength(3);
+
+    // The practitioner reads his own list, not a colleague's, and changes nothing.
+    expect((await getProviderPriceList(f.associateCtx, f.associate)).services.length).toBeGreaterThan(10);
+    await expect(getProviderPriceList(f.associateCtx, f.owner)).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(saveProviderServiceTerm(f.associateCtx, { providerId: f.associate, serviceId: cons.id, priceMinor: 1, rule: null })).rejects.toBeInstanceOf(ForbiddenError);
+
+    // A dentist records acts at his price; changing it is for the owner.
+    const support = await getProcedureEntrySupport(f.associateCtx);
+    const act = { serviceId: cons.id, branchId: support.branches[0]!.id, performingProviderId: f.associate, serviceDate: f.today, quantity: 1, toothNumber: null, surfaces: [], arch: null, quadrant: null };
+    await expect(recordPerformedProcedure(f.associateCtx, f.patientId, { ...act, unitPriceMinor: 1, priceOverrideReason: "Geste" })).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(recordPerformedProcedure(f.associateCtx, f.patientId, { ...act, unitPriceMinor: cons.priceMinor, priceOverrideReason: null })).resolves.toBeDefined();
+  });
+
+  it("shows rates and shares at checkout to the owner only", async () => {
+    const f = await setup("Honoraires Caisse Accueil");
+    await saveProviderFeeProfile(f.ctx, { providerId: f.owner, specialty: null, defaultFeeRateBp: 3000 });
+    const reception = { ...contextFor({ userId: f.ctx.userId, organizationId: f.ctx.organizationId }, "receptionist") };
+    const seen = await getCheckoutFeeSupport(reception);
+    expect(seen).toMatchObject({ enabled: true, canManage: false, providers: [], terms: [] });
+    expect((await getCheckoutFeeSupport(f.ctx)).providers.length).toBeGreaterThan(0);
+    const proc = await f.perform("CONS-01", f.owner, 100_000);
+    await expect(createInvoiceFromProcedures(reception, f.patientId, { procedureIds: [proc], issueNow: false, lineOptions: [{ procedureId: proc, rule: { type: "percent", value: 9000 }, ruleReason: "x" }] }))
+      .rejects.toBeInstanceOf(ForbiddenError);
+    await expect(createInvoiceFromProcedures(reception, f.patientId, { procedureIds: [proc], issueNow: false, lineOptions: [{ procedureId: proc, providerId: f.associate }] }))
+      .rejects.toBeInstanceOf(ForbiddenError);
+    // Typing a lab fee is fine for anyone billing.
+    await expect(createInvoiceFromProcedures(reception, f.patientId, { procedureIds: [proc], issueNow: false, lineOptions: [{ procedureId: proc, labFeeMinor: 10_000 }] })).resolves.toBeDefined();
   });
 
   it("keeps the ledger append-only and tenants apart", async () => {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { FileSpreadsheetIcon, HandCoinsIcon, HistoryIcon, StethoscopeIcon, WalletCardsIcon, WalletIcon } from "lucide-react";
+import { FileSpreadsheetIcon, HandCoinsIcon, HistoryIcon, ListChecksIcon, StethoscopeIcon, WalletCardsIcon, WalletIcon } from "lucide-react";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
 import { PrintButton } from "@/components/print/print-button";
@@ -16,9 +16,8 @@ import {
   PaymentButton,
   ProviderProfileButton,
   ReversePaymentButton,
-  TermButton,
 } from "@/features/honoraria/components/honoraria-forms";
-import { canSeeHonoraria, getHonorariumReport, listFeeProviders, listFeeServices, listFeeTerms } from "@/features/honoraria/server";
+import { canSeeHonoraria, getHonorariumReport, listFeeProviders } from "@/features/honoraria/server";
 import { addDays, formatDateOnly, parseDateOnly, todayInZone } from "@/lib/dates";
 import { minorToInput } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -51,12 +50,10 @@ export default async function HonorariaPage({ searchParams }: PageProps<"/honora
   const requested = seeAll && typeof sp.providerId === "string" && /^[0-9a-f-]{36}$/i.test(sp.providerId) ? sp.providerId : null;
   const manage = can(ctx, "honorarium.manage");
 
-  const [report, providers, fmt, terms, feeServices] = await Promise.all([
+  const [report, providers, fmt] = await Promise.all([
     getHonorariumReport(ctx, { providerId: requested, from, to }, { rowLimit: ROW_LIMIT }),
     listFeeProviders(ctx),
     pageFormat(ctx),
-    manage ? listFeeTerms(ctx) : Promise.resolve([]),
-    manage ? listFeeServices(ctx) : Promise.resolve([]),
   ]);
   const currency = ctx.organization.defaultCurrency;
   const m = (v: number) => fmt.money(v, currency);
@@ -93,6 +90,12 @@ export default async function HonorariaPage({ searchParams }: PageProps<"/honora
               <ButtonLink href="/honoraires/reprise" variant="outline">
                 <HistoryIcon aria-hidden />
                 {t("honoraria.assign.link")}
+              </ButtonLink>
+            ) : null}
+            {!manage && can(ctx, "honorarium.read.own") ? (
+              <ButtonLink href="/honoraires/tarifs" variant="outline">
+                <ListChecksIcon aria-hidden />
+                {t("honoraria.priceList.mine")}
               </ButtonLink>
             ) : null}
             {can(ctx, "report.export") ? (
@@ -319,7 +322,10 @@ export default async function HonorariaPage({ searchParams }: PageProps<"/honora
         <section className="no-print space-y-3">
           <h2 className="text-lg font-semibold">{t("honoraria.config.title")}</h2>
           <div className="overflow-hidden rounded-xl border bg-card">
-            <h3 className="border-b px-4 py-3 text-sm font-semibold">{t("honoraria.config.providers")}</h3>
+            <div className="border-b px-4 py-3">
+              <h3 className="text-sm font-semibold">{t("honoraria.config.providers")}</h3>
+              <p className="text-xs text-muted-foreground">{t("honoraria.config.providersExplain")}</p>
+            </div>
             {providers.length === 0 ? (
               <p className="p-6 text-center text-sm text-muted-foreground">{t("honoraria.config.noProviders")}</p>
             ) : (
@@ -332,41 +338,12 @@ export default async function HonorariaPage({ searchParams }: PageProps<"/honora
                     </div>
                     <span className="tabular">{t("honoraria.config.defaultRateValue", { rate: p.defaultFeeRateBp / 100 })}</span>
                     <ProviderProfileButton provider={{ id: p.id, name: nameOf(p), specialty: p.specialty, defaultFeeRateBp: p.defaultFeeRateBp }} />
+                    <ButtonLink href={`/honoraires/tarifs?doctor=${p.id}`} variant="outline" size="sm">
+                      <ListChecksIcon aria-hidden />
+                      {t("honoraria.priceList.link")}
+                    </ButtonLink>
                   </li>
                 ))}
-              </ul>
-            )}
-          </div>
-          <div className="overflow-hidden rounded-xl border bg-card">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
-              <div>
-                <h3 className="text-sm font-semibold">{t("honoraria.config.rules")}</h3>
-                <p className="text-xs text-muted-foreground">{t("honoraria.config.rulesExplain")}</p>
-              </div>
-              {providerOptions.length && feeServices.length ? (
-                <TermButton
-                  providers={providerOptions}
-                  services={feeServices.map((s) => ({ value: s.id, label: `${s.code} · ${fmt.label(s.name)}${s.isActive ? "" : ` (${t("honoraria.inactive")})`}` }))}
-                  symbol={fmt.symbol}
-                />
-              ) : null}
-            </div>
-            {terms.length === 0 ? (
-              <p className="p-6 text-center text-sm text-muted-foreground">{t("honoraria.config.noRules")}</p>
-            ) : (
-              <ul className="divide-y text-sm">
-                {terms.map((term) => {
-                  const provider = providers.find((p) => p.id === term.providerId);
-                  return (
-                    <li key={term.id} className="flex flex-wrap items-center gap-3 px-4 py-2">
-                      <span className="min-w-0 flex-1">
-                        <bdi>{provider ? nameOf(provider) : ""}</bdi> · <bdi>{term.serviceCode} {fmt.label(term.serviceName)}</bdi>
-                      </span>
-                      {term.priceMinor !== null ? <span className="text-xs text-muted-foreground">{t("honoraria.config.priceValue", { amount: fmt.money(term.priceMinor, term.currency) })}</span> : null}
-                      <span className="font-medium tabular">{ruleText(term.ruleType, term.ruleValue)}</span>
-                    </li>
-                  );
-                })}
               </ul>
             )}
           </div>

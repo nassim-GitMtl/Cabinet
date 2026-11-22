@@ -52,24 +52,25 @@ export async function saveProviderProfileAction(_prev: ActionState, data: FormDa
   return done();
 }
 
-export async function saveTermAction(_prev: ActionState, data: FormData): Promise<ActionState> {
+/** One row of a practitioner's price list: own price and fee for one service (both optional). */
+export async function savePriceListRowAction(providerId: string, serviceId: string, _prev: ActionState, data: FormData): Promise<ActionState> {
   const ctx = await requireClinicContext();
   const v = formValues(data);
   const currency = ctx.organization.defaultCurrency;
   const fieldErrors: Record<string, string> = {};
   const price = v.price?.trim() ? parseMoneyInput(v.price, currency) : null;
   if (v.price?.trim() && (price === null || price < 0)) fieldErrors.price = "invalidAmount";
-  const rule = ruleFrom(v.ruleType, v.ruleValue, currency);
-  if (!rule) fieldErrors.ruleValue = v.ruleType === "percent" ? "honoraria.errors.invalidPercent" : "invalidAmount";
-  if (!v.reason?.trim()) fieldErrors.reason = "required";
+  const rule = v.ruleValue?.trim() ? ruleFrom(v.ruleType, v.ruleValue, currency) : null;
+  if (v.ruleValue?.trim() && !rule) fieldErrors.ruleValue = v.ruleType === "fixed" ? "invalidAmount" : "honoraria.errors.invalidPercent";
   if (Object.keys(fieldErrors).length) return { fieldErrors, values: v };
   try {
-    await saveProviderServiceTerm(ctx, { providerId: v.providerId ?? "", serviceId: v.serviceId ?? "", priceMinor: price, rule: rule!, reason: v.reason ?? "" });
+    await saveProviderServiceTerm(ctx, { providerId, serviceId, priceMinor: price, rule });
   } catch (e) {
     return fail(e, v);
   }
+  revalidatePath("/honoraires/tarifs");
   revalidatePath("/patients", "layout");
-  return done();
+  return { ok: true, values: v };
 }
 
 export async function recordPaymentAction(_prev: ActionState, data: FormData): Promise<ActionState> {

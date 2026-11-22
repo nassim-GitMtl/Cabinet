@@ -5,7 +5,7 @@ import { cache } from "react";
 import type { Tx } from "../db/client";
 import { memberships, organizations, roles, type OrganizationSettings } from "../db/schema";
 import { withDbContext } from "../db/tenant";
-import { hasPermission, readOnlyCopyPermissions, type Permission } from "../authz/permissions";
+import { hasPermission, readOnlyCopyPermissions, roleEffectivePermissions, type Permission } from "../authz/permissions";
 import { entitledPermissions, moduleEnabled, type ProductModule } from "../authz/modules";
 import { nodeRole } from "../sync/node";
 import { readSession, type SessionRecord } from "./session";
@@ -94,7 +94,7 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
   if (!row || row.org.status === "suspended" || row.org.status === "closed") return null;
   const readOnlyCopy = row.org.dataHome === "clinic" && (await nodeRole()) === "cloud";
 
-  const entitled = entitledPermissions(row.permissions, row.org.enabledModules);
+  const entitled = entitledPermissions(roleEffectivePermissions(row.roleKey, row.permissions), row.org.enabledModules);
   return {
     sessionId: session.sessionId,
     userId: session.userId,

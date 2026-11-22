@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PERMISSIONS } from "@/server/authz/permissions";
+import { ASSIGNABLE_PERMISSIONS } from "@/server/authz/permissions";
 
 export const staffInvitationSchema = z.object({
   email: z.email("invalidEmail").trim().toLowerCase(),
@@ -11,7 +11,8 @@ export const staffInvitationSchema = z.object({
 
 export const roleSchema = z.object({
   name: z.string().trim().min(2, "required").max(100),
-  permissions: z.array(z.enum(PERMISSIONS)),
+  /** Owner-only keys (practitioner fees) cannot be given to another role. */
+  permissions: z.array(z.enum(ASSIGNABLE_PERMISSIONS)),
 });
 
 export const invitationAcceptSchema = z.object({

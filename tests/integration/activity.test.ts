@@ -133,5 +133,11 @@ describe("activity log", () => {
     expect(seenByB.rows).toEqual([]);
     const changesB = await listRecordChanges(b.ctx, { from: a.today, to: a.today });
     expect(changesB.rows.some((r) => r.rowId === a.patientId)).toBe(false);
+
+    // Practitioner earnings stay out of the log for anyone but the owner (tech admin reads the log, not the fees).
+    await a.asStaff((tx) => tx.insert(auditEvents).values({ organizationId: a.ctx.organizationId, actorType: "staff", actorUserId: a.ctx.userId, action: "honorarium.payment.recorded", metadata: { amountMinor: 5000 } }));
+    const techAdmin = contextFor({ userId: a.ctx.userId, organizationId: a.ctx.organizationId }, "tech_admin");
+    expect((await listActivity(techAdmin, { from: a.today, to: a.today })).rows.some((r) => r.action.startsWith("honorarium."))).toBe(false);
+    expect((await listActivity(a.ctx, { from: a.today, to: a.today })).rows.some((r) => r.action.startsWith("honorarium."))).toBe(true);
   });
 });

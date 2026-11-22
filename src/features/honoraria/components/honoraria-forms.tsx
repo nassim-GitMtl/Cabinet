@@ -3,7 +3,7 @@
 import { useActionState, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { HandCoinsIcon, LockKeyholeIcon, PlusIcon, SlidersHorizontalIcon, Undo2Icon } from "lucide-react";
+import { HandCoinsIcon, LockKeyholeIcon, SlidersHorizontalIcon, Undo2Icon } from "lucide-react";
 import { FormError, SelectField, SubmitButton, TextField } from "@/components/form";
 import { DialogButton } from "@/features/billing/components/billing-dialogs";
 import { moneyFormatter } from "@/features/billing/format";
@@ -17,7 +17,6 @@ import {
   recordPaymentAction,
   reversePaymentAction,
   saveProviderProfileAction,
-  saveTermAction,
 } from "../actions";
 import { calculateHonorarium, resolveRule, type FeeRule } from "../calculation";
 
@@ -68,53 +67,6 @@ function ProviderProfileForm({ provider, close }: { provider: { id: string; spec
         error={state.fieldErrors?.defaultRate}
       />
       <SubmitButton className="w-full">{t("config.save")}</SubmitButton>
-    </form>
-  );
-}
-
-export function TermButton({ providers, services, symbol }: { providers: Option[]; services: Option[]; symbol: string }) {
-  const t = useTranslations("honoraria");
-  return (
-    <DialogButton label={t("config.addRule")} title={t("config.addRule")} description={t("config.ruleHint")} icon={<PlusIcon aria-hidden />}>
-      {(close) => <TermForm providers={providers} services={services} symbol={symbol} close={close} />}
-    </DialogButton>
-  );
-}
-
-function TermForm({ providers, services, symbol, close }: { providers: Option[]; services: Option[]; symbol: string; close: () => void }) {
-  const t = useTranslations("honoraria");
-  const [state, action] = useForm(saveTermAction, close);
-  const [ruleType, setRuleType] = useState<FeeRule["type"]>(state.values?.ruleType === "fixed" ? "fixed" : "percent");
-  const fe = state.fieldErrors ?? {};
-  return (
-    <form action={action} className="space-y-4" noValidate>
-      <FormError error={state.error} />
-      <SelectField label={t("doctor")} name="providerId" required defaultValue={state.values?.providerId} options={providers} />
-      <SelectField label={t("service")} name="serviceId" required defaultValue={state.values?.serviceId} options={services} />
-      <TextField label={t("config.specificPrice", { currency: symbol })} name="price" inputMode="decimal" optionalLabel hint={t("config.specificPriceHint")} className="tabular" defaultValue={state.values?.price} error={fe.price} />
-      <div className="grid gap-4 sm:grid-cols-2">
-        <SelectField
-          label={t("config.ruleType")}
-          name="ruleType"
-          value={ruleType}
-          onChange={(e) => setRuleType(e.target.value as FeeRule["type"])}
-          options={[
-            { value: "percent", label: t("config.percent") },
-            { value: "fixed", label: t("config.fixed") },
-          ]}
-        />
-        <TextField
-          label={ruleType === "percent" ? t("config.valuePercent") : t("config.valueFixed", { currency: symbol })}
-          name="ruleValue"
-          inputMode="decimal"
-          required
-          className="tabular"
-          defaultValue={state.values?.ruleValue}
-          error={fe.ruleValue}
-        />
-      </div>
-      <TextField label={t("config.reason")} name="reason" required defaultValue={state.values?.reason} error={fe.reason} />
-      <SubmitButton className="w-full">{t("config.saveRule")}</SubmitButton>
     </form>
   );
 }

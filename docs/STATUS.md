@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-22 by Claude (session 44 — activity log: every change under the person who made it).
+Last updated: 2026-11-22 by Claude (session 45 — per-doctor price lists, fees visible to the owner and the doctor only).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -554,6 +554,15 @@ changed. Design: docs/ARCHITECTURE.md "Activity log". 224/224 tests (+4 integrat
 +1 unit), typecheck, lint, build green. Browser-checked on the local database: log with names and links, patient
 history, edit → "Changed · Patients · Fields: city", Arabic RTL at 375 px without horizontal scroll.
 
+Session 45 (Claude): user decision "honoraires per prestation, price updated by the owner, each doc has his tarif,
+only the owner and the doctor see how much he earned". Migration 0049: a practitioner/service price or fee may be left
+empty (= catalog price / default %); fee keys `honorarium.read.all/manage/pay/close` are owner-only (removed from the
+accountant and any custom role, cannot be given again); dentists lose `price.override`. New `/honoraires/tarifs`: each
+doctor's price list (all services by category: catalog price, his price, fee in % or fixed, what he earns per act;
+owner edits row by row, the doctor reads his own). Checkout no longer shows rates or shares to anyone but the owner
+(reception only types a lab fee); the activity log hides fee entries from non-owners. 226/226 tests (+2 integration),
+typecheck, lint, build green. Browser-checked: price list grid, row save (2 000 DA, 40 % → 800 DA per act) persisted.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -582,7 +591,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and treatment links. Structured draft notes, review, signing, amendments and hash-chain integrity ✅. Primary visual chart and periodontal chart ⏳. |
 | Images/documents, object storage (§12A, §15) | ✅ | Private filesystem or Vercel Blob storage, direct browser upload on Vercel, magic-byte type check, sha256, append-only metadata, before/after pairs and audited private views. DICOM viewer and annotations/measurements ⏳ |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
-| Practitioner fees / honoraires | ✅ | Default % per practitioner, per-service rules (own price, % or fixed), one-off line rule with reason, lab fee deducted when the service says so; append-only ledger frozen at invoice issue; share net of credit notes and collected share derived from payments; payouts with reversal and cash-day integration; closed months; older-line assignment; corrections; own-only view for dentists; XLSX/CSV. Statement per practitioner (PDF), payroll export ⏳ |
+| Practitioner fees / honoraires | ✅ | Owner-only setup and visibility (doctor sees his own); per-doctor price list per service (own price, % or fixed; default % fallback), one-off line rule with reason, lab fee deducted when the service says so; append-only ledger frozen at invoice issue; share net of credit notes and collected share derived from payments; payouts with reversal and cash-day integration; closed months; older-line assignment; corrections; own-only view for dentists; XLSX/CSV. Statement per practitioner (PDF), payroll export ⏳ |
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses − cash practitioner payouts ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Acquisition report ✅ (sources, treated share, production, booking funnel, referrers). `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | 🟡 | Relances ✅: reminders, after-visit care + review requests, referral thanks, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic sending through an SMS/WhatsApp Business provider ⏳ 🔌 |

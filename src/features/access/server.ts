@@ -4,7 +4,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
-import { PERMISSIONS, type Permission } from "@/server/authz/permissions";
+import { type Permission, ASSIGNABLE_PERMISSIONS } from "@/server/authz/permissions";
 import { memberships, roles, sessions, staffInvitations, users } from "@/server/db/schema";
 import type { z } from "zod";
 import type { roleSchema, staffInvitationSchema } from "./schemas";
@@ -47,11 +47,16 @@ export async function createStaffInvitation(ctx: ClinicContext, input: z.infer<t
   });
 }
 
+/** Known keys a role other than the owner may hold (practitioner-fee keys stay with the owner). */
+const assignable = (keys: readonly string[]) =>
+  keys.filter((k): k is Permission => (ASSIGNABLE_PERMISSIONS as readonly string[]).includes(k));
+
 export async function createRole(ctx: ClinicContext, input: z.infer<typeof roleSchema>) {
   requirePermission(ctx, "org.roles.manage");
   return tenantTx(ctx, async (tx) => {
-    const [role] = await tx.insert(roles).values({ organizationId: ctx.organizationId, key: `custom_${randomUUID()}`, name: input.name, permissions: input.permissions }).returning({ id: roles.id });
-    await audit(tx, { organizationId: ctx.organizationId, actorType: "staff", actorUserId: ctx.userId, action: "role.created", entityType: "role", entityId: role!.id, metadata: { permissions: input.permissions } });
+    const permissions = assignable(input.permissions);
+    const [role] = await tx.insert(roles).values({ organizationId: ctx.organizationId, key: `custom_${randomUUID()}`, name: input.name, permissions }).returning({ id: roles.id });
+    await audit(tx, { organizationId: ctx.organizationId, actorType: "staff", actorUserId: ctx.userId, action: "role.created", entityType: "role", entityId: role!.id, metadata: { permissions } });
     return role!.id;
   });
 }
@@ -62,7 +67,7 @@ export async function updateRole(ctx: ClinicContext, roleId: string, input: z.in
     const [role] = await tx.select().from(roles).where(eq(roles.id, roleId)).for("update").limit(1);
     if (!role) throw new AccessError("roleUnavailable");
     if (role.key === "owner") throw new AccessError("ownerProtected");
-    const permissions = input.permissions.filter((permission): permission is Permission => PERMISSIONS.includes(permission as Permission));
+    const permissions = assignable(input.permissions);
     await tx.update(roles).set({ name: input.name, permissions, updatedAt: new Date() }).where(eq(roles.id, role.id));
     await audit(tx, { organizationId: ctx.organizationId, actorType: "staff", actorUserId: ctx.userId, action: "role.updated", entityType: "role", entityId: role.id, metadata: { permissions } });
   });

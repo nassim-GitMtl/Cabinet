@@ -42,11 +42,12 @@ export const providerServiceTerms = pgTable(
     organizationId: organizationId().references(() => organizations.id),
     providerId: uuid("provider_id").notNull().references(() => memberships.id),
     serviceId: uuid("service_id").notNull().references(() => services.id),
-    /** Price this practitioner charges for the service; null = the catalog price. */
+    /** Price this practitioner charges for the service; null = the catalog price. Set by the owner only. */
     priceMinor: bigint("price_minor", { mode: "number" }),
-    ruleType: feeRuleType("rule_type").notNull(),
+    /** null = the practitioner's default percentage. */
+    ruleType: feeRuleType("rule_type"),
     /** percent: basis points (3000 = 30%) · fixed: minor units per unit of quantity. */
-    ruleValue: integer("rule_value").notNull(),
+    ruleValue: integer("rule_value"),
     changedByUserId: uuid("changed_by_user_id").notNull().references(() => users.id),
     updatedAt: updatedAt(),
     version: version(),
@@ -55,7 +56,7 @@ export const providerServiceTerms = pgTable(
     uniqueIndex("provider_service_terms_pair_uq").on(t.organizationId, t.providerId, t.serviceId),
     check(
       "provider_service_terms_value_valid",
-      sql`(${t.ruleType} = 'percent' and ${t.ruleValue} between 0 and 10000) or (${t.ruleType} = 'fixed' and ${t.ruleValue} >= 0)`,
+      sql`(${t.ruleType} is null and ${t.ruleValue} is null) or (${t.ruleType} = 'percent' and ${t.ruleValue} between 0 and 10000) or (${t.ruleType} = 'fixed' and ${t.ruleValue} >= 0)`,
     ),
     check("provider_service_terms_price_valid", sql`${t.priceMinor} is null or ${t.priceMinor} >= 0`),
   ],
@@ -71,8 +72,8 @@ export const providerServiceTermHistory = pgTable(
     providerId: uuid("provider_id").notNull().references(() => memberships.id),
     serviceId: uuid("service_id").notNull().references(() => services.id),
     priceMinor: bigint("price_minor", { mode: "number" }),
-    ruleType: feeRuleType("rule_type").notNull(),
-    ruleValue: integer("rule_value").notNull(),
+    ruleType: feeRuleType("rule_type"),
+    ruleValue: integer("rule_value"),
     reason: text("reason").notNull(),
     changedByUserId: uuid("changed_by_user_id").notNull().references(() => users.id),
     createdAt: createdAt(),

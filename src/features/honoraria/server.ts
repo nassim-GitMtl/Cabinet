@@ -14,11 +14,13 @@ import {
   patients,
   providerServiceTermHistory,
   providerServiceTerms,
+  serviceCategories,
   services,
 } from "@/server/db/schema";
 import { parseDateOnly, todayInZone } from "@/lib/dates";
 import { assertCashDayOpen } from "@/features/cash/server";
 import { invoiceCreditedSql, invoicePaidSql } from "@/features/billing/sql";
+import { withTitle } from "@/features/activity/server";
 import { calculateHonorarium, isValidRule, resolveRule, type FeeRule } from "./calculation";
 
 /**
@@ -82,6 +84,11 @@ async function requireProvider(tx: Tx, providerId: string) {
     .limit(1);
   if (!provider) throw new HonorariumError("providerUnavailable");
   return provider;
+}
+
+/** A practitioner/service rule, or null when it falls back to the practitioner's default percentage. */
+export function termRule(term: { ruleType: FeeRule["type"] | null; ruleValue: number | null } | undefined | null): FeeRule | null {
+  return term?.ruleType && term.ruleValue !== null ? { type: term.ruleType, value: term.ruleValue } : null;
 }
 
 async function monthClosed(tx: Tx, providerId: string, date: string) {
@@ -149,7 +156,7 @@ export async function snapshotInvoiceHonoraria(tx: Tx, ctx: ClinicContext, invoi
       const lineRule = line.honorariumRuleType && line.honorariumRuleValue !== null
         ? { type: line.honorariumRuleType as FeeRule["type"], value: line.honorariumRuleValue }
         : null;
-      const rule = resolveRule(lineRule, term ? { type: term.ruleType, value: term.ruleValue } : null, provider.defaultFeeRateBp);
+      const rule = resolveRule(lineRule, termRule(term), provider.defaultFeeRateBp);
       const deductLabBeforeShare = deductLab ?? false;
       const calc = calculateHonorarium({
         unitPriceMinor: line.unitPriceMinor,
@@ -241,7 +248,7 @@ export async function assignLineHonorarium(
           .where(and(eq(providerServiceTerms.providerId, provider.id), eq(providerServiceTerms.serviceId, line.serviceId)))
           .limit(1)
       : [];
-    const rule = resolveRule(input.rule ?? null, term ? { type: term.ruleType, value: term.ruleValue } : null, provider.defaultFeeRateBp);
+    const rule = resolveRule(input.rule ?? null, termRule(term), provider.defaultFeeRateBp);
     const deductLabBeforeShare = row.deductLab ?? false;
     const calc = calculateHonorarium({ unitPriceMinor: line.unitPriceMinor, quantity: line.quantity, discountMinor: line.discountMinor, labFeeMinor: input.labFeeMinor, deductLabBeforeShare, rule });
     const today = todayInZone(ctx.organization.timezone);
@@ -538,11 +545,13 @@ export async function listFeeProviders(ctx: ClinicContext) {
 }
 
 /**
- * What the checkout needs to show practitioner fees: active practitioners, their rules, and which services take
- * the lab fee off first. `enabled` is false for a clinic that never set a fee rule: checkout then stays simple.
+ * What the checkout needs for practitioner fees. Rates, rules and shares go to the owner only (honorarium.manage):
+ * anyone else creating an invoice only gets which services take a lab fee off first, so they can type it.
+ * `enabled` is false for a clinic that never set a fee rule: checkout then stays as before.
  */
 export async function getCheckoutFeeSupport(ctx: ClinicContext) {
   requirePermission(ctx, "invoice.create");
+  const canManage = can(ctx, "honorarium.manage");
   return tenantTx(ctx, async (tx) => {
     const [providers, terms, deductLab] = await Promise.all([
       tx
@@ -555,47 +564,72 @@ export async function getCheckoutFeeSupport(ctx: ClinicContext) {
         .from(providerServiceTerms),
       tx.select({ id: services.id }).from(services).where(eq(services.deductLabBeforeShare, true)),
     ]);
+    const rules = terms.flatMap((t) => {
+      const rule = termRule(t);
+      return rule ? [{ providerId: t.providerId, serviceId: t.serviceId, ruleType: rule.type, ruleValue: rule.value }] : [];
+    });
     return {
-      enabled: providers.some((p) => p.defaultFeeRateBp > 0) || terms.length > 0,
-      providers: providers.map((p) => ({ id: p.id, name: [p.title, p.displayName].filter(Boolean).join(" "), defaultFeeRateBp: p.defaultFeeRateBp })),
-      terms,
+      enabled: providers.some((p) => p.defaultFeeRateBp > 0) || rules.length > 0,
+      canManage,
+      providers: canManage ? providers.map((p) => ({ id: p.id, name: withTitle(p.title, p.displayName), defaultFeeRateBp: p.defaultFeeRateBp })) : [],
+      terms: canManage ? rules : [],
       deductLabServiceIds: deductLab.map((s) => s.id),
     };
   });
 }
 
-/** Practitioner/service rules (configuration). */
+/** Practitioner/service rules with a fee rule set (assigning older lines). */
 export async function listFeeTerms(ctx: ClinicContext) {
   requirePermission(ctx, "honorarium.manage");
-  return tenantTx(ctx, (tx) =>
+  const rows = await tenantTx(ctx, (tx) =>
     tx
-      .select({
-        id: providerServiceTerms.id,
-        providerId: providerServiceTerms.providerId,
-        serviceId: providerServiceTerms.serviceId,
-        priceMinor: providerServiceTerms.priceMinor,
-        ruleType: providerServiceTerms.ruleType,
-        ruleValue: providerServiceTerms.ruleValue,
-        updatedAt: providerServiceTerms.updatedAt,
-        serviceCode: services.code,
-        serviceName: services.name,
-        currency: services.currency,
-      })
-      .from(providerServiceTerms)
-      .innerJoin(services, eq(services.id, providerServiceTerms.serviceId))
-      .orderBy(asc(services.code)),
+      .select({ providerId: providerServiceTerms.providerId, serviceId: providerServiceTerms.serviceId, ruleType: providerServiceTerms.ruleType, ruleValue: providerServiceTerms.ruleValue })
+      .from(providerServiceTerms),
   );
+  return rows.flatMap((t) => {
+    const rule = termRule(t);
+    return rule ? [{ providerId: t.providerId, serviceId: t.serviceId, ruleType: rule.type, ruleValue: rule.value }] : [];
+  });
 }
 
-/** Services a rule can be set for (configuration). */
-export async function listFeeServices(ctx: ClinicContext) {
-  requirePermission(ctx, "honorarium.manage");
-  return tenantTx(ctx, (tx) =>
-    tx
-      .select({ id: services.id, code: services.code, name: services.name, isActive: services.isActive, deductLabBeforeShare: services.deductLabBeforeShare })
-      .from(services)
-      .orderBy(desc(services.isActive), asc(services.code)),
-  );
+/**
+ * One practitioner's price list: for each service of the catalog, the catalog price, this practitioner's own price
+ * and his fee rule (empty = catalog price / default percentage). The owner edits it; a practitioner may read his own.
+ */
+export async function getProviderPriceList(ctx: ClinicContext, providerId: string) {
+  if (!can(ctx, "honorarium.manage")) {
+    requirePermission(ctx, "honorarium.read.own");
+    if (providerId !== ctx.membershipId) throw new ForbiddenError("honorarium.manage");
+  }
+  return tenantTx(ctx, async (tx) => {
+    const provider = await requireProvider(tx, providerId);
+    const [rows, terms] = await Promise.all([
+      tx
+        .select({
+          id: services.id,
+          code: services.code,
+          name: services.name,
+          priceMinor: services.priceMinor,
+          currency: services.currency,
+          isActive: services.isActive,
+          deductLabBeforeShare: services.deductLabBeforeShare,
+          categoryId: services.categoryId,
+          categoryName: serviceCategories.name,
+          categoryOrder: serviceCategories.sortOrder,
+        })
+        .from(services)
+        .innerJoin(serviceCategories, eq(serviceCategories.id, services.categoryId))
+        .orderBy(asc(serviceCategories.sortOrder), asc(services.code)),
+      tx.select().from(providerServiceTerms).where(eq(providerServiceTerms.providerId, provider.id)),
+    ]);
+    return {
+      provider,
+      services: rows.map((s) => {
+        const term = terms.find((t) => t.serviceId === s.id);
+        return { ...s, ownPriceMinor: term?.priceMinor ?? null, rule: termRule(term), updatedAt: term?.updatedAt ?? null };
+      }),
+    };
+  });
 }
 
 export async function saveProviderFeeProfile(ctx: ClinicContext, input: { providerId: string; specialty: string | null; defaultFeeRateBp: number }) {
@@ -619,17 +653,24 @@ export async function saveProviderFeeProfile(ctx: ClinicContext, input: { provid
 
 export async function saveProviderServiceTerm(
   ctx: ClinicContext,
-  input: { providerId: string; serviceId: string; priceMinor: number | null; rule: FeeRule; reason: string },
+  input: { providerId: string; serviceId: string; priceMinor: number | null; rule: FeeRule | null; reason?: string | null },
 ) {
   requirePermission(ctx, "honorarium.manage");
-  if (!isValidRule(input.rule)) throw new HonorariumError("invalidRule");
+  if (input.rule && !isValidRule(input.rule)) throw new HonorariumError("invalidRule");
   if (input.priceMinor !== null && (!Number.isSafeInteger(input.priceMinor) || input.priceMinor < 0)) throw new HonorariumError("invalidAmount");
-  if (!input.reason.trim()) throw new HonorariumError("reasonRequired");
   return tenantTx(ctx, async (tx) => {
     const provider = await requireProvider(tx, input.providerId);
     const [service] = await tx.select({ id: services.id }).from(services).where(eq(services.id, input.serviceId)).limit(1);
     if (!service) throw new HonorariumError("serviceUnavailable");
-    const values = { priceMinor: input.priceMinor, ruleType: input.rule.type, ruleValue: input.rule.value, changedByUserId: ctx.userId };
+    const [current] = await tx
+      .select()
+      .from(providerServiceTerms)
+      .where(and(eq(providerServiceTerms.providerId, provider.id), eq(providerServiceTerms.serviceId, service.id)))
+      .limit(1);
+    const values = { priceMinor: input.priceMinor, ruleType: input.rule?.type ?? null, ruleValue: input.rule?.value ?? null, changedByUserId: ctx.userId };
+    // Nothing set and nothing to clear, or nothing changed: no history line.
+    if (!current && values.priceMinor === null && values.ruleType === null) return null;
+    if (current && current.priceMinor === values.priceMinor && current.ruleType === values.ruleType && current.ruleValue === values.ruleValue) return current.id;
     const [term] = await tx
       .insert(providerServiceTerms)
       .values({ organizationId: ctx.organizationId, providerId: provider.id, serviceId: service.id, ...values })
@@ -644,14 +685,14 @@ export async function saveProviderServiceTerm(
       providerId: provider.id,
       serviceId: service.id,
       ...values,
-      reason: input.reason.trim(),
+      reason: input.reason?.trim() || "price_list",
     });
     await audit(tx, {
       ...staff(ctx),
       action: "honorarium.term.updated",
       entityType: "provider_service_term",
       entityId: term!.id,
-      metadata: { providerId: provider.id, serviceId: service.id, ruleType: input.rule.type, ruleValue: input.rule.value, priceMinor: input.priceMinor },
+      metadata: { ruleType: values.ruleType, ruleValue: values.ruleValue, priceMinor: values.priceMinor },
     });
     return term!.id;
   });

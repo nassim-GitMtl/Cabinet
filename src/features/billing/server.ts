@@ -140,6 +140,10 @@ export async function createInvoiceFromProcedures(
     if (le.currency !== currency) throw new BillingError("currencyMismatch");
 
     const options = new Map((input.lineOptions ?? []).map((o) => [o.procedureId, o]));
+    // Who is paid for an act and its fee rule are the owner's decision; anyone billing may type a lab fee.
+    if (procs.some((p) => { const o = options.get(p.id); return o?.rule || (o?.providerId && o.providerId !== p.performingProviderId); })) {
+      requirePermission(ctx, "honorarium.manage");
+    }
     // A practitioner other than the one who performed the act must be an active practitioner of this clinic.
     const reassigned = [
       ...new Set(

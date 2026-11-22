@@ -86,6 +86,17 @@ export type Permission = (typeof PERMISSIONS)[number];
  * On the cloud copy of a clinic whose clinic computer is in charge, staff may only look: every ".read" key plus
  * reports and the audit trail. Screens then hide what cannot be done; the database refuses staff writes anyway.
  */
+/**
+ * Keys that only the owner role can hold (user decision 2026-11-22: only the owner and the practitioner concerned see
+ * what a practitioner earned; the owner sets fees and prices). They cannot be given to another role, and are removed
+ * from any other role when permissions are loaded.
+ */
+export const OWNER_ONLY_PERMISSIONS: readonly Permission[] = ["honorarium.read.all", "honorarium.manage", "honorarium.pay", "honorarium.close"];
+export const ASSIGNABLE_PERMISSIONS = PERMISSIONS.filter((p) => !OWNER_ONLY_PERMISSIONS.includes(p)) as [Permission, ...Permission[]];
+export function roleEffectivePermissions(roleKey: string, permissions: readonly string[]): string[] {
+  return roleKey === "owner" ? [...permissions] : permissions.filter((p) => !(OWNER_ONLY_PERMISSIONS as readonly string[]).includes(p));
+}
+
 const READ_ONLY_EXTRA: readonly string[] = ["report.operational", "report.financial", "report.export", "audit.read", "honorarium.read.own", "honorarium.read.all"];
 export function readOnlyCopyPermissions(permissions: readonly string[]): string[] {
   return permissions.filter((p) => (p.endsWith(".read") && p !== "shared_profile.read") || READ_ONLY_EXTRA.includes(p));
@@ -134,7 +145,6 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "appointment.manage",
       "booking.approve",
       "patient.followup",
-      "price.override",
       "invoice.read",
       "invoice.create",
       "invoice.issue",
@@ -185,9 +195,6 @@ export const ROLE_TEMPLATES: Record<RoleTemplateKey, { name: string; permissions
       "payment.read",
       "expense.read",
       "expense.manage",
-      "honorarium.read.all",
-      "honorarium.pay",
-      "honorarium.close",
       "cash.manage",
       "cash.close.approve",
       "report.financial",

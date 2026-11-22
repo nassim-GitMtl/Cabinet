@@ -444,8 +444,10 @@ Clinics with several dentists pay each one a share of the acts they perform (a p
 after the lab fee for prostheses). Started by Codex, finished and hardened by Claude.
 
 - **Rules.** Per practitioner: a default percentage (`memberships.default_fee_rate_bp`, basis points). Per practitioner
-  and service: `provider_service_terms` (own price and/or percent or fixed-per-unit rule; changed in place, every change
-  copied with its reason to append-only `provider_service_term_history`; never deleted). Per line at checkout: an
+  and service (his price list, `/honoraires/tarifs`, user decision 2026-11-22 "each doc has his tarif"):
+  `provider_service_terms` (own price, null = catalog price; percent or fixed-per-unit rule, null = his default
+  percentage; changed in place, every change copied to append-only `provider_service_term_history`; never deleted,
+  "back to defaults" = both null). His own price applies when an act is recorded. Per line at checkout: an
   optional one-off rule with a mandatory reason, stored on `invoice_lines.honorarium_rule_*`. Resolution: line rule,
   then service rule, then default (`resolveRule`). `services.deduct_lab_before_share` (catalog editor) says whether the
   lab fee typed at checkout (`invoice_lines.lab_fee_minor`) comes off the base first.
@@ -464,8 +466,14 @@ after the lab fee for prostheses). Started by Codex, finished and hardened by Cl
 - **Closed months.** `honorarium_period_closures` (append-only, per practitioner, only for a finished month). A fee,
   assignment or correction whose date falls in a closed month is dated today instead; a payout cannot be dated in a
   closed month. Nothing ever rewrites a closed month.
-- **Access.** `honorarium.read.own` (dentists: only their own rows, enforced in the service), `honorarium.read.all`,
-  `honorarium.pay`, `honorarium.close` (accountant), `honorarium.manage` (owner: rules, assignments, corrections).
+- **Access (user decision 2026-11-22: only the owner and the practitioner concerned see what he earned; prices are
+  set by the owner).** `honorarium.read.own` (dentists: only their own rows and own price list, read-only, enforced in
+  the service). `honorarium.read.all`, `.manage`, `.pay`, `.close` are **owner-only** (`OWNER_ONLY_PERMISSIONS`):
+  not offered in the role editor, filtered out of custom roles on save, and stripped from any non-owner role when the
+  context loads (`roleEffectivePermissions`); migration 0049 removed them from existing roles. Dentists no longer hold
+  `price.override` (the price field is locked at their price). Checkout sends rates/rules/shares to the owner only;
+  others can only type a lab fee, and choosing who is paid or a one-off rule needs `honorarium.manage`. The activity
+  log hides `honorarium.*` entries and fee-table changes from readers without `honorarium.read.all`.
   All in the `billing` module. Read keys stay available on a view-only cloud copy. Migration 0047 adds the keys to the
   built-in roles of existing clinics. Practitioner and service ids are re-checked inside the tenant transaction
   (foreign keys alone do not stop another clinic's ids, since they bypass RLS).

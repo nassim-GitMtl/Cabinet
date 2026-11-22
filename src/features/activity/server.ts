@@ -1,6 +1,6 @@
 import "server-only";
 import { and, desc, eq, gte, inArray, like, lt, not, or, sql, type SQL } from "drizzle-orm";
-import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
+import { can, requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
 import { auditEvents, invoices, memberships, patients, recordChanges } from "@/server/db/schema";
 import { addDays, parseDateOnly, zonedToUtc } from "@/lib/dates";
 
@@ -80,6 +80,8 @@ export async function listActivity(ctx: ClinicContext, f: ActivityFilters, limit
     if (f.patientId && UUID.test(f.patientId)) where.push(eq(auditEvents.patientId, f.patientId));
     if (f.category) where.push(or(...ACTIVITY_CATEGORIES[f.category].map((prefix) => like(auditEvents.action, `${prefix}%`))));
     if (!f.includeViews) for (const pattern of VIEW_ACTIONS) where.push(not(like(auditEvents.action, pattern)));
+    // What a practitioner earns is for the owner and that practitioner only (fees screen), not for the log readers.
+    if (!can(ctx, "honorarium.read.all")) where.push(not(like(auditEvents.action, "honorarium.%")));
     const rows = await tx
       .select()
       .from(auditEvents)
@@ -138,6 +140,7 @@ export async function listRecordChanges(
     const after = cursor(f.before);
     if (after) where.push(sql`(${recordChanges.occurredAt}, ${recordChanges.id}) < (select c.occurred_at, c.id from record_changes c where c.id = ${after}::uuid)`);
     if (f.actorUserId && UUID.test(f.actorUserId)) where.push(eq(recordChanges.actorUserId, f.actorUserId));
+    if (!can(ctx, "honorarium.read.all")) where.push(and(not(like(recordChanges.tableName, "honorarium%")), not(like(recordChanges.tableName, "provider_service_term%"))));
     const rows = await tx
       .select()
       .from(recordChanges)
