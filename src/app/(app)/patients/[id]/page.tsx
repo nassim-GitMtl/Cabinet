@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HeartPulseIcon } from "lucide-react";
+import { HeartPulseIcon, HistoryIcon } from "lucide-react";
 import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, InfoIcon, MailIcon, PencilIcon, PhoneIcon, PlusIcon, ShieldAlertIcon, ShieldCheckIcon, TriangleAlertIcon, WalletIcon } from "lucide-react";
 import { ForbiddenState } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
@@ -153,6 +153,12 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
               <ButtonLink href={`/patients/${p.id}/sterilization`} variant="outline">
                 <ShieldCheckIcon aria-hidden />
                 {t("sterilization.patient.shortTitle")}
+              </ButtonLink>
+            ) : null}
+            {can(ctx, "audit.read") ? (
+              <ButtonLink href={`/settings/activity?patient=${p.id}&from=${p.createdAt.toISOString().slice(0, 10)}`} variant="ghost">
+                <HistoryIcon aria-hidden />
+                {t("activity.patientHistory")}
               </ButtonLink>
             ) : null}
             {can(ctx, "patient.archive") ? <ArchiveButton patientId={p.id} archived={p.status === "archived"} /> : null}

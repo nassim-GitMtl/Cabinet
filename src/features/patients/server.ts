@@ -267,6 +267,7 @@ export async function updatePatient(ctx: ClinicContext, id: string, input: Patie
   const row = toRow(input, ctx.organization.countryCode);
   return tenantTx(ctx, async (tx) => {
     await checkReferrer(tx, row.referredByPatientId, id);
+    const [before] = await tx.select().from(patients).where(eq(patients.id, id)).limit(1);
     const updated = await tx
       .update(patients)
       .set({
@@ -289,9 +290,18 @@ export async function updatePatient(ctx: ClinicContext, id: string, input: Patie
       entityType: "patient",
       entityId: id,
       patientId: id,
-      metadata: { fields: Object.keys(row) },
+      metadata: { fields: changedFields(before, row, input.messagesOptOut) },
     });
   });
+}
+
+/** Names of the fields an edit actually changed (the activity log shows these, never the values). */
+function changedFields(before: Record<string, unknown> | undefined, row: Record<string, unknown>, messagesOptOut: boolean | undefined) {
+  const same = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  const fields = Object.keys(row).filter((k) => !before || !same(before[k], row[k]));
+  const prefs = before?.communicationPrefs as { transactionalAllowed?: boolean } | undefined;
+  if (messagesOptOut !== undefined && (prefs?.transactionalAllowed ?? true) === messagesOptOut) fields.push("messagesOptOut");
+  return fields;
 }
 
 export async function setPatientArchived(ctx: ClinicContext, id: string, archived: boolean) {

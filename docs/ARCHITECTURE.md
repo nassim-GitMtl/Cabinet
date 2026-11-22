@@ -471,3 +471,27 @@ after the lab fee for prostheses). Started by Codex, finished and hardened by Cl
   (foreign keys alone do not stop another clinic's ids, since they bypass RLS).
 - **Pitfall.** Append-only tables only grant SELECT/INSERT, so `SELECT … FOR UPDATE` on them fails with
   "permission denied": lock a parent row instead (corrections lock the invoice).
+
+## Activity log: who did what (`src/features/activity`, `/settings/activity`, migration 0048)
+
+User requirement 2026-11-22: every change is recorded under the person who made it, and the owner can read it.
+
+- **Two layers, both append-only and tenant-isolated.** (1) `audit_events`: one readable line per action, written by
+  each service with `audit(tx, …)` in the same transaction (action code, person, patient, entity, metadata without
+  clinical content). (2) `record_changes`: the safety net. The `record_change` trigger (AFTER INSERT/UPDATE/DELETE,
+  SECURITY DEFINER) on every table with `organization_id` (plus `organizations`; excluded: the logs themselves, sync
+  bookkeeping, counters, see `app_private.change_log_excluded_tables()`) writes the table, row id, operation, the
+  names of the changed columns (never values), and the person from the transaction settings `app.user_id` /
+  `app.actor_type` set by `withDbContext`. So a change made by a service that forgot `audit()` is still attributed.
+- **Autosave.** An update by the same person of the same columns of the same row within 10 minutes is not logged
+  again (clinical notes autosave about every second).
+- **New tables are covered automatically:** `apply_security()` now calls `app_private.apply_change_log()`;
+  `tests/integration/activity.test.ts` fails if a clinic table lacks the trigger. The trigger carries
+  `WHEN (NOT app_private.sync_applying())`: on the other copy the change-log rows arrive through sync instead.
+- **Reading.** `audit.read` only (owner, clinic admin). `/settings/activity`: "Actions" (audit trail: person, readable
+  action, patient, invoice number, non-identifying details; views of records hidden unless asked) and "All changes"
+  (change log). Filters: dates (clinic time zone), person, area, patient (from the patient header "History").
+  Paging cursor = id of the last entry; the next page compares `(occurred_at, id)` with that entry's exact values in
+  SQL (entries of one transaction share an instant more precise than a JavaScript date).
+- **Labels.** Every action code has a label in `activity.actions` (FR/EN/AR, key = code with dots replaced by `_`);
+  `src/features/activity/labels.test.ts` scans the code and fails on a missing label or an unknown action template.

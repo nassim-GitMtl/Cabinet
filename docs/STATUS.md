@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-22 by Claude (session 43 — practitioner fees / honoraires, finishing Codex's draft).
+Last updated: 2026-11-22 by Claude (session 44 — activity log: every change under the person who made it).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -542,6 +542,18 @@ redeployed. The user then added `PRODUCTION_DATABASE_URL_ADMIN`, `PREVIEW_DATABA
 (2026-11-22): the first "Database backup" run succeeded (encrypted dump artifact ≈ 0.66 MB, kept 30 days), so nightly
 backups and automatic migrations on push are on.
 
+Session 44 (Claude): user request "each modification should be logged under the person who did it". The audit trail
+already recorded almost every action with the user, but nothing showed it and a few writes skipped it (note
+autosaves). Added: (1) migration 0048, a database change log `record_changes` filled by the `record_change` trigger on
+every clinic table (person, table, row, changed column names, never values; autosaves merged per person/record/10 min;
+new tables covered automatically by `apply_security()`); (2) `/settings/activity` (audit.read): readable actions with
+the person, patient and invoice, filters by dates/person/area/patient, record views on request, plus an "All changes"
+view of the change log; a "History" button on the patient header; (3) readable FR/EN/AR labels for all 158 action codes,
+with a test that fails when a new action has no label; (4) a patient edit now lists only the fields that actually
+changed. Design: docs/ARCHITECTURE.md "Activity log". 224/224 tests (+4 integration in `tests/integration/activity.test.ts`,
++1 unit), typecheck, lint, build green. Browser-checked on the local database: log with names and links, patient
+history, edit → "Changed · Patients · Fields: city", Arabic RTL at 375 px without horizontal scroll.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -554,7 +566,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | Invite activation, account lockout, PostgreSQL per-IP throttles for staff/portal login and forgot-password, encrypted TOTP + recovery codes, MFA challenge, active session list/revocation. Password reset ✅ (admin link, optional email, server command for the owner) and change-own-password ✅. |
 | Clinic onboarding (§25) | 🟡 | Self-service register creates clinic + catalog; dashboard setup checklist from real data ✅. Verification workflow ⏳ |
 | Active clinic switching for multi-org staff (§4A) | ✅ | `/select-clinic`, membership re-checked per request |
-| Audit trail (§4, §27) | ✅ | Append-only; viewer UI ⏳ |
+| Audit trail (§4, §27) | ✅ | Append-only audit events per action + database change log on every clinic table (person, changed fields); `/settings/activity` viewer with filters and per-patient history ✅ |
 | Network identity + consent schema (§4A) | ✅ | Assisted in-person verified linking, exact-scope requests, patient-only approval/revocation, immutable grants, guarded + logged shared reads and cross-tenant tests |
 | Patient registration & directory (§6) | ✅ | Structured acquisition source + referring patient, numbering, Arabic names, approximate age, E.164 phones, emergency contact, duplicates (clinic-local), archive/restore, optimistic locking |
 | Patient profile workspace (§7) | 🟡 | Header (identity, age, contacts, alert chips, Bill button), overview (real balance), details, alerts, clinical history, odontogram, treatment plans, finance tab (account, invoices, payments, deposit). |

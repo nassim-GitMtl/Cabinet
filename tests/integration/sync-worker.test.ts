@@ -83,9 +83,9 @@ describe("clinic computer worker against the cloud endpoints", () => {
     await withDbContext({ organizationId: org, actorType: "system" }, (tx) =>
       tx.insert(auditEvents).values({ organizationId: org, actorType: "system", action: "booking.requested", entityType: "booking_request" }));
 
-    // Internet back: both directions catch up.
+    // Internet back: both directions catch up (pushed: the patient and its change-log line).
     online = true;
-    expect(await runSyncOnce(nodeSync, cloudFetch)).toMatchObject({ state: "active", error: null, pushed: 1, pulled: 1 });
+    expect(await runSyncOnce(nodeSync, cloudFetch)).toMatchObject({ state: "active", error: null, pushed: 2, pulled: 1 });
     const cloud = await withDbContext(staff, (tx) => tx.select({ lastName: patients.lastName }).from(patients));
     expect(cloud.map((p) => p.lastName).sort()).toEqual(["BEFOREPAIRING", "OFFLINE"]);
     const pulled = await nodeApp.begin(async (tx) => {

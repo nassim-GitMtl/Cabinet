@@ -339,5 +339,34 @@ export const auditEvents = pgTable(
   (t) => [
     index("audit_org_time_idx").on(t.organizationId, t.occurredAt),
     index("audit_entity_idx").on(t.entityType, t.entityId),
+    index("audit_org_actor_time_idx").on(t.organizationId, t.actorUserId, t.occurredAt),
+    index("audit_org_patient_time_idx").on(t.organizationId, t.patientId, t.occurredAt),
+  ],
+);
+
+/**
+ * Safety net under the audit trail: every insert, update and delete on a clinic table, with who did it, written by
+ * the `record_change` trigger (migration 0048), so no change escapes even if a service forgets `audit()`.
+ * Holds the names of the changed columns only, never their values (no clinical content). Append-only. Repeated
+ * saves of the same record by the same person within 10 minutes (autosave) are kept as one line.
+ */
+export const recordChanges = pgTable(
+  "record_changes",
+  {
+    id: id(),
+    organizationId: organizationId().references(() => organizations.id),
+    tableName: text("table_name").notNull(),
+    rowId: text("row_id"),
+    operation: text("operation").notNull(),
+    changedColumns: text("changed_columns").array().notNull().default(sql`'{}'::text[]`),
+    actorType: actorType("actor_type").notNull(),
+    actorUserId: uuid("actor_user_id"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("record_changes_org_time_idx").on(t.organizationId, t.occurredAt),
+    index("record_changes_row_idx").on(t.tableName, t.rowId, t.occurredAt),
+    index("record_changes_actor_idx").on(t.organizationId, t.actorUserId, t.occurredAt),
+    check("record_changes_operation_valid", sql`${t.operation} in ('insert', 'update', 'delete')`),
   ],
 );
