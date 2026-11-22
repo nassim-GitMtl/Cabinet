@@ -536,7 +536,12 @@ preview (hidden until a clinic sets a rate), corrections, readable screens. Desi
 fees". 219/219 tests (+7 integration in `tests/integration/honoraria.test.ts`, +6 unit), typecheck, lint, build green.
 Browser-checked on the local database: set 32,5 %, assigned an older invoice line (1 300 DA of 4 000), checkout with a
 one-off 40 % rule and reason, issued, entry listed; catalog option; Arabic RTL at 375 px without horizontal scroll.
-Production needs migration 0047 before this code goes live (the deploy guard holds the previous version until then).
+The GitHub "Database migrations" run skipped both databases: the repository secrets `PREVIEW_DATABASE_URL_ADMIN` and
+`PRODUCTION_DATABASE_URL_ADMIN` are **not set** (so the nightly backup cannot run either: it also needs
+`BACKUP_PASSPHRASE`). The deploy guard correctly refused the build; 0047 was then applied to production and Preview from
+a local copy of the owner URLs (user-approved) and the build redeployed. Until the user adds those three secrets in
+GitHub (Settings → Secrets and variables → Actions), every new migration must be applied by hand and there are no
+automatic backups.
 
 ## Requirement coverage map
 
@@ -606,7 +611,8 @@ Launch essentials first (user decision 2026-11-20), then the patient features.
 4. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
 5. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
 
-Not doable in code (user/accountant): validate the mandatory invoice mentions and retention rules with an Algerian
+Not doable in code (user): add the GitHub Actions secrets `PRODUCTION_DATABASE_URL_ADMIN`, `PREVIEW_DATABASE_URL_ADMIN`
+and `BACKUP_PASSPHRASE` (automatic migrations and nightly encrypted backups are off until then). User/accountant: validate the mandatory invoice mentions and retention rules with an Algerian
 accountant; run a timed restore exercise on the real clinic server.
 
 Later / on hold: inventory follow-ups (pending consumptions on the patient screen; reorder suggestion → pre-filled order
