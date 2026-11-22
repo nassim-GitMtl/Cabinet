@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-22 by Codex (session 40 — global operational notifications).
+Last updated: 2026-11-22 by Codex (session 41 — editable booking requests + commercial platform console).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -499,6 +499,20 @@ notifications. FR/EN/AR and RTL copy are complete. 203/203 tests (+1 integration
 cross-tenant isolation), typecheck and full lint green; `npx next build --webpack` is green. The standard Turbopack
 build still reaches the known runner-only CSS helper-port `EPERM`, including when retried outside the normal sandbox.
 
+Session 41 (Codex): pending online appointment requests can now be edited before approval (type, clinician, clinic-local
+date/time and duration). Edits are permission-checked, tenant-scoped, audited without patient content, optimistic-locked,
+validated against clinician hours/time off/current bookings, and immediately reflected on the patient's secret status
+link; approval still performs the final transactional conflict check. Added `/platform`, restricted to the global
+`operator` role and deliberately limited to clinic/owner metadata: it provisions a clinic with a seven-day one-time owner
+password-activation link, lists clinics, and assigns commercial modules. Module entitlements filter permission keys at
+`ClinicContext`, so disabled billing/reports/inventory/sterilization/engagement/advanced-clinical/lab functions disappear
+and their server services deny access; online booking is additionally enforced on public links. Existing clinics were
+migrated to all modules, new platform-provisioned clinics get the selected set, and the demo owner is an operator. Grant
+production access explicitly with `npm run platform:operator -- owner@example.com`; no platform operator receives a
+tenant membership or patient-data bypass. 206/206 tests (+1 booking integration, +2 platform integration, +2 module unit),
+typecheck and full lint green; `npx next build --webpack` is green and includes `/platform`. The standard Turbopack build
+still reaches the known runner-only CSS helper-port `EPERM`.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -520,7 +534,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; invoices, receipts, estimates and statements print in Arabic RTL or bilingual FR/AR ✅ |
 | Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, always-available FR/EN/AR FDI tooth-number guide, and a permission-filtered global operational notification center. Service worker/offline policy ⏳ (no patient data offline by design) |
-| Scheduler & booking (§9, §9A) | ✅ | Clinic public page `/c/[slug]` + QR poster ✅. Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
+| Scheduler & booking (§9, §9A) | ✅ | Clinic public page `/c/[slug]` + QR poster ✅. Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` edit a pending type/clinician/date/time/duration (version + availability checked), approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative acceptance, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
 | Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Printable estimate, portal view, payment schedules with per-installment receipts and reminders ✅. Consent capture/signatures ⏳. |
@@ -534,7 +548,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
 | Imports/FHIR/integrations (§26) | 🟡 | Patient list import (CSV/XLSX, mapping, preview, duplicates, history) ✅. Clinical/financial history import, FHIR and other integrations ⏳ 🔌 |
 | Backups/restore exercise (§27, scenario 32) | 🟡 | Daily dump + clinical-files archive with sha256, `restore.sh` restores both. Timed restore exercise on a real clinic server ⏳ |
-| Platform operations console (§25) | ⏳ | |
+| Platform operations console (§25) | ✅ | Metadata-only `/platform`: operator-gated clinic list, one-time owner activation provisioning and enforced per-clinic modules. Platform role grants no tenant membership or patient/clinical access; SECURITY DEFINER functions expose only exact commercial metadata. Subscription billing/provider webhooks and plan/pricing UI ⏳ 🔌 |
 
 ## Product direction (user, 2026-11-19)
 

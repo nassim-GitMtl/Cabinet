@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { ClinicContext } from "@/server/auth/context";
 import { ROLE_TEMPLATES, type RoleTemplateKey } from "@/server/authz/permissions";
+import { PRODUCT_MODULES } from "@/server/authz/modules";
 import { registerClinic } from "@/server/services/onboarding";
 
 /** Creates an isolated clinic tenant and returns a staff context for it. */
@@ -43,7 +44,7 @@ export function contextFor(
       timezone: "Africa/Algiers",
       countryCode: "DZ",
       verificationStatus: "unverified",
-      enabledModules: [],
+      enabledModules: [...PRODUCT_MODULES],
       settings: {},
     },
   };

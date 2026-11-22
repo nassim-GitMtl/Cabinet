@@ -15,6 +15,7 @@ import {
   declineBookingRequest,
   setBookingLinkActive,
   submitBookingRequest,
+  updateBookingRequest,
 } from "./server";
 
 function fail(err: unknown, values?: Record<string, string>): ActionState {
@@ -95,6 +96,25 @@ export async function declineRequestAction(requestId: string, _prev: ActionState
   if (!values.reason?.trim()) return { fieldErrors: { reason: "required" }, values };
   try {
     await declineBookingRequest(ctx, requestId, values.reason);
+  } catch (err) {
+    return fail(err, values);
+  }
+  refresh();
+  return { ok: true };
+}
+
+export async function updateRequestAction(requestId: string, expectedVersion: number, _prev: ActionState, formData: FormData): Promise<ActionState> {
+  const ctx = await requireClinicContext();
+  const values = formValues(formData);
+  const durationMin = Number(values.durationMin);
+  const required = ["appointmentTypeId", "providerId", "date", "time"] as const;
+  const fieldErrors: Record<string, string> = Object.fromEntries(required.filter((key) => !values[key]?.trim()).map((key) => [key, "required"]));
+  if (!Number.isInteger(durationMin) || durationMin < 5 || durationMin > 480) fieldErrors.durationMin = "invalid";
+  if (Object.keys(fieldErrors).length) return { fieldErrors, values };
+  try {
+    await updateBookingRequest(ctx, requestId, {
+      appointmentTypeId: values.appointmentTypeId!, providerId: values.providerId!, date: values.date!, time: values.time!, durationMin,
+    }, expectedVersion);
   } catch (err) {
     return fail(err, values);
   }

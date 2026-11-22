@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { boolean, index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
-import { createdAt, id, organizationId } from "./_shared";
+import { createdAt, id, organizationId, updatedAt } from "./_shared";
 import { acquisitionChannel, patients } from "./patients";
 import { memberships, organizations, users } from "./platform";
 import { appointments, appointmentTypes } from "./scheduling";
@@ -77,7 +77,9 @@ export const bookingRequests = pgTable(
     decidedAt: timestamp("decided_at", { withTimezone: true }),
     ipHash: text("ip_hash"),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    version: integer("version").notNull().default(1),
     createdAt: createdAt(),
+    updatedAt: updatedAt(),
   },
   (t) => [
     uniqueIndex("booking_requests_ref_uq").on(t.refHash),

@@ -40,6 +40,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       nav={nav}
       canCreatePatient={can(ctx, "patient.create")}
       hasMultipleClinics={clinics.length > 1}
+      isPlatformOperator={ctx.user.platformRole === "operator"}
       initialNotifications={notifications}
     >
       <ConnectionBanner />

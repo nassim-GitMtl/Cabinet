@@ -13,6 +13,7 @@ import {
   listBookingRequests,
   setBookingLinkActive,
   submitBookingRequest,
+  updateBookingRequest,
   listBookingLinks,
 } from "@/features/booking/server";
 import { addDays, isoWeekday, todayInZone } from "@/lib/dates";
@@ -74,6 +75,30 @@ describe("public booking with mandatory staff approval", () => {
     expect((results.find((r) => r.status === "rejected") as PromiseRejectedResult).reason).toMatchObject({ code: "alreadyDecided" });
     expect(await appointmentCount(f.ctx)).toBe(1);
     expect((await listBookingRequests(f.ctx, "decided"))[0]!.r.status).toBe("approved");
+  });
+
+  it("staff edits a pending request before approval and the patient status follows the new slot", async () => {
+    const f = await setup("Cabinet Résa Modification");
+    const ref = await f.request("0550 11 22 39", "10:00");
+    const [request] = await listBookingRequests(f.ctx, "pending");
+    await updateBookingRequest(f.ctx, request!.r.id, {
+      appointmentTypeId: request!.r.appointmentTypeId,
+      providerId: request!.r.providerId,
+      date: f.day,
+      time: "10:30",
+      durationMin: 25,
+    }, request!.r.version);
+    const [updated] = await listBookingRequests(f.ctx, "pending");
+    expect(updated!.r.status).toBe("under_review");
+    expect(updated!.r.version).toBe(request!.r.version + 1);
+    expect(updated!.r.requestedEndsAt.getTime() - updated!.r.requestedStartsAt.getTime()).toBe(25 * 60_000);
+    expect((await getRequestStatus(ref))!.startsAt).toEqual(updated!.r.requestedStartsAt);
+    await expect(updateBookingRequest(f.ctx, request!.r.id, {
+      appointmentTypeId: request!.r.appointmentTypeId, providerId: request!.r.providerId, date: f.day, time: "11:00", durationMin: 20,
+    }, request!.r.version)).rejects.toMatchObject({ code: "staleVersion" });
+    await expect(updateBookingRequest(contextFor(f.ctx, "accountant"), request!.r.id, {
+      appointmentTypeId: request!.r.appointmentTypeId, providerId: request!.r.providerId, date: f.day, time: "11:00", durationMin: 20,
+    }, updated!.r.version)).rejects.toBeInstanceOf(ForbiddenError);
   });
 
   it("competing requests for the same slot: only one can be approved", async () => {

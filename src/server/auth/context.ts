@@ -6,6 +6,7 @@ import type { Tx } from "../db/client";
 import { memberships, organizations, roles, type OrganizationSettings } from "../db/schema";
 import { withDbContext } from "../db/tenant";
 import { hasPermission, readOnlyCopyPermissions, type Permission } from "../authz/permissions";
+import { entitledPermissions, moduleEnabled, type ProductModule } from "../authz/modules";
 import { nodeRole } from "../sync/node";
 import { readSession, type SessionRecord } from "./session";
 
@@ -93,6 +94,7 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
   if (!row || row.org.status === "suspended" || row.org.status === "closed") return null;
   const readOnlyCopy = row.org.dataHome === "clinic" && (await nodeRole()) === "cloud";
 
+  const entitled = entitledPermissions(row.permissions, row.org.enabledModules);
   return {
     sessionId: session.sessionId,
     userId: session.userId,
@@ -102,7 +104,7 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
     displayName: row.displayName,
     roleKey: row.roleKey,
     roleName: row.roleName,
-    permissions: readOnlyCopy ? readOnlyCopyPermissions(row.permissions) : row.permissions,
+    permissions: readOnlyCopy ? readOnlyCopyPermissions(entitled) : entitled,
     readOnlyCopy,
     canManageClinicComputer: hasPermission(row.permissions, "org.settings.manage"),
     organization: {
@@ -132,6 +134,14 @@ export function can(ctx: ClinicContext, permission: Permission): boolean {
 
 export function requirePermission(ctx: ClinicContext, permission: Permission): void {
   if (!can(ctx, permission)) throw new ForbiddenError(permission);
+}
+
+export function hasModule(ctx: ClinicContext, module: ProductModule): boolean {
+  return moduleEnabled(ctx.organization.enabledModules, module);
+}
+
+export function requireModule(ctx: ClinicContext, module: ProductModule): void {
+  if (!hasModule(ctx, module)) throw new ForbiddenError("org.modules.manage");
 }
 
 /** Tenant-scoped transaction for staff actions in the active clinic. */

@@ -48,7 +48,7 @@ export type AppointmentInput = {
   outsideHoursOverride: boolean;
 };
 
-async function validateSlot(tx: Tx, ctx: ClinicContext, input: AppointmentInput, startsAt: Date, endsAt: Date) {
+export async function validateAppointmentSlot(tx: Tx, ctx: ClinicContext, input: AppointmentInput, startsAt: Date, endsAt: Date) {
   if (input.durationMin < 5 || input.durationMin > 480) throw new AgendaError("invalidDuration");
   const [provider] = await tx.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.id, input.providerId), eq(memberships.isProvider, true), eq(memberships.status, "active")));
   if (!provider) throw new AgendaError("providerUnavailable");
@@ -86,7 +86,7 @@ export async function bookInTx(tx: Tx, ctx: ClinicContext, input: AppointmentInp
   const { startsAt, endsAt } = slot(ctx, input);
   const [patient] = await tx.select({ id: patients.id, status: patients.status }).from(patients).where(eq(patients.id, input.patientId));
   if (!patient || patient.status === "archived" || patient.status === "deceased") throw new AgendaError("patientUnavailable");
-  await validateSlot(tx, ctx, input, startsAt, endsAt);
+  await validateAppointmentSlot(tx, ctx, input, startsAt, endsAt);
   const [branch] = await tx.select({ id: branches.id }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)).limit(1);
   const [a] = await tx
     .insert(appointments)
@@ -127,7 +127,7 @@ export async function rescheduleAppointment(ctx: ClinicContext, id: string, inpu
       const [current] = await tx.select().from(appointments).where(eq(appointments.id, id)).for("update");
       if (!current) throw new AgendaError("notFound");
       if (current.schedulingStatus !== "booked" || current.visitStatus !== "not_arrived") throw new AgendaError("invalidState");
-      await validateSlot(tx, ctx, input, startsAt, endsAt);
+      await validateAppointmentSlot(tx, ctx, input, startsAt, endsAt);
       const updated = await tx
         .update(appointments)
         .set({

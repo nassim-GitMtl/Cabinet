@@ -11,6 +11,7 @@ import {
   BookOpenIcon,
   CalendarDaysIcon,
   ClipboardCheckIcon,
+  CrownIcon,
   FileTextIcon,
   LayoutDashboardIcon,
   LogOutIcon,
@@ -61,6 +62,7 @@ type Props = {
   nav: NavKey[];
   canCreatePatient: boolean;
   hasMultipleClinics: boolean;
+  isPlatformOperator: boolean;
   initialNotifications: OperationalNotification[];
   children: ReactNode;
 };
@@ -79,7 +81,7 @@ function Brand() {
   );
 }
 
-export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient, hasMultipleClinics, initialNotifications, children }: Props) {
+export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient, hasMultipleClinics, isPlatformOperator, initialNotifications, children }: Props) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const [notifications, setNotifications] = useState(initialNotifications);
@@ -174,6 +176,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
             </div>
           </div>
           <LanguageSwitcher className="block" />
+          {isPlatformOperator ? <Button render={<Link href="/platform" />} variant="outline" className="w-full justify-start gap-2"><CrownIcon aria-hidden />{t("platform")}</Button> : null}
           <form action={logoutAction}>
             <Button type="submit" variant="ghost" className="w-full justify-start gap-2">
               <LogOutIcon aria-hidden />
@@ -196,6 +199,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
             </div>
           </div>
           <div className="flex items-center gap-1">
+            {isPlatformOperator ? <Button render={<Link href="/platform" />} variant="ghost" size="icon" aria-label={t("platform")}><CrownIcon aria-hidden /></Button> : null}
             <NotificationCenter notifications={notifications} />
             <ToothNumberGuide compact />
             <LanguageSwitcher compact />

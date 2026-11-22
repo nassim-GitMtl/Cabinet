@@ -133,7 +133,7 @@ export const organizations = pgTable("organizations", {
   enabledModules: text("enabled_modules")
     .array()
     .notNull()
-    .default(sql`'{}'::text[]`),
+    .default(sql`ARRAY['core']::text[]`),
   settings: jsonb("settings").$type<OrganizationSettings>().notNull().default({}),
   /**
    * Which copy is in charge of this clinic's data: "cloud" (the hosted copy is the only one) or "clinic"

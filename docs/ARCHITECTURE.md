@@ -148,6 +148,14 @@ tests/                    integration tests + support (global setup resets cabin
   user-scoped and audited in the active clinic.
 - Audit: `audit_events` is INSERT/SELECT-only for the app role. Never put clinical content or secrets in metadata.
 - Security headers in `next.config.ts`. Platform operator role grants no patient-data access.
+- The platform console is a separate authorization plane: `users.platform_role = operator` may call only narrow
+  `app_private.platform_*` SECURITY DEFINER functions for organization identity, owner contact, status and entitlements.
+  It never creates a membership and therefore cannot resolve `ClinicContext` or read tenant clinical tables. Operators
+  are granted/revoked explicitly with `npm run platform:operator -- <email> [--revoke]`.
+- Commercial entitlements are stored in `organizations.enabled_modules`. Existing role permissions are filtered through
+  `entitledPermissions()` when `ClinicContext` is built, so the same `requirePermission()` checks protect UI and server
+  mutations. Public entry points without a staff permission (currently online booking) also check the module explicitly.
+  `core` is always present; migration 0045 assigned all modules to pre-existing clinics to avoid accidental lockout.
 
 ## Financial subledger (implemented — `src/features/billing`, migrations 0005/0006)
 

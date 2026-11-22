@@ -21,7 +21,7 @@ import {
 import { withDbContext } from "@/server/db/tenant";
 import { addDays, timeInZone, todayInZone, zonedToUtc } from "@/lib/dates";
 import { normalizePhone } from "@/lib/phone";
-import { AgendaError, bookInTx, conflictFrom } from "@/features/agenda/server";
+import { AgendaError, bookInTx, conflictFrom, validateAppointmentSlot } from "@/features/agenda/server";
 import { dateRange, freeSlots, type Interval } from "./slots";
 import type { LocalizedText } from "@/server/db/schema/_shared";
 
@@ -52,7 +52,7 @@ function publicTx<T>(organizationId: string, fn: (tx: Tx) => Promise<T>) {
 
 async function loadLinkData(tx: Tx, linkId: string) {
   const [link] = await tx.select().from(bookingLinks).where(eq(bookingLinks.id, linkId));
-  const [org] = await tx.select({ name: organizations.name, timezone: organizations.timezone, locale: organizations.defaultLocale }).from(organizations);
+  const [org] = await tx.select({ name: organizations.name, timezone: organizations.timezone, locale: organizations.defaultLocale, enabledModules: organizations.enabledModules }).from(organizations);
   const types = await tx
     .select({ id: appointmentTypes.id, name: appointmentTypes.name, durationMin: appointmentTypes.defaultDurationMin })
     .from(appointmentTypes)
@@ -72,6 +72,7 @@ export async function getPublicBookingInfo(token: string) {
   if (!r) return null;
   return publicTx(r.organizationId, async (tx) => {
     const d = await loadLinkData(tx, r.linkId);
+    if (!d.org.enabledModules.includes("online_booking") && d.org.enabledModules.length > 0) return null;
     return {
       clinicName: d.org.name,
       timezone: d.org.timezone,
@@ -121,6 +122,7 @@ export async function getPublicAvailability(token: string, typeId: string, date:
   if (!r) return null;
   return publicTx(r.organizationId, async (tx) => {
     const d = await loadLinkData(tx, r.linkId);
+    if (!d.org.enabledModules.includes("online_booking") && d.org.enabledModules.length > 0) return null;
     const today = todayInZone(d.org.timezone);
     const dates = dateRange(today, Math.min(Math.max(d.link.horizonDays, 1), 60));
     const all = await computeAvailability(tx, d, typeId, dates);
@@ -153,6 +155,7 @@ export async function submitBookingRequest(token: string, input: SubmitInput, ip
   if (input.contactName.trim().length < 3) throw new BookingError("nameRequired");
   return publicTx(r.organizationId, async (tx) => {
     const d = await loadLinkData(tx, r.linkId);
+    if (!d.org.enabledModules.includes("online_booking") && d.org.enabledModules.length > 0) throw new BookingError("linkInvalid");
     const type = d.types.find((t) => t.id === input.typeId);
     if (!type || !d.providers.some((p) => p.id === input.providerId)) throw new BookingError("slotUnavailable");
     // Abuse limits, counted from stored requests.
@@ -261,8 +264,75 @@ export async function countPendingRequests(ctx: ClinicContext) {
 async function lockPending(tx: Tx, id: string) {
   const [req] = await tx.select().from(bookingRequests).where(eq(bookingRequests.id, id)).for("update");
   if (!req) throw new BookingError("notFound");
-  if (req.status !== "submitted" && req.status !== "under_review") throw new BookingError("alreadyDecided");
+  if (!["submitted", "under_review", "awaiting_information", "alternative_proposed"].includes(req.status)) throw new BookingError("alreadyDecided");
   return req;
+}
+
+export type UpdateBookingRequestInput = {
+  appointmentTypeId: string;
+  providerId: string;
+  date: string;
+  time: string;
+  durationMin: number;
+};
+
+/** Corrects a pending request without creating an appointment. Approval still performs the final booking check. */
+export async function updateBookingRequest(ctx: ClinicContext, id: string, input: UpdateBookingRequestInput, expectedVersion: number) {
+  requirePermission(ctx, "booking.approve");
+  requirePermission(ctx, "appointment.manage");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.date) || !/^\d{2}:\d{2}$/.test(input.time)) throw new BookingError("invalidSlot");
+  if (!Number.isInteger(input.durationMin) || input.durationMin < 5 || input.durationMin > 480) throw new BookingError("invalidDuration");
+  const startsAt = zonedToUtc(input.date, input.time, ctx.organization.timezone);
+  if (startsAt.getTime() <= Date.now()) throw new BookingError("requestExpired");
+  const endsAt = new Date(startsAt.getTime() + input.durationMin * 60_000);
+  try {
+    return await tenantTx(ctx, async (tx) => {
+      const current = await lockPending(tx, id);
+      if (current.version !== expectedVersion) throw new BookingError("staleVersion");
+      const [type] = await tx.select({ id: appointmentTypes.id }).from(appointmentTypes)
+        .where(and(eq(appointmentTypes.id, input.appointmentTypeId), eq(appointmentTypes.isActive, true))).limit(1);
+      if (!type) throw new BookingError("typeUnavailable");
+      await validateAppointmentSlot(tx, ctx, {
+        patientId: id,
+        providerId: input.providerId,
+        chairId: null,
+        appointmentTypeId: input.appointmentTypeId,
+        date: input.date,
+        time: input.time,
+        durationMin: input.durationMin,
+        notes: null,
+        outsideHoursOverride: false,
+      }, startsAt, endsAt);
+      const [conflict] = await tx.select({ id: appointments.id }).from(appointments).where(and(
+        eq(appointments.providerId, input.providerId),
+        eq(appointments.schedulingStatus, "booked"),
+        lt(appointments.startsAt, endsAt),
+        gt(appointments.endsAt, startsAt),
+      )).limit(1);
+      if (conflict) throw new BookingError("slotTaken");
+      const updated = await tx.update(bookingRequests).set({
+        appointmentTypeId: input.appointmentTypeId,
+        providerId: input.providerId,
+        requestedStartsAt: startsAt,
+        requestedEndsAt: endsAt,
+        expiresAt: startsAt,
+        status: "under_review",
+        version: sql`${bookingRequests.version} + 1`,
+        updatedAt: new Date(),
+      }).where(and(eq(bookingRequests.id, id), eq(bookingRequests.version, expectedVersion))).returning({ id: bookingRequests.id });
+      if (!updated.length) throw new BookingError("staleVersion");
+      await audit(tx, {
+        ...staff(ctx), action: "booking_request.updated", entityType: "booking_request", entityId: id,
+        metadata: { from: current.requestedStartsAt.toISOString(), to: startsAt.toISOString(), fromProvider: current.providerId, toProvider: input.providerId, appointmentTypeId: input.appointmentTypeId },
+      });
+    });
+  } catch (error) {
+    if (error instanceof AgendaError) {
+      if (["providerUnavailable", "timeOff", "outsideHours"].includes(error.code)) throw new BookingError(error.code);
+      throw new BookingError("invalidSlot");
+    }
+    throw error;
+  }
 }
 
 /**
@@ -323,6 +393,7 @@ export async function listBookingLinks(ctx: ClinicContext) {
 
 export async function createBookingLink(ctx: ClinicContext, label: string) {
   requirePermission(ctx, "appointment.manage");
+  if (!ctx.organization.enabledModules.includes("online_booking") && ctx.organization.enabledModules.length > 0) throw new BookingError("moduleDisabled");
   return tenantTx(ctx, async (tx) => {
     const types = await tx.select({ id: appointmentTypes.id }).from(appointmentTypes).where(and(eq(appointmentTypes.isActive, true), eq(appointmentTypes.isBookableOnline, true)));
     if (!types.length) throw new BookingError("noBookableTypes");

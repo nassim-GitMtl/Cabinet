@@ -22,6 +22,7 @@ import {
 import { setTxOrganization } from "../db/tenant";
 import { hashPassword } from "../auth/password";
 import { currencyExponent } from "@/lib/money";
+import { PRODUCT_MODULES } from "../authz/modules";
 
 export type RegisterClinicInput = {
   clinicName: string;
@@ -34,6 +35,8 @@ export type RegisterClinicInput = {
   currency?: string;
   timezone?: string;
   countryCode?: string;
+  enabledModules?: string[];
+  createdByPlatformUserId?: string;
 };
 
 export class EmailTakenError extends Error {}
@@ -81,6 +84,7 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
       defaultCurrency: currency,
       timezone,
       countryCode: input.countryCode ?? "DZ",
+      enabledModules: input.enabledModules ?? [...PRODUCT_MODULES],
       settings: { currencyDisplay: currency === "DZD" ? "DA" : currency, dateFormat: "DD/MM/YYYY" },
     });
 
@@ -127,11 +131,12 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
 
     await audit(tx, {
       organizationId,
-      actorType: "staff",
-      actorUserId: user!.id,
+      actorType: input.createdByPlatformUserId ? "platform" : "staff",
+      actorUserId: input.createdByPlatformUserId ?? user!.id,
       action: "organization.created",
       entityType: "organization",
       entityId: organizationId,
+      metadata: input.createdByPlatformUserId ? { provisionedByPlatform: true, enabledModules: input.enabledModules ?? [] } : undefined,
     });
 
     return { userId: user!.id, organizationId };

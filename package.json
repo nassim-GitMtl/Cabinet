@@ -12,6 +12,7 @@
     "db:setup:neon": "tsx scripts/setup-neon.ts",
     "db:seed": "tsx --tsconfig tsconfig.scripts.json scripts/seed.ts",
     "staff:reset-link": "tsx scripts/staff-reset-link.ts",
+    "platform:operator": "tsx scripts/platform-operator.ts",
     "db:up": "docker compose up -d --wait",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

@@ -3,16 +3,16 @@
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CheckIcon, CopyIcon, PhoneIcon, SearchIcon, UserPlusIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, PencilIcon, PhoneIcon, SearchIcon, UserPlusIcon } from "lucide-react";
 import { toast } from "sonner";
-import { FormError, SubmitButton, TextField, useErrorText } from "@/components/form";
+import { FormError, SelectField, SubmitButton, TextField, useErrorText } from "@/components/form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { initialActionState, type ActionState } from "@/lib/action-state";
 import { searchAgendaPatientsAction } from "@/features/agenda/actions";
-import { approveRequestAction, createLinkAction, createPatientFromRequestAction, declineRequestAction, toggleLinkAction } from "../actions";
+import { approveRequestAction, createLinkAction, createPatientFromRequestAction, declineRequestAction, toggleLinkAction, updateRequestAction } from "../actions";
 
 export type InboxItem = {
   id: string;
@@ -28,11 +28,19 @@ export type InboxItem = {
   message: string | null;
   /** Translated answer to "how did you hear of us", when given. */
   channel: string | null;
+  appointmentTypeId: string;
+  providerId: string;
+  date: string;
+  time: string;
+  durationMin: number;
+  version: number;
 };
+
+type EditOptions = { types: { value: string; label: string }[]; providers: { value: string; label: string }[] };
 
 type Candidate = { id: string; patientNumber: string; firstName: string; lastName: string; phone: string | null };
 
-export function RequestCard({ item, canApprove }: { item: InboxItem; canApprove: boolean }) {
+export function RequestCard({ item, canApprove, editOptions }: { item: InboxItem; canApprove: boolean; editOptions: EditOptions }) {
   const t = useTranslations("booking");
   const router = useRouter();
   const errorText = useErrorText();
@@ -110,12 +118,50 @@ export function RequestCard({ item, canApprove }: { item: InboxItem; canApprove:
             <SearchIcon aria-hidden />
             {t("existingPatient")}
           </Button>
+          <EditRequestButton item={item} options={editOptions} />
           <DeclineButton id={item.id} />
         </div>
       ) : null}
       <PatientPicker open={searchOpen} onOpenChange={setSearchOpen} onPick={(id) => { setSearchOpen(false); approve(id); }} />
     </li>
   );
+}
+
+function EditRequestButton({ item, options }: { item: InboxItem; options: EditOptions }) {
+  const t = useTranslations("booking");
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [state, action] = useActionState(async (previous: ActionState, formData: FormData) => {
+    const result = await updateRequestAction(item.id, item.version, previous, formData);
+    if (result.ok) {
+      setOpen(false);
+      toast.success(t("updated"));
+      router.refresh();
+    }
+    return result;
+  }, initialActionState);
+  return <>
+    <Button variant="outline" disabled={options.types.length === 0 || options.providers.length === 0} onClick={() => setOpen(true)}>
+      <PencilIcon aria-hidden />{t("editRequest")}
+    </Button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{t("editRequest")}</DialogTitle>
+          <DialogDescription>{t("editRequestHint")}</DialogDescription>
+        </DialogHeader>
+        <form action={action} className="grid gap-4 sm:grid-cols-2" noValidate>
+          <FormError error={state.error} />
+          <SelectField label={t("appointmentType")} name="appointmentTypeId" options={options.types} required defaultValue={state.values?.appointmentTypeId ?? item.appointmentTypeId} error={state.fieldErrors?.appointmentTypeId} fieldClassName="sm:col-span-2" />
+          <SelectField label={t("provider")} name="providerId" options={options.providers} required defaultValue={state.values?.providerId ?? item.providerId} error={state.fieldErrors?.providerId} fieldClassName="sm:col-span-2" />
+          <TextField label={t("date")} name="date" type="date" required defaultValue={state.values?.date ?? item.date} error={state.fieldErrors?.date} />
+          <TextField label={t("time")} name="time" type="time" required defaultValue={state.values?.time ?? item.time} error={state.fieldErrors?.time} />
+          <TextField label={t("duration")} name="durationMin" type="number" min={5} max={480} step={5} required defaultValue={state.values?.durationMin ?? String(item.durationMin)} error={state.fieldErrors?.durationMin} />
+          <SubmitButton className="self-end sm:col-span-2">{t("saveChanges")}</SubmitButton>
+        </form>
+      </DialogContent>
+    </Dialog>
+  </>;
 }
 
 function PatientPicker({ open, onOpenChange, onPick }: { open: boolean; onOpenChange: (v: boolean) => void; onPick: (id: string) => void }) {

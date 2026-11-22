@@ -41,6 +41,7 @@ async function main() {
   if (process.env.NODE_ENV === "production") throw new Error("Refusing to seed in production");
   const existing = await db.execute(sql`select 1 from users where lower(email) = lower(${DEMO_EMAIL})`);
   if (existing.length) {
+    await db.update(users).set({ platformRole: "operator" }).where(sql`lower(${users.email}) = lower(${DEMO_EMAIL})`);
     console.log(`Demo data already present (${DEMO_EMAIL}).`);
     return;
   }
@@ -54,6 +55,7 @@ async function main() {
     ownerIsDentist: true,
     locale: "fr",
   });
+  await db.update(users).set({ platformRole: "operator" }).where(sql`${users.id} = ${userId}`);
   const ctx = await contextFromIds(userId, organizationId);
 
   // Extra staff: a receptionist and an accountant (same demo password).

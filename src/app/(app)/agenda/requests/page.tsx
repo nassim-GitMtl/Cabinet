@@ -6,10 +6,11 @@ import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { LinkRow, NewLinkForm, RequestCard } from "@/features/booking/components/request-inbox";
 import { listBookingLinks, listBookingRequests } from "@/features/booking/server";
+import { getAgendaSetup } from "@/features/agenda/server";
 import { INTL_LOCALE, isLocale } from "@/i18n/config";
-import { formatDateTime } from "@/lib/dates";
+import { formatDateTime, timeInZone, todayInZone } from "@/lib/dates";
 import { formatPhone } from "@/lib/phone";
-import { can, requireClinicContext } from "@/server/auth/context";
+import { can, hasModule, requireClinicContext } from "@/server/auth/context";
 
 export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("booking"))("inboxTitle") };
@@ -28,12 +29,16 @@ export default async function BookingRequestsPage() {
   const raw = await getLocale();
   const locale = isLocale(raw) ? raw : "fr";
   const intl = INTL_LOCALE[locale];
-  const [pending, decided, links] = await Promise.all([listBookingRequests(ctx, "pending"), listBookingRequests(ctx, "decided"), listBookingLinks(ctx)]);
+  const [pending, decided, links, setup] = await Promise.all([listBookingRequests(ctx, "pending"), listBookingRequests(ctx, "decided"), listBookingLinks(ctx), getAgendaSetup(ctx)]);
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host");
   const origin = host ? `${h.get("x-forwarded-proto") ?? "http"}://${host}` : (process.env.APP_URL ?? "");
   const label = (n: { fr: string; en?: string; ar?: string }) => n[locale] || n.fr;
   const tz = ctx.organization.timezone;
+  const editOptions = {
+    types: setup.types.map((type) => ({ value: type.id, label: label(type.name) })),
+    providers: setup.providers.map((provider) => ({ value: provider.id, label: [provider.title, provider.displayName].filter(Boolean).join(" ") })),
+  };
 
   return (
     <>
@@ -54,6 +59,7 @@ export default async function BookingRequestsPage() {
               <RequestCard
                 key={r.id}
                 canApprove={can(ctx, "booking.approve") && can(ctx, "appointment.manage")}
+                editOptions={editOptions}
                 item={{
                   id: r.id,
                   contactName: r.contactName,
@@ -67,6 +73,12 @@ export default async function BookingRequestsPage() {
                   waiting: waitingLabel(r.createdAt, intl),
                   message: r.message,
                   channel: r.acquisitionChannel ? t(`acquisition.channels.${r.acquisitionChannel}`) : null,
+                  appointmentTypeId: r.appointmentTypeId,
+                  providerId: r.providerId,
+                  date: todayInZone(tz, r.requestedStartsAt),
+                  time: timeInZone(r.requestedStartsAt, tz),
+                  durationMin: Math.round((r.requestedEndsAt.getTime() - r.requestedStartsAt.getTime()) / 60_000),
+                  version: r.version,
                 }}
               />
             ))}
@@ -100,7 +112,7 @@ export default async function BookingRequestsPage() {
             ))}
           </ul>
         ) : null}
-        {can(ctx, "appointment.manage") ? <NewLinkForm /> : null}
+        {can(ctx, "appointment.manage") && hasModule(ctx, "online_booking") ? <NewLinkForm /> : null}
       </section>
     </>
   );
