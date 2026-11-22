@@ -39,8 +39,9 @@ User chose "Clinic PC + cloud sync" (like Dentus). Design: docs/ARCHITECTURE.md 
   `CLINICAL_STORAGE_BACKEND=vercel-blob` + private Blob store `cabinet-dentaire-fichiers` in fra1 (production only),
   `REGISTRATION_MODE=first-only`. `TZ` is reserved by Vercel (servers run in UTC; the app always formats with the clinic
   time zone, so nothing depends on it). `/api/health` = 200 from fra1. Still to do: a custom domain (then update both
-  URLs), separate Preview database/Blob before real patients, remove the Neon integration's Ohio owner variables
-  (`PG*`, `POSTGRES_*`, `DATABASE_URL_UNPOOLED`) from Production.
+  URLs), separate Preview database/Blob before real patients. The Neon integration's Ohio owner variables (`PG*`,
+  `POSTGRES_*`, `DATABASE_URL_UNPOOLED`) were removed from Production only (still in Preview/Development, which the v0
+  workspace uses).
 
 ## How to verify the current state
 
