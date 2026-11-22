@@ -2,12 +2,14 @@ import { getTranslations } from "next-intl/server";
 import { ConnectionBanner } from "@/components/app/connection-banner";
 import { AppShell, type NavKey } from "@/components/app/app-shell";
 import { SyncNotice } from "@/features/sync/components/sync-notice";
+import { getOperationalNotifications } from "@/features/notifications/server";
 import { can, requireClinicContext } from "@/server/auth/context";
 import { listMyClinics } from "@/server/services/auth";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const ctx = await requireClinicContext();
   const clinics = await listMyClinics(ctx.userId);
+  const notifications = await getOperationalNotifications(ctx);
   const t = await getTranslations("roles");
   const roleName = t.has(ctx.roleKey as never) ? t(ctx.roleKey as never) : ctx.roleName;
 
@@ -38,6 +40,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       nav={nav}
       canCreatePatient={can(ctx, "patient.create")}
       hasMultipleClinics={clinics.length > 1}
+      initialNotifications={notifications}
     >
       <ConnectionBanner />
       <SyncNotice ctx={ctx} />

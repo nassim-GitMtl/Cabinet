@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   ArrowLeftRightIcon,
   BarChart3Icon,
@@ -27,8 +27,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { logoutAction } from "@/features/auth/actions";
+import type { OperationalNotification } from "@/features/notifications/types";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
+import { NotificationCenter } from "./notification-center";
 import { ToothIcon, ToothNumberGuide } from "./tooth-number-guide";
 
 export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "followUps" | "invoices" | "reports" | "cash" | "expenses" | "inventory" | "sterilization" | "catalog" | "settings";
@@ -59,6 +61,7 @@ type Props = {
   nav: NavKey[];
   canCreatePatient: boolean;
   hasMultipleClinics: boolean;
+  initialNotifications: OperationalNotification[];
   children: ReactNode;
 };
 
@@ -76,10 +79,36 @@ function Brand() {
   );
 }
 
-export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient, hasMultipleClinics, children }: Props) {
+export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient, hasMultipleClinics, initialNotifications, children }: Props) {
   const t = useTranslations("nav");
   const pathname = usePathname();
+  const [notifications, setNotifications] = useState(initialNotifications);
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+  useEffect(() => {
+    let stopped = false;
+    const refresh = async () => {
+      if (document.visibilityState !== "visible") return;
+      try {
+        const response = await fetch("/api/notifications", { cache: "no-store" });
+        if (!response.ok) return;
+        const next = await response.json() as OperationalNotification[];
+        if (!stopped) setNotifications(next);
+      } catch {
+        // The global connection banner owns offline feedback; retain the last
+        // known task counts rather than replacing them with a false empty state.
+      }
+    };
+    const timer = window.setInterval(refresh, 60_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
 
   return (
     <div className="flex min-h-dvh bg-background">
@@ -95,17 +124,20 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
         <div className="px-5 pt-5 pb-5">
           <Brand />
         </div>
-        <div className="mx-4 mb-5 rounded-xl border border-primary/12 bg-accent/45 p-3.5">
-          <p className="truncate text-sm font-semibold" title={clinicName} dir="auto">
-            {clinicName}
-          </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{roleName}</p>
-          {hasMultipleClinics ? (
-            <Link href="/select-clinic" className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-              <ArrowLeftRightIcon className="size-3" aria-hidden />
-              {t("switchClinic")}
-            </Link>
-          ) : null}
+        <div className="mx-4 mb-5 flex items-start gap-2 rounded-xl border border-primary/12 bg-accent/45 p-3.5">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold" title={clinicName} dir="auto">
+              {clinicName}
+            </p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{roleName}</p>
+            {hasMultipleClinics ? (
+              <Link href="/select-clinic" className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
+                <ArrowLeftRightIcon className="size-3" aria-hidden />
+                {t("switchClinic")}
+              </Link>
+            ) : null}
+          </div>
+          <NotificationCenter notifications={notifications} className="-me-1 -mt-1" />
         </div>
         <p className="px-6 pb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-muted-foreground/85">{t("workspace")}</p>
         <nav aria-label={t("mainNavigation")} className="flex-1 space-y-0.5 overflow-y-auto px-3">
@@ -164,6 +196,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <NotificationCenter notifications={notifications} />
             <ToothNumberGuide compact />
             <LanguageSwitcher compact />
             <form action={logoutAction}>

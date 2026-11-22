@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-21 by Codex (session 39 — native Vercel + Neon + private Blob deployment).
+Last updated: 2026-11-22 by Codex (session 40 — global operational notifications).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -489,6 +489,16 @@ reminder stays in Settings → Identité); one-tap next step on reception cards;
 arrived; tax-ID fields in a readable 2×2 grid; translated file pickers instead of the browser's English "Choose File"
 (logo, patient import; `src/components/file-picker.tsx`). 202/202 tests, typecheck, lint, build green.
 
+Session 40 (Codex): notifications are now visible from every authenticated staff screen through a persistent bell in
+the desktop clinic card and mobile top bar. The center shows only real, actionable counts for pending online booking
+requests, low/expiring/expired inventory and sterilization cycles awaiting release; each item links to its working
+screen. Counts are tenant-scoped, filtered by the viewer's exact permission keys, contain no patient/clinical content,
+refresh every minute and on window focus, and retain their last known value while offline (the existing connection
+banner remains the source of offline feedback). Public/auth/patient-portal pages deliberately do not receive staff
+notifications. FR/EN/AR and RTL copy are complete. 203/203 tests (+1 integration covering counts, permissions and
+cross-tenant isolation), typecheck and full lint green; `npx next build --webpack` is green. The standard Turbopack
+build still reaches the known runner-only CSS helper-port `EPERM`, including when retried outside the normal sandbox.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -509,7 +519,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; invoices, receipts, estimates and statements print in Arabic RTL or bilingual FR/AR ✅ |
-| Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, and an always-available FR/EN/AR FDI tooth-number guide. Service worker/offline policy ⏳ (no patient data offline by design) |
+| Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, always-available FR/EN/AR FDI tooth-number guide, and a permission-filtered global operational notification center. Service worker/offline policy ⏳ (no patient data offline by design) |
 | Scheduler & booking (§9, §9A) | ✅ | Clinic public page `/c/[slug]` + QR poster ✅. Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |

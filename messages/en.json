@@ -2230,6 +2230,19 @@
     "copied": "Copied",
     "cancel": "Cancel"
   },
+  "notifications": {
+    "title": "Notifications",
+    "hint": "Tasks requiring attention in this clinic. The list updates automatically.",
+    "button": "Notifications — no pending tasks",
+    "buttonWithCount": "Notifications — {count} pending tasks",
+    "empty": "Everything is up to date",
+    "emptyHint": "No operational task currently needs your attention.",
+    "bookingRequests": "{count, plural, =1 {# appointment request to review} other {# appointment requests to review}}",
+    "inventoryLow": "{count, plural, =1 {# item below its stock threshold} other {# items below their stock threshold}}",
+    "inventoryExpiring": "{count, plural, =1 {# lot approaching expiry} other {# lots approaching expiry}}",
+    "inventoryExpired": "{count, plural, =1 {# expired lot in stock} other {# expired lots in stock}}",
+    "sterilizationPending": "{count, plural, =1 {# sterilization cycle awaiting release} other {# sterilization cycles awaiting release}}"
+  },
   "sync": {
     "readOnlyBanner": "Online copy, view only: changes are made on the clinic computer.",
     "lastSync": "Last sync from the clinic: {when}.",

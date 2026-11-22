@@ -2237,6 +2237,19 @@
     "copied": "Copié",
     "cancel": "Annuler"
   },
+  "notifications": {
+    "title": "Notifications",
+    "hint": "Tâches à traiter dans ce cabinet. La liste se met à jour automatiquement.",
+    "button": "Notifications — aucune tâche en attente",
+    "buttonWithCount": "Notifications — {count} tâches en attente",
+    "empty": "Tout est à jour",
+    "emptyHint": "Aucune tâche opérationnelle ne demande votre attention.",
+    "bookingRequests": "{count, plural, =1 {# demande de rendez-vous à traiter} other {# demandes de rendez-vous à traiter}}",
+    "inventoryLow": "{count, plural, =1 {# article sous le seuil de stock} other {# articles sous le seuil de stock}}",
+    "inventoryExpiring": "{count, plural, =1 {# lot arrive à expiration} other {# lots arrivent à expiration}}",
+    "inventoryExpired": "{count, plural, =1 {# lot expiré en stock} other {# lots expirés en stock}}",
+    "sterilizationPending": "{count, plural, =1 {# cycle de stérilisation à libérer} other {# cycles de stérilisation à libérer}}"
+  },
   "sync": {
     "readOnlyBanner": "Copie en ligne, en consultation seule : les modifications se font sur l'ordinateur du cabinet.",
     "lastSync": "Dernière synchronisation du cabinet : {when}.",
