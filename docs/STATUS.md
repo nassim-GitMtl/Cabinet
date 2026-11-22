@@ -478,6 +478,17 @@ secrets, preview isolation, migrations, verification and coordinated backups. 19
 lint green; the Vercel-mode Webpack production build is green. The host's standard Turbopack build reaches the unchanged
 CSS helper-port `EPERM` sandbox restriction, not an application compile error.
 
+Session 38 (Claude): launch polish before the first client. Preview deployments now use their own Neon project
+("Cabinet Preview (test data only)", Frankfurt) so test code can never touch the clinic's data. Walked a brand-new clinic
+through the production build on an empty database (register, setup list, patient, booking from the patient file,
+reception arrival → waiting → treatment → done, procedure, invoice, cash payment, receipt, print, settings). Fixed:
+branded and translated pages for unknown addresses (`src/app/not-found.tsx`), crashes (`error.tsx` in `(app)` and root,
+with retry and a support reference) and a last-resort `global-error.tsx`; a loading state for every app page
+(`(app)/loading.tsx`); removed the internal "legal mentions must be validated" note from printed invoices/receipts (the
+reminder stays in Settings → Identité); one-tap next step on reception cards; "Confirmer" hidden once the patient has
+arrived; tax-ID fields in a readable 2×2 grid; translated file pickers instead of the browser's English "Choose File"
+(logo, patient import; `src/components/file-picker.tsx`). 202/202 tests, typecheck, lint, build green.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)

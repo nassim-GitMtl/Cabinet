@@ -114,6 +114,12 @@
     "registrationClosed": "Ce serveur de cabinet est déjà configuré. Demandez une invitation au responsable du cabinet."
   },
   "errors": {
+    "crashTitle": "Une erreur est survenue",
+    "crashBody": "Cette page n'a pas pu s'afficher. Réessayez ; si le problème continue, communiquez la référence ci-dessous au support.",
+    "retry": "Réessayer",
+    "reference": "Référence : {digest}",
+    "pageNotFound": "Cette adresse n'existe pas ou n'est plus disponible.",
+    "backToStart": "Retour à l'accueil",
     "resetUnavailable": "Ce lien est invalide, expiré ou déjà utilisé. Demandez-en un nouveau.",
     "accountShared": "Ce compte sert aussi dans un autre cabinet : la personne doit utiliser « Mot de passe oublié » par e-mail, ou le responsable du serveur peut créer un lien.",
     "currentPasswordInvalid": "Le mot de passe actuel est incorrect.",
@@ -728,7 +734,6 @@
     "voidedNotice": "Facture annulée : {reason}",
     "billedTo": "Facturé à",
     "printedOn": "Édité le {date}",
-    "legalNotice": "Les mentions légales et fiscales de ce document doivent être validées par un professionnel local.",
     "amountReceived": "Montant reçu",
     "receiptTitle": "Reçu de paiement",
     "invoiceTitle": "Facture",
@@ -2108,6 +2113,7 @@
     }
   },
   "patientImport": {
+    "chooseFile": "Choisir un fichier Excel ou CSV",
     "button": "Importer",
     "title": "Importer des patients",
     "subtitle": "Reprenez votre liste existante (Excel ou CSV) : les colonnes sont reconnues automatiquement, vous vérifiez avant d'importer.",

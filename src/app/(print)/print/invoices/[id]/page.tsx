@@ -107,7 +107,6 @@ export default async function PrintInvoicePage({ params, searchParams }: PagePro
 
       {inv.notes ? <p className="mt-4 whitespace-pre-line"><bdi>{inv.notes}</bdi></p> : null}
       <footer className="mt-8 border-t pt-2 text-[10px] text-neutral-600">
-        <p>{text("legalNotice")}</p>
         <p>{text("printedOn", { date: formatDateTime(new Date(), ctx.organization.timezone, fmt.intl) })}</p>
       </footer>
     </article>

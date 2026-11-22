@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { CheckCircle2Icon, DownloadIcon, FileSpreadsheetIcon, Loader2Icon, UploadIcon } from "lucide-react";
 import { ButtonLink } from "@/components/button-link";
+import { FilePicker } from "@/components/file-picker";
 import { FormError } from "@/components/form";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { NativeSelect, NativeSelectOption } from "@/components/ui/native-select";
 import { formatDateOnly } from "@/lib/dates";
@@ -98,9 +98,9 @@ export function ImportWizard() {
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="import-file">{t("file")}</Label>
-          <Input id="import-file" type="file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            onChange={(e) => { const f = e.target.files?.[0] ?? null; setFile(f); setAnalysis(null); if (f) void send(f, "preview"); }} />
-          <p className="text-xs text-muted-foreground">{t("fileHint")}</p>
+          <FilePicker id="import-file" accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            label={t("chooseFile")} hint={t("fileHint")} disabled={pending}
+            onFile={(f) => { setFile(f); setAnalysis(null); if (f) void send(f, "preview"); }} />
         </div>
         {pending ? <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2Icon className="size-4 animate-spin" aria-hidden />{t("reading")}</p> : null}
         <FormError error={error} />

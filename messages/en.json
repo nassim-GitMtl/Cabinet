@@ -114,6 +114,12 @@
     "registrationClosed": "This clinic server is already set up. Ask the clinic manager for an invitation."
   },
   "errors": {
+    "crashTitle": "Something went wrong",
+    "crashBody": "This page could not be displayed. Try again; if the problem continues, give the reference below to support.",
+    "retry": "Try again",
+    "reference": "Reference: {digest}",
+    "pageNotFound": "This address does not exist or is no longer available.",
+    "backToStart": "Back to start",
     "resetUnavailable": "This link is invalid, expired or already used. Ask for a new one.",
     "accountShared": "This account is also used at another clinic: the person must use “Forgot password” by email, or the server administrator can create a link.",
     "currentPasswordInvalid": "The current password is incorrect.",
@@ -728,7 +734,6 @@
     "voidedNotice": "Invoice voided: {reason}",
     "billedTo": "Billed to",
     "printedOn": "Printed on {date}",
-    "legalNotice": "Legal and tax mentions on this document must be validated by a local professional.",
     "amountReceived": "Amount received",
     "receiptTitle": "Payment receipt",
     "invoiceTitle": "Invoice",
@@ -2101,6 +2106,7 @@
     }
   },
   "patientImport": {
+    "chooseFile": "Choose an Excel or CSV file",
     "button": "Import",
     "title": "Import patients",
     "subtitle": "Bring in your existing list (Excel or CSV): columns are recognised automatically and you check before importing.",

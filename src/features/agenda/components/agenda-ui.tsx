@@ -5,7 +5,7 @@ import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { formatPhone } from "@/lib/phone";
 import { useTranslations } from "next-intl";
-import { CalendarPlusIcon, Clock3Icon, FileTextIcon, MoveIcon, PlusIcon, SearchIcon, UserRoundIcon } from "lucide-react";
+import { CalendarPlusIcon, Clock3Icon, FileTextIcon, Loader2Icon, MoveIcon, PlusIcon, SearchIcon, UserRoundIcon } from "lucide-react";
 import { ButtonLink } from "@/components/button-link";
 import { toast } from "sonner";
 import { FormError, SelectField, SubmitButton, TextAreaField, TextField, useErrorText } from "@/components/form";
@@ -220,7 +220,7 @@ export function AppointmentCard({ item, canManage, reception = false, setup }: {
     else router.refresh();
   });
   return (
-    <>
+    <div className="min-w-0">
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -238,6 +238,13 @@ export function AppointmentCard({ item, canManage, reception = false, setup }: {
           <Badge className="mt-2" variant="secondary">{t(`visit.${item.visitStatus}`)}</Badge>
         ) : null}
       </button>
+      {/* Reception desk: the next step in one tap (arrival, waiting room, treatment, done) without opening the card. */}
+      {reception && canManage && next ? (
+        <Button size="sm" variant="outline" className="mt-1.5 w-full" disabled={pending} onClick={() => run(() => visitStatusAction(item.id, next))}>
+          {pending ? <Loader2Icon className="animate-spin" aria-hidden /> : null}
+          {t(`visitAction.${next}`)}
+        </Button>
+      ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
@@ -260,7 +267,7 @@ export function AppointmentCard({ item, canManage, reception = false, setup }: {
             </div>
             {canManage ? (
               <div className="space-y-3 border-t pt-4">
-                {item.confirmationStatus !== "confirmed" ? (
+                {item.confirmationStatus !== "confirmed" && item.visitStatus === "not_arrived" ? (
                   <Button disabled={pending} onClick={() => run(() => confirmationAction(item.id, "confirmed"))}>{t("confirm")}</Button>
                 ) : null}
                 {next ? (
@@ -301,7 +308,7 @@ export function AppointmentCard({ item, canManage, reception = false, setup }: {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
 

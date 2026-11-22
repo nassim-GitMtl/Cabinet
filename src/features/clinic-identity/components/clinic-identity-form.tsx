@@ -4,8 +4,8 @@ import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { ImageIcon, Trash2Icon, UploadIcon } from "lucide-react";
 import { FormError, SubmitButton, TextAreaField, TextField, useErrorText } from "@/components/form";
+import { FilePicker } from "@/components/file-picker";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { initialActionState } from "@/lib/action-state";
 import { saveClinicIdentityAction, saveClinicLogoAction } from "../actions";
 
@@ -38,7 +38,7 @@ export function ClinicIdentityForm({ saved }: {
       <fieldset className="grid gap-3 rounded-xl border p-3">
         <legend className="px-1 text-sm font-semibold">{t("identifiersTitle")}</legend>
         <p className="text-xs text-muted-foreground">{t("identifiersHint")}</p>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2">
           {IDENTIFIERS.map((key) => (
             <TextField key={key} name={`identifiers.${key}`} label={t(`identifiers.${key}`)} optionalLabel dir="ltr" autoComplete="off"
               defaultValue={v?.[`identifiers.${key}`] ?? saved.identifiers[key] ?? ""} error={fe[`identifiers.${key}`]} />
@@ -70,7 +70,7 @@ export function ClinicLogoForm({ logoVersion }: { logoVersion: string | null }) 
           ) : <ImageIcon className="size-8 text-muted-foreground" aria-hidden />}
         </div>
         <form action={action} className="flex flex-wrap items-end gap-2">
-          <Input name="logo" type="file" accept="image/png,image/jpeg,image/webp" aria-label={t("chooseLogo")} className="max-w-64" required />
+          <FilePicker id="clinic-logo" name="logo" accept="image/png,image/jpeg,image/webp" label={t("chooseLogo")} required className="w-64 max-w-full" />
           <Button type="submit" variant="outline" disabled={pending}><UploadIcon aria-hidden />{t("uploadLogo")}</Button>
         </form>
         {logoVersion ? (

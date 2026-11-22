@@ -82,7 +82,6 @@ export default async function PrintReceiptPage({ params, searchParams }: PagePro
         <p className="mt-3 flex justify-between"><span>{text("unappliedShort")}</span><span className="num">{m(data.unappliedMinor)}</span></p>
       ) : null}
       <footer className="mt-8 border-t pt-2 text-[10px] text-neutral-600">
-        <p>{text("legalNotice")}</p>
         <p>{text("printedOn", { date: formatDateTime(new Date(), ctx.organization.timezone, fmt.intl) })}</p>
       </footer>
     </article>
