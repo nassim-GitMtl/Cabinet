@@ -1,0 +1,62 @@
+# Nightly encrypted backup of the production database (patients, care records, invoices...). The repository is
+# public, so the dump is encrypted (AES-256-CBC, key derived with PBKDF2 from BACKUP_PASSPHRASE) before it is stored
+# as a 30-day artifact. Restore steps: docs/DEPLOYMENT-VERCEL.md "Sauvegarde automatique et restauration".
+# Secrets: PRODUCTION_DATABASE_URL_ADMIN (Neon direct owner URL), BACKUP_PASSPHRASE (long random phrase, also kept
+# in your password manager: without it the backups cannot be opened).
+name: Database backup
+
+on:
+  schedule:
+    - cron: "30 2 * * *" # 03:30 in Algiers
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check secrets
+        id: check
+        env:
+          DATABASE_URL_ADMIN: ${{ secrets.PRODUCTION_DATABASE_URL_ADMIN }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -z "$DATABASE_URL_ADMIN" ] || [ ${#BACKUP_PASSPHRASE} -lt 20 ]; then
+            echo "::warning::PRODUCTION_DATABASE_URL_ADMIN or BACKUP_PASSPHRASE (20+ characters) is missing; no backup made"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install PostgreSQL 18 client
+        if: steps.check.outputs.ready == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y -qq postgresql-client-18
+      - name: Dump and encrypt
+        if: steps.check.outputs.ready == 'true'
+        env:
+          DATABASE_URL_ADMIN: ${{ secrets.PRODUCTION_DATABASE_URL_ADMIN }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          stamp=$(date -u +%Y%m%d-%H%M)
+          url=$(printf '%s' "$DATABASE_URL_ADMIN" | sed -E 's/[?&]channel_binding=[^&]*//')
+          /usr/lib/postgresql/18/bin/pg_dump "$url" -Fc --no-owner --no-privileges -f "cabinet-$stamp.dump"
+          size=$(stat -c %s "cabinet-$stamp.dump")
+          if [ "$size" -lt 10000 ]; then echo "::error::backup suspiciously small ($size bytes)"; exit 1; fi
+          openssl enc -aes-256-cbc -md sha256 -pbkdf2 -iter 200000 -salt -pass env:BACKUP_PASSPHRASE -in "cabinet-$stamp.dump" -out "cabinet-$stamp.dump.enc"
+          sha256sum "cabinet-$stamp.dump.enc" > "cabinet-$stamp.dump.enc.sha256"
+          rm "cabinet-$stamp.dump"
+          echo "Backup $stamp: $size bytes before encryption"
+      - uses: actions/upload-artifact@v4
+        if: steps.check.outputs.ready == 'true'
+        with:
+          name: cabinet-database-backup
+          path: cabinet-*.dump.enc*
+          retention-days: 30
+          if-no-files-found: error

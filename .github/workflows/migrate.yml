@@ -1,0 +1,42 @@
+# Applies database migrations when they reach main: the test (Preview) database first, then production.
+# Vercel's build waits for them (scripts/check-schema.ts) and refuses to go live on a database that is behind.
+# Secrets (Settings > Secrets and variables > Actions): PREVIEW_DATABASE_URL_ADMIN, PRODUCTION_DATABASE_URL_ADMIN
+# = Neon *direct* owner URLs (no -pooler). Never put these in Vercel.
+name: Database migrations
+
+on:
+  push:
+    branches: [main]
+    paths: ["drizzle/**", "scripts/migrate.ts", ".github/workflows/migrate.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: database-migrations
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Test (Preview) database
+        env:
+          DATABASE_URL_ADMIN: ${{ secrets.PREVIEW_DATABASE_URL_ADMIN }}
+        run: |
+          if [ -z "$DATABASE_URL_ADMIN" ]; then echo "::warning::PREVIEW_DATABASE_URL_ADMIN is not set; skipped"; exit 0; fi
+          npm run db:migrate
+      - name: Production database
+        env:
+          DATABASE_URL_ADMIN: ${{ secrets.PRODUCTION_DATABASE_URL_ADMIN }}
+        run: |
+          if [ -z "$DATABASE_URL_ADMIN" ]; then echo "::warning::PRODUCTION_DATABASE_URL_ADMIN is not set; skipped"; exit 0; fi
+          npm run db:migrate

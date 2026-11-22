@@ -96,7 +96,46 @@ Pour chaque nouvelle version qui contient une migration :
 3. déployez le commit sur Vercel;
 4. contrôlez `/api/health` et les journaux Vercel.
 
-## 6. Sauvegarde et exploitation
+## 6. Mises à jour de la base (automatiques)
+
+Le workflow GitHub **Database migrations** (`.github/workflows/migrate.yml`) applique chaque nouvelle migration poussée
+sur `main` : base de test (Preview) d'abord, puis production. En parallèle, la construction Vercel (`vercel-build` →
+`scripts/check-schema.ts`) attend jusqu'à 5 minutes que la base soit à jour ; sinon elle refuse le déploiement et
+**l'ancienne version reste en ligne** (jamais une version qui casserait faute de migration).
+
+Secrets GitHub à créer (dépôt → Settings → Secrets and variables → Actions → New repository secret) :
+
+| Secret | Valeur |
+|---|---|
+| `PRODUCTION_DATABASE_URL_ADMIN` | URL Neon **directe** (sans `-pooler`) du propriétaire, projet « Cabinet Frankfurt » |
+| `PREVIEW_DATABASE_URL_ADMIN` | URL Neon directe du propriétaire, projet « Cabinet Preview (test data only) » |
+| `BACKUP_PASSPHRASE` | longue phrase secrète aléatoire (gardez-en une copie dans votre gestionnaire de mots de passe) |
+
+Sans ces secrets, les workflows s'arrêtent avec un avertissement ; appliquez alors les migrations à la main :
+`DATABASE_URL_ADMIN='<URL directe>' npm run db:migrate`, puis redéployez.
+
+## 7. Sauvegarde automatique et restauration
+
+Le workflow **Database backup** (`.github/workflows/backup.yml`) sauvegarde la base de production chaque nuit à 03:30
+(Alger), la **chiffre** (AES-256, clé dérivée de `BACKUP_PASSPHRASE`) puis la garde 30 jours comme artefact GitHub. Le
+dépôt étant public, seul le fichier chiffré y est stocké. Lancez-le aussi à la main avant toute opération risquée
+(onglet Actions → Database backup → Run workflow).
+
+Restaurer (de préférence dans un nouveau projet ou une nouvelle branche Neon, jamais directement par-dessus la production) :
+
+```bash
+# 1. Télécharger l'artefact (onglet Actions → exécution → Artifacts), puis :
+sha256sum -c cabinet-AAAAMMJJ-HHMM.dump.enc.sha256
+openssl enc -d -aes-256-cbc -md sha256 -pbkdf2 -iter 200000 -in cabinet-AAAAMMJJ-HHMM.dump.enc -out cabinet.dump
+# (la phrase secrète BACKUP_PASSPHRASE est demandée)
+# 2. Restaurer dans une base vide (PostgreSQL 18) :
+pg_restore --no-owner --no-privileges -d "<URL directe de la base cible>" cabinet.dump
+# 3. Recréer le rôle restreint et vérifier : DATABASE_URL_ADMIN=<même URL> npm run db:setup:neon
+```
+
+Le chiffrement, le déchiffrement et la restauration ont été testés sur une copie locale (86 tables restaurables).
+
+## 8. Exploitation
 
 - Exportez régulièrement Neon avec `pg_dump` via l'endpoint direct, selon le plan de sauvegarde du cabinet.
 - Sauvegardez séparément le magasin Blob privé. Une restauration Neon ne restaure pas les fichiers cliniques.

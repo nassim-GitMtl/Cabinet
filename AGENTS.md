@@ -45,6 +45,10 @@ Two agents alternate on this repo. The user resumes work by saying **"continue"*
 - Every user-facing string in `messages/fr.json`, `en.json`, `ar.json` (same keys; a test enforces parity).
   Use logical CSS (`ms/me/ps/pe/start/end`), `<bdi>`/`dir="auto"` for user text.
 - Mutations: `audit(tx, …)` in the same transaction, metadata without clinical content.
+- Migrations must be backward compatible (add, never drop/rename in the same release): production code and database are
+  updated within minutes of each other. On push, `.github/workflows/migrate.yml` applies them (Preview, then
+  Production); Vercel's build (`scripts/check-schema.ts`) refuses to go live until the database has them. Never push
+  code that needs a migration without the migration file.
 - Links styled as buttons: `ButtonLink`. Base UI `Button` never renders `<a>`.
 
 ## Commands
