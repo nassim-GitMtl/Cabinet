@@ -2833,6 +2833,75 @@
     },
     "errors": { "emailTaken": "This address already belongs to an account. Use another address for this new owner.", "clinicUnavailable": "This clinic is no longer available." }
   },
+  "visitCockpit": {
+    "title": "Clinical visit",
+    "open": "Open visit",
+    "subtitle": "Guided care view for {patient} · {date}",
+    "back": "Back to patient record",
+    "readOnly": "This record is {status}. The visit is available in read-only mode.",
+    "appointment": "Today’s appointment",
+    "noAppointment": "No active appointment today. You can still document unplanned care.",
+    "steps": {
+      "safety": "Review alerts and health",
+      "plan": "Review accepted care",
+      "care": "Record completed procedures",
+      "note": "Write and sign the note",
+      "trace": "Confirm traceability",
+      "aftercare": "Prepare aftercare"
+    },
+    "safety": {
+      "title": "Pre-care safety",
+      "description": "Active alerts remain visible before any clinical entry.",
+      "health": "View health record",
+      "clear": "There are no active alerts in this record."
+    },
+    "plan": {
+      "title": "Accepted care to complete",
+      "description": "Accepted plan items that have not yet been converted into completed procedures.",
+      "all": "All plans",
+      "open": "Review and complete",
+      "empty": "There is no remaining accepted care to complete."
+    },
+    "care": {
+      "title": "Today’s procedures",
+      "description": "Only procedures that were actually completed should be recorded.",
+      "empty": "No completed procedure has been recorded today."
+    },
+    "chart": {
+      "title": "Current dental status",
+      "description": "Summary of active odontogram findings.",
+      "open": "Open odontogram",
+      "empty": "No active dental findings."
+    },
+    "trace": {
+      "title": "Consumables and sterilization",
+      "description": "Confirm only what was actually used during care.",
+      "quantity": "{quantity} {unit}",
+      "clear": "No consumable is waiting for confirmation."
+    },
+    "aftercare": {
+      "title": "Aftercare instructions and message",
+      "description": "Prepare clinic-approved advice in the patient’s language, with no automatic sending.",
+      "open": "Prepare message",
+      "preview": "Configured advice · {language}",
+      "noCare": "Record completed procedures first to prepare relevant follow-up.",
+      "notConfigured": "No advice is configured for today’s care categories. The standard message is still available.",
+      "reviewRequired": "The clinician or team reviews and chooses whether to send the message. Nothing is sent automatically."
+    },
+    "checklist": {
+      "title": "Visit checklist",
+      "description": "Items to review before finishing.",
+      "hint": "This list guides the workflow but does not replace clinical judgment or clinician approval."
+    },
+    "files": {
+      "title": "Images and documents",
+      "latest": "Latest document: {date}",
+      "empty": "No clinical documents.",
+      "open": "Open documents"
+    },
+    "noteAttention": "{count, plural, one {# note to finish} other {# notes to finish}}",
+    "goToNote": "Go to clinical notes"
+  },
   "sync": {
     "readOnlyBanner": "Online copy, view only: changes are made on the clinic computer.",
     "lastSync": "Last sync from the clinic: {when}.",

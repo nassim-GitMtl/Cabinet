@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-23 by Codex (session 48 — actionable navigation counters).
+Last updated: 2026-11-23 by Codex (session 49 — chairside visit cockpit).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -592,6 +592,17 @@ PostgreSQL end-to-end notification scenarios were added (including unbilled act 
 honorarium). 232/232 tests, typecheck and full lint are green; `npx next build --webpack` is green. The standard Turbopack
 build still reaches the documented runner-only CSS helper-port `EPERM`, including when retried outside the sandbox.
 
+Session 49 (Codex): the patient workspace now opens a guided `/patients/[id]/visit` chairside cockpit. One responsive
+screen keeps active safety alerts visible, surfaces accepted treatment-plan items that have not yet become completed
+procedures, summarizes the current odontogram and today's procedures, embeds the real draft/review/sign clinical-note
+workflow, confirms pending procedure consumables, links sterilization and clinical files, and previews the clinic's own
+aftercare wording in the patient's language before staff choose to prepare a message. A fixed visit checklist shows what
+still needs attention but never infers a diagnosis, records an act or sends a message automatically. Every source read is
+permission-checked and tenant-scoped; integration coverage verifies the assembled clinical day, denied non-clinical access
+and cross-clinic invisibility. 234/234 tests, typecheck and full lint are green; `npx next build --webpack` is green and
+includes `/patients/[id]/visit`. The standard Turbopack build still reaches the documented runner-only CSS helper-port
+`EPERM`. Browser-checked the French desktop cockpit, including the real note action and all destination links.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -615,7 +626,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, always-available FR/EN/AR FDI tooth-number guide, a permission-filtered global operational notification center, and live per-module task counters on desktop/mobile navigation. Service worker/offline policy ⏳ (no patient data offline by design) |
 | Scheduler & booking (§9, §9A) | ✅ | Clinic public page `/c/[slug]` + QR poster ✅. Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` edit a pending type/clinician/date/time/duration (version + availability checked), approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative acceptance, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
-| Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |
+| Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Guided chairside cockpit (alerts, accepted work, odontogram, procedures, notes, consumables, files, sterilization and aftercare) plus completed encounter/procedure snapshots, FDI anatomy, controlled overrides and correction history |
 | Treatment plans/estimates/consents (§12A, §13) | 🟡 | Treatment plans ✅: immutable versioned estimates with catalog/anatomy/price snapshots, exact-version proposal + acceptance/refusal, full revision history, and one-time accepted-item conversion to completed procedures. Printable estimate, portal view, payment schedules with per-installment receipts and reminders ✅. Consent capture/signatures ⏳. |
 | Odontogram, perio chart, notes, signing (§12) | 🟡 | Permanent FDI chart ✅: append-only findings/surfaces, resolution/correction history and treatment links. Structured draft notes, review, signing, amendments and hash-chain integrity ✅. Primary visual chart and periodontal chart ⏳. |
 | Images/documents, object storage (§12A, §15) | ✅ | Private filesystem or Vercel Blob storage, direct browser upload on Vercel, magic-byte type check, sha256, append-only metadata, before/after pairs and audited private views. DICOM viewer and annotations/measurements ⏳ |
@@ -656,8 +667,8 @@ Launch essentials first (user decision 2026-11-20), then the patient features.
 2. ✅ Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
    consent, plain-language context and revocable access (session 46). Later: aftercare instructions as journey items,
    push the journey link in the after-visit follow-up message.
-3. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
-   the aftercare draft, without replacing clinician decisions.
+3. ✅ Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace
+   and the aftercare draft, without replacing clinician decisions (session 49).
 4. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.
 5. Guardian/family portal (§6, §21): exact delegated permissions without leaking one member's record to another.
 

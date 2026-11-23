@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { HeartPulseIcon, HistoryIcon } from "lucide-react";
+import { HeartPulseIcon, HistoryIcon, StethoscopeIcon } from "lucide-react";
 import { ArrowLeftIcon, CalendarIcon, ClipboardListIcon, FileTextIcon, InfoIcon, MailIcon, PencilIcon, PhoneIcon, PlusIcon, ShieldAlertIcon, ShieldCheckIcon, TriangleAlertIcon, WalletIcon } from "lucide-react";
 import { ForbiddenState } from "@/components/app/page-header";
 import { ButtonLink } from "@/components/button-link";
@@ -134,8 +134,14 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
             </div>
           </div>
           <div className="relative flex flex-wrap gap-2">
+            {can(ctx, "clinical.read") ? (
+              <ButtonLink href={`/patients/${p.id}/visit`}>
+                <StethoscopeIcon aria-hidden />
+                {t("visitCockpit.open")}
+              </ButtonLink>
+            ) : null}
             {can(ctx, "clinical.write") && can(ctx, "catalog.read") && p.status !== "archived" && p.status !== "deceased" ? (
-              <ButtonLink href={`/patients/${p.id}/procedures/new`}>
+              <ButtonLink href={`/patients/${p.id}/procedures/new`} variant="outline">
                 <PlusIcon aria-hidden />
                 {t("procedures.add")}
               </ButtonLink>

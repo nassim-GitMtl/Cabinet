@@ -2840,6 +2840,75 @@
     },
     "errors": { "emailTaken": "Cette adresse appartient déjà à un compte. Utilisez une autre adresse pour ce nouveau propriétaire.", "clinicUnavailable": "Ce cabinet n'est plus disponible." }
   },
+  "visitCockpit": {
+    "title": "Séance clinique",
+    "open": "Ouvrir la séance",
+    "subtitle": "Vue guidée du soin de {patient} · {date}",
+    "back": "Retour au dossier patient",
+    "readOnly": "Ce dossier est {status}. La séance est disponible en consultation seulement.",
+    "appointment": "Rendez-vous du jour",
+    "noAppointment": "Aucun rendez-vous actif aujourd’hui. Vous pouvez tout de même documenter un soin non planifié.",
+    "steps": {
+      "safety": "Vérifier les alertes et la santé",
+      "plan": "Relire les soins acceptés",
+      "care": "Enregistrer les actes réalisés",
+      "note": "Rédiger et signer la note",
+      "trace": "Confirmer la traçabilité",
+      "aftercare": "Préparer l’après-soins"
+    },
+    "safety": {
+      "title": "Sécurité avant le soin",
+      "description": "Les alertes actives restent visibles avant toute saisie clinique.",
+      "health": "Voir la santé",
+      "clear": "Aucune alerte active dans ce dossier."
+    },
+    "plan": {
+      "title": "Soins acceptés à réaliser",
+      "description": "Éléments des plans acceptés qui n’ont pas encore été convertis en actes réalisés.",
+      "all": "Tous les plans",
+      "open": "Vérifier et réaliser",
+      "empty": "Aucun soin accepté restant à réaliser."
+    },
+    "care": {
+      "title": "Actes du jour",
+      "description": "Seuls les actes réellement terminés doivent être enregistrés.",
+      "empty": "Aucun acte réalisé n’est encore enregistré aujourd’hui."
+    },
+    "chart": {
+      "title": "État dentaire actuel",
+      "description": "Résumé des observations actives de l’odontogramme.",
+      "open": "Ouvrir l’odontogramme",
+      "empty": "Aucune observation dentaire active."
+    },
+    "trace": {
+      "title": "Consommables et stérilisation",
+      "description": "Confirmez uniquement ce qui a été réellement utilisé pendant le soin.",
+      "quantity": "{quantity} {unit}",
+      "clear": "Aucun consommable n’attend de confirmation."
+    },
+    "aftercare": {
+      "title": "Consignes et message après-soins",
+      "description": "Préparez les conseils du cabinet dans la langue du patient, sans envoi automatique.",
+      "open": "Préparer le message",
+      "preview": "Conseils configurés · {language}",
+      "noCare": "Enregistrez d’abord les actes réalisés pour préparer un suivi adapté.",
+      "notConfigured": "Aucun conseil n’est configuré pour les familles de soins réalisées aujourd’hui. Le message standard reste disponible.",
+      "reviewRequired": "Le praticien ou l’équipe relit et choisit d’envoyer le message. Aucun contenu n’est envoyé automatiquement."
+    },
+    "checklist": {
+      "title": "Repères de séance",
+      "description": "Les éléments à vérifier avant de terminer.",
+      "hint": "Cette liste guide le travail mais ne remplace ni le jugement clinique ni les validations du praticien."
+    },
+    "files": {
+      "title": "Images et documents",
+      "latest": "Document le plus récent : {date}",
+      "empty": "Aucun document clinique.",
+      "open": "Ouvrir les documents"
+    },
+    "noteAttention": "{count, plural, one {# note à terminer} other {# notes à terminer}}",
+    "goToNote": "Aller aux notes cliniques"
+  },
   "sync": {
     "readOnlyBanner": "Copie en ligne, en consultation seule : les modifications se font sur l'ordinateur du cabinet.",
     "lastSync": "Dernière synchronisation du cabinet : {when}.",
