@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { HeartPulseIcon, ClipboardListIcon, ImagesIcon, LayoutDashboardIcon, StethoscopeIcon, UserRoundIcon, WalletIcon } from "lucide-react";
+import { HeartPulseIcon, ClipboardListIcon, ImagesIcon, LayoutDashboardIcon, RouteIcon, StethoscopeIcon, UserRoundIcon, WalletIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const TABS = ["overview", "details", "health", "clinical", "documents", "treatments", "finance"] as const;
+const TABS = ["overview", "details", "health", "clinical", "documents", "treatments", "journey", "finance"] as const;
 export type PatientTab = (typeof TABS)[number];
 
 const ICONS = {
@@ -16,6 +16,7 @@ const ICONS = {
   clinical: StethoscopeIcon,
   documents: ImagesIcon,
   treatments: ClipboardListIcon,
+  journey: RouteIcon,
   finance: WalletIcon,
 } as const;
 

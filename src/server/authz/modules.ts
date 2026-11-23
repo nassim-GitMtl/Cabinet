@@ -22,6 +22,7 @@ const MODULE_PERMISSIONS: Partial<Record<Permission, ProductModule>> = {
   "questionnaire.approve": "advanced_clinical",
   "clinical.images.read": "advanced_clinical",
   "clinical.images.write": "advanced_clinical",
+  "patient.journey.manage": "advanced_clinical",
   "treatment_plan.read": "advanced_clinical",
   "treatment_plan.manage": "advanced_clinical",
   "treatment_plan.accept": "advanced_clinical",

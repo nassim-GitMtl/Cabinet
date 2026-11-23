@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-22 by Claude (session 45 — per-doctor price lists, fees visible to the owner and the doctor only).
+Last updated: 2026-11-22 by Claude (session 46 — visual treatment journey in the patient portal).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -563,6 +563,16 @@ owner edits row by row, the doctor reads his own). Checkout no longer shows rate
 (reception only types a lab fee); the activity log hides fee entries from non-owners. 226/226 tests (+2 integration),
 typecheck, lint, build green. Browser-checked: price list grid, row save (2 000 DA, 40 % → 800 DA per act) persisted.
 
+Session 46 (Claude): next step 2, visual treatment journey. Migration 0050 (`patient_journey_items`, no-delete, guarded:
+same patient, never edited, withdrawn once; `patient_journey_access`, append-only; key `patient.journey.manage` for
+owner/dentist/hygienist). Patient file tab "Parcours patient": share a step, a photo or a before/after pair with a
+plain-language explanation, withdraw with a reason, see whether the patient switched it on and the automatic plan
+progress. Portal: dashboard card, `/portal/journey/[org]` (switch on/off, timeline, plan progress bar, photos and pairs
+through a session-checked route). French user guide: new sections for practitioner fees, activity log and journey.
+229/229 tests (+3 integration in `tests/integration/journey.test.ts`), typecheck, lint, build green. Browser-checked on the
+local database: clinician shares a step → patient activates the portal → dashboard card "1 item shared" → journey hidden
+until "Show my journey" → step visible; Arabic RTL at 375 px without horizontal scroll.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -595,7 +605,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses − cash practitioner payouts ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Acquisition report ✅ (sources, treated share, production, booking funnel, referrers). `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
 | Messaging/reminders (§20) | 🟡 | Relances ✅: reminders, after-visit care + review requests, referral thanks, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic sending through an SMS/WhatsApp Business provider ⏳ 🔌 |
-| Patient portal (§21) | 🟡 | Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
+| Patient portal (§21) | 🟡 | Visual treatment journey ✅ (clinician-chosen steps/photos/before-after, patient switch on/off, plan progress). Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
 | Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
 | Imports/FHIR/integrations (§26) | 🟡 | Patient list import (CSV/XLSX, mapping, preview, duplicates, history) ✅. Clinical/financial history import, FHIR and other integrations ⏳ 🔌 |
 | Backups/restore exercise (§27, scenario 32) | 🟡 | Daily dump + clinical-files archive with sha256, `restore.sh` restores both. Timed restore exercise on a real clinic server ⏳ |
@@ -624,8 +634,9 @@ Launch essentials first (user decision 2026-11-20), then the patient features.
 1. ✅ Internet access for patients: Neon + VPS and native Vercel + Neon + private Blob deployments provide a public domain,
    HTTPS and `PUBLIC_APP_URL`; configuration and operation are documented in `docs/DEPLOYMENT-NEON.md` and
    `docs/DEPLOYMENT-VERCEL.md`. A tunnel for the offline clinic-server variant remains an optional later deployment path.
-2. Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
-   consent, plain-language context and revocable access.
+2. ✅ Visual treatment journey (§12A, §21): clinician-selected images and milestones in the patient portal, with explicit
+   consent, plain-language context and revocable access (session 46). Later: aftercare instructions as journey items,
+   push the journey link in the after-visit follow-up message.
 3. Chairside visit cockpit (§7, §12, §14): one guided screen for alerts, planned work, odontogram, note, consumable trace and
    the aftercare draft, without replacing clinician decisions.
 4. Marketing consent & campaigns (§8, §20): opt-in with evidence, campaign lists only for opted-in patients.

@@ -351,6 +351,13 @@
       "when": 1795383922124,
       "tag": "0049_owner_only_fees",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1795396569199,
+      "tag": "0050_treatment_journey",
+      "breakpoints": true
     }
   ]
 }

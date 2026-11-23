@@ -503,3 +503,23 @@ User requirement 2026-11-22: every change is recorded under the person who made 
   SQL (entries of one transaction share an instant more precise than a JavaScript date).
 - **Labels.** Every action code has a label in `activity.actions` (FR/EN/AR, key = code with dots replaced by `_`);
   `src/features/activity/labels.test.ts` scans the code and fails on a missing label or an unknown action template.
+
+## Visual treatment journey (`src/features/journey`, patient tab "Parcours", `/portal/journey/[organizationId]`, migration 0050)
+
+STATUS next step 2 ("clinician-selected images and milestones in the patient portal, with explicit consent, plain-language
+context and revocable access").
+
+- **Clinic side** (`patient.journey.manage`: owner, dentist, hygienist; module `advanced_clinical`): share a step
+  (`milestone`, optionally linked to a plan, may be dated up to a year ahead), a photo (`image`, an image of the same
+  patient) or a before/after pair (`comparison`), each with a plain-language title and explanation.
+  `patient_journey_items` is never edited and never deleted: an item is withdrawn once, with who and why
+  (`guard_journey_item` trigger also refuses another patient's file/pair/plan). Plan progress is derived from the
+  accepted plan's items and `treatment_plan_conversions` (nothing typed).
+- **Patient control.** `patient_journey_access` (append-only, latest decision applies, account id without foreign key
+  because portal accounts are not copied to a clinic computer). Before the patient switches it on in the portal, the
+  portal shows only a count of shared items; after "hide", nothing is shown or served.
+- **Portal reads** prove the exact identity link first (`app_private.patient_portal_links()`), then query that clinic
+  only, filtered on the linked patient. Photos are streamed by `GET /portal/journey/[org]/files/[item]?side=` (under
+  `/portal` because the patient session cookie has `path=/portal`): only a shared, not withdrawn item of that patient,
+  journey switched on, image files only; `private, no-store`, `nosniff`, `CSP: sandbox`; each view audited
+  (`patient_journey.file_viewed`).

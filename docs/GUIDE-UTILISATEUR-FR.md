@@ -19,19 +19,20 @@ Fonctions vérifiées dans la version du 20 novembre 2026.
 9. [Documents cliniques](#documents-cliniques)
 10. [Facturation et paiements](#facturation-et-paiements)
 11. [Caisse et dépenses](#caisse-et-dépenses)
-12. [Catalogue des actes](#catalogue-des-actes)
-13. [Inventaire et consommables](#inventaire-et-consommables)
-14. [Stérilisation](#stérilisation)
-15. [Relances patients](#relances-patients)
-16. [Rapports et exports](#rapports-et-exports)
-17. [Page publique et réservation en ligne](#page-publique-et-réservation-en-ligne)
-18. [Portail patient](#portail-patient)
-19. [Paramètres du cabinet](#paramètres-du-cabinet)
-20. [Sécurité du compte](#sécurité-du-compte)
-21. [Utilisation sur téléphone et hors connexion](#utilisation-sur-téléphone-et-hors-connexion)
-22. [Parcours quotidiens recommandés](#parcours-quotidiens-recommandés)
-23. [Fonctions prévues mais non disponibles](#fonctions-prévues-mais-non-disponibles)
-24. [Résolution des problèmes courants](#résolution-des-problèmes-courants)
+12. [Honoraires des praticiens](#honoraires-des-praticiens)
+13. [Catalogue des actes](#catalogue-des-actes)
+14. [Inventaire et consommables](#inventaire-et-consommables)
+15. [Stérilisation](#stérilisation)
+16. [Relances patients](#relances-patients)
+17. [Rapports et exports](#rapports-et-exports)
+18. [Page publique et réservation en ligne](#page-publique-et-réservation-en-ligne)
+19. [Portail patient](#portail-patient)
+20. [Paramètres du cabinet](#paramètres-du-cabinet)
+21. [Sécurité du compte](#sécurité-du-compte)
+22. [Utilisation sur téléphone et hors connexion](#utilisation-sur-téléphone-et-hors-connexion)
+23. [Parcours quotidiens recommandés](#parcours-quotidiens-recommandés)
+24. [Fonctions prévues mais non disponibles](#fonctions-prévues-mais-non-disponibles)
+25. [Résolution des problèmes courants](#résolution-des-problèmes-courants)
 
 # Premiers pas
 
@@ -420,6 +421,24 @@ Ouvrez **Dépenses** pour :
 
 Une dépense en espèces entre dans le calcul de caisse. Les pièces jointes, dépenses récurrentes et soldes fournisseurs ne sont pas encore disponibles.
 
+# Honoraires des praticiens
+
+Pour les cabinets où plusieurs praticiens travaillent au pourcentage. Seul le propriétaire configure et voit les honoraires de tous ; chaque praticien voit uniquement les siens (menu **Honoraires**).
+
+## Tarifs et honoraires de chaque praticien
+
+Dans **Honoraires > Configuration**, indiquez le pourcentage par défaut de chaque praticien, puis ouvrez **Tarifs et honoraires** : pour chaque prestation du catalogue, saisissez le tarif propre à ce praticien et ses honoraires (en % du tarif ou en montant fixe). Une case vide garde le tarif du catalogue ou son pourcentage par défaut. La colonne « Gagne par acte » montre le résultat avant d’enregistrer chaque ligne.
+
+Quand un praticien enregistre un acte, son tarif s’applique automatiquement et il ne peut pas le modifier : seul le propriétaire change les prix.
+
+## Ce qui est calculé
+
+À l’émission de la facture, la part du praticien est figée pour chaque ligne (une modification ultérieure des règles ne change pas le passé). Pour les prothèses, cochez dans le catalogue « Déduire les frais de laboratoire » : les frais de labo saisis à la facturation sont alors retirés avant le calcul. La part « encaissée » suit ce que le patient a réellement payé, après avoirs éventuels.
+
+## Verser, corriger, clôturer
+
+**Enregistrer un versement** indique la somme remise au praticien ; en espèces, elle sort de la caisse du jour. Un versement erroné s’annule (il reste visible, barré). **Corriger** ajoute une ligne de correction sur un acte. **Clôturer un mois** le rend définitif : ce qui arrive ensuite compte dans le mois en cours. **Anciennes factures** permet d’attribuer, une par une, les lignes facturées avant l’activation des honoraires.
+
 # Catalogue des actes
 
 Le catalogue contient les actes proposés dans les soins, devis et factures.
@@ -645,6 +664,12 @@ Après connexion, le patient peut :
 
 Le portail n’accepte pas encore de paiement en ligne et n’affiche pas l’ensemble du dossier clinique.
 
+## Parcours de soins
+
+Dans le dossier patient, onglet **Parcours patient**, le praticien partage avec le patient des étapes de son traitement, des photos ou des paires avant/après, chacune avec une explication simple. L’avancement du plan de traitement accepté s’affiche automatiquement.
+
+Rien n’apparaît dans l’espace du patient tant qu’il n’a pas lui-même choisi **Afficher mon parcours** ; il peut le masquer à tout moment. L’onglet indique s’il l’a activé. Un élément partagé par erreur se **retire** (avec une raison) : il disparaît de l’espace patient mais reste tracé dans le dossier.
+
 ## Consentement au partage entre cabinets
 
 Le cabinet demande un accès en précisant le but, les catégories de données, la période et l’inclusion éventuelle des futures mises à jour. Seul le patient peut approuver ou refuser. Il peut ensuite révoquer l’accès. Chaque consultation partagée est contrôlée et journalisée ; le personnel ne dispose pas d’un contournement d’urgence du consentement.
@@ -703,6 +728,10 @@ Créez une version complète du questionnaire, vérifiez les formulations puis f
 ## Relances et page publique
 
 Les écrans correspondants permettent de personnaliser les modèles de messages, les conseils après soins, le lien d’avis, la présentation publique, les horaires et l’adresse partagée.
+
+## Journal d’activité
+
+**Paramètres > Journal d’activité** montre qui a fait quoi et quand : création de patient, facture émise, paiement, prix modifié, etc., avec le nom de la personne. Filtrez par dates, personne ou domaine ; le bouton **Historique** du dossier patient ouvre le journal de ce seul patient. L’onglet « Toutes les modifications » liste chaque changement enregistré dans la base (personne et champs modifiés, jamais leur contenu). Rien dans ce journal ne peut être modifié ni supprimé. Réservé au propriétaire et à l’administrateur technique ; les honoraires n’y apparaissent que pour le propriétaire.
 
 # Sécurité du compte
 
@@ -806,7 +835,6 @@ Les fonctions suivantes ne doivent pas être promises comme disponibles :
 - gestion des travaux de laboratoire ;
 - pièces jointes et récurrence pour les dépenses ;
 - facturation à un tiers et facturation familiale ;
-- affichage complet de l’audit dans l’interface ;
 - gestion complète de plusieurs établissements ou entités juridiques dans l’interface ;
 - intégrations FHIR ou synchronisation avec des services externes.
 

@@ -29,6 +29,8 @@ import { listNotes, listNoteTemplates } from "@/features/notes/server";
 import { getAgendaSetup } from "@/features/agenda/server";
 import { HealthPanel } from "@/features/health/components/health-panel";
 import { healthStatus } from "@/features/health/server";
+import { JourneyPanel } from "@/features/journey/components/journey-panel";
+import { getPatientJourney } from "@/features/journey/server";
 import { ClinicalFilesPanel } from "@/features/clinical-files/components/clinical-files-panel";
 import { clinicalFilesUseDirectUpload, listClinicalFiles } from "@/features/clinical-files/server";
 import { formatDateOnly, formatDateTime, todayInZone } from "@/lib/dates";
@@ -40,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: (await getTranslations("patients"))("title") };
 }
 
-const TABS = ["overview", "details", "health", "clinical", "documents", "treatments", "finance"] as const;
+const TABS = ["overview", "details", "health", "clinical", "documents", "treatments", "journey", "finance"] as const;
 
 function Info({ label, value, dir }: { label: string; value: React.ReactNode; dir?: "ltr" | "rtl" }) {
   return (
@@ -63,7 +65,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   if (!data) notFound();
   const { patient: p, alerts, provider, referrer, referredCount } = data;
   const tabAllowed = (x: (typeof TABS)[number]) =>
-    x === "clinical" || x === "health" ? can(ctx, "clinical.read") : x === "documents" ? can(ctx, "clinical.images.read") : x === "treatments" ? can(ctx, "treatment_plan.read") : x === "finance" ? can(ctx, "invoice.read") : true;
+    x === "clinical" || x === "health" ? can(ctx, "clinical.read") : x === "documents" ? can(ctx, "clinical.images.read") : x === "treatments" ? can(ctx, "treatment_plan.read") : x === "journey" ? can(ctx, "patient.journey.manage") : x === "finance" ? can(ctx, "invoice.read") : true;
   const tab = TABS.find((x) => x === sp.tab && tabAllowed(x)) ?? "overview";
   const health = await healthStatus(ctx, id);
   const age = patientAge(p, ctx.organization.timezone);
@@ -76,6 +78,7 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
   const noteTemplates = tab === "clinical" && can(ctx, "clinical.write") ? await listNoteTemplates(ctx) : [];
   const noteProviders = tab === "clinical" && can(ctx, "clinical.write") ? (await getAgendaSetup(ctx)).providers : [];
   const clinicalFiles = tab === "documents" ? await listClinicalFiles(ctx, p.id) : null;
+  const journey = tab === "journey" ? await getPatientJourney(ctx, p.id) : null;
   const account = tab === "overview" && can(ctx, "invoice.read") ? await getPatientAccount(ctx, p.id) : null;
   const patientAppointments = tab === "overview" && can(ctx, "appointment.read") ? await listPatientAppointments(ctx, p.id) : null;
   const treatmentPlans = (tab === "overview" || tab === "treatments") && can(ctx, "treatment_plan.read") ? await listTreatmentPlans(ctx, p.id) : [];
@@ -297,6 +300,24 @@ export default async function PatientPage({ params, searchParams }: PageProps<"/
             </div>
           ) : tab === "health" ? (
             <HealthPanel ctx={ctx} patientId={p.id} editable={can(ctx, "clinical.write") && p.status !== "archived" && p.status !== "deceased"} />
+          ) : tab === "journey" && journey ? (
+            <JourneyPanel
+              patientId={p.id}
+              today={todayInZone(ctx.organization.timezone)}
+              canShareImages={can(ctx, "clinical.images.read")}
+              data={{
+                access: journey.access ? { decision: journey.access.decision, decidedAt: journey.access.decidedAt.toISOString() } : null,
+                items: journey.items.map((i) => ({ id: i.id, kind: i.kind, title: i.title, body: i.body, eventDate: i.eventDate, sharedBy: i.sharedBy, withdrawnAt: i.withdrawnAt?.toISOString() ?? null, withdrawReason: i.withdrawReason, clinicalFileId: i.clinicalFileId, comparisonId: i.comparisonId })),
+                progress: journey.progress.map((plan) => ({ id: plan.id, title: plan.title, steps: plan.steps.map((s) => ({ ...s, doneAt: s.doneAt?.toISOString() ?? null })) })),
+                images: journey.images.map((i) => ({ id: i.id, clinicalDate: i.clinicalDate, label: i.title || t(`clinicalFiles.categories.${i.category}`) })),
+                comparisons: journey.comparisons.map((c) => {
+                  const before = journey.images.find((i) => i.id === c.beforeFileId);
+                  const after = journey.images.find((i) => i.id === c.afterFileId);
+                  return { id: c.id, beforeFileId: c.beforeFileId, afterFileId: c.afterFileId, label: `${before ? formatDateOnly(before.clinicalDate) : "?"} → ${after ? formatDateOnly(after.clinicalDate) : "?"}${after?.title ? ` · ${after.title}` : ""}` };
+                }),
+                plans: journey.plans.map((pl) => ({ id: pl.id, title: pl.title })),
+              }}
+            />
           ) : tab === "documents" && clinicalFiles ? (
             <ClinicalFilesPanel patientId={p.id} rows={clinicalFiles.files} comparisons={clinicalFiles.comparisons}
               canWrite={can(ctx, "clinical.images.write") && p.status !== "archived" && p.status !== "deceased"}

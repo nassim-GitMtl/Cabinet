@@ -267,6 +267,11 @@
     "fields": "Champs :",
     "patientHistory": "Historique",
     "actions": {
+      "patient_journey_item_shared": "Élément partagé dans le parcours patient",
+      "patient_journey_item_withdrawn": "Élément retiré du parcours patient",
+      "patient_journey_access_granted": "Parcours activé par le patient",
+      "patient_journey_access_revoked": "Parcours masqué par le patient",
+      "patient_journey_file_viewed": "Photo du parcours vue par le patient",
       "appointment_booked": "Rendez-vous pris",
       "appointment_cancelled": "Rendez-vous annulé",
       "appointment_confirmation": "Confirmation du rendez-vous modifiée",
@@ -427,6 +432,8 @@
       "working_hours_updated": "Horaires de travail modifiés"
     },
     "tables": {
+      "patient_journey_items": "Parcours patient",
+      "patient_journey_access": "Accès au parcours",
       "appointment_types": "Types de rendez-vous",
       "appointments": "Rendez-vous",
       "booking_links": "Liens de réservation",
@@ -478,6 +485,93 @@
       "time_off": "Absences",
       "treatment_plans": "Plans de traitement",
       "working_hours": "Horaires"
+    }
+  },
+  "journey": {
+    "before": "Avant",
+    "after": "Après",
+    "kinds": {
+      "milestone": "Étape",
+      "image": "Photo",
+      "comparison": "Avant / après"
+    },
+    "access": {
+      "granted": "Le patient voit son parcours dans son espace en ligne depuis le {date}.",
+      "revoked": "Le patient a masqué son parcours le {date} : rien n’est affiché.",
+      "never": "Le patient n’a pas encore activé son parcours : rien n’est affiché pour l’instant.",
+      "explain": "Il l’active ou le masque lui-même depuis son espace patient. Ce que vous partagez ici n’apparaît qu’après son accord."
+    },
+    "progress": {
+      "title": "Avancement du plan (automatique)",
+      "count": "{done} sur {total} réalisés",
+      "automatic": "Calculé à partir des actes réalisés du plan accepté : rien à saisir."
+    },
+    "shared": {
+      "title": "Partagé avec le patient",
+      "empty": "Rien n’est partagé pour l’instant.",
+      "by": "partagé par {name}",
+      "withdrawn": "{count, plural, one {# élément retiré} other {# éléments retirés}}"
+    },
+    "share": {
+      "title": "Partager avec le patient",
+      "hint": "Écrivez simplement, comme vous l’expliqueriez au fauteuil. Le patient le lira dans son espace en ligne.",
+      "kind": "Type",
+      "photo": "Photo",
+      "choose": "Choisir…",
+      "noPhotos": "Aucune photo dans le dossier (onglet Images et documents).",
+      "pair": "Avant / après",
+      "noPairs": "Aucune paire avant/après dans le dossier (onglet Images et documents).",
+      "plan": "Plan de traitement",
+      "noPlan": "Aucun",
+      "titleField": "Titre",
+      "titleHint": {
+        "milestone": "Ex. : Fin des soins des caries",
+        "image": "Ex. : Votre dent après la couronne",
+        "comparison": "Ex. : Blanchiment : avant et après"
+      },
+      "body": "Explication pour le patient",
+      "bodyHint": "Phrases courtes, sans jargon : ce qui a été fait, ce qui vient ensuite, les conseils.",
+      "date": "Date",
+      "submit": "Partager",
+      "done": "Partagé. Visible dès que le patient active son parcours."
+    },
+    "withdraw": {
+      "button": "Retirer",
+      "title": "Retirer du parcours",
+      "hint": "Le patient ne le verra plus. L’élément reste dans le dossier, avec la raison.",
+      "reason": "Raison"
+    },
+    "errors": {
+      "patientUnavailable": "Patient introuvable.",
+      "fileUnavailable": "Cette photo n’est pas une image de ce patient.",
+      "comparisonUnavailable": "Cette paire avant/après n’est pas celle de ce patient.",
+      "planUnavailable": "Ce plan n’est pas celui de ce patient.",
+      "itemUnavailable": "Cet élément n’est plus partagé.",
+      "invalidText": "Titre obligatoire (160 caractères maximum), explication de 2000 caractères maximum.",
+      "invalidDate": "Date invalide.",
+      "reasonRequired": "Indiquez une raison."
+    },
+    "portal": {
+      "title": "Mon parcours de soins",
+      "back": "Mon espace",
+      "intro": "Les étapes de votre traitement, expliquées par votre praticien, avec les photos qu’il a choisi de vous montrer.",
+      "offTitle": "Votre parcours est masqué",
+      "offBody": "{count, plural, =0 {L’avancement de votre plan de traitement peut être affiché ici.} one {Votre cabinet a partagé # élément de votre traitement.} other {Votre cabinet a partagé # éléments de votre traitement.}}",
+      "point1": "Vous verrez les étapes, l’avancement de votre plan et, le cas échéant, des photos de vos dents.",
+      "point2": "Seul votre compte y a accès. Pensez-y si vous utilisez un appareil partagé.",
+      "point3": "Vous pouvez le masquer à tout moment.",
+      "show": "Afficher mon parcours",
+      "hide": "Masquer mon parcours",
+      "hideExplain": "Vous pouvez masquer votre parcours : il ne s’affichera plus jusqu’à ce que vous le réactiviez.",
+      "tooth": "dent {tooth}",
+      "doneOn": "fait le {date}",
+      "planned": "prévu",
+      "shared": "Partagé par votre praticien",
+      "nothingYet": "Votre praticien n’a encore rien partagé.",
+      "cardOn": "Les étapes et photos de votre traitement.",
+      "cardOff": "{count, plural, =0 {L’avancement de votre traitement est disponible.} one {# élément partagé par votre cabinet.} other {# éléments partagés par votre cabinet.}}",
+      "open": "Ouvrir",
+      "discover": "Découvrir"
     }
   },
   "toothGuide": {
@@ -807,6 +901,7 @@
     },
     "resolveAlert": "Marquer comme résolue",
     "tabs": {
+      "journey": "Parcours patient",
       "overview": "Vue d'ensemble",
       "details": "Informations",
       "clinical": "Dossier clinique",

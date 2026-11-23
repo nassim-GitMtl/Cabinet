@@ -267,6 +267,11 @@
     "fields": "Fields:",
     "patientHistory": "History",
     "actions": {
+      "patient_journey_item_shared": "Item shared on the patient journey",
+      "patient_journey_item_withdrawn": "Item withdrawn from the patient journey",
+      "patient_journey_access_granted": "Journey switched on by the patient",
+      "patient_journey_access_revoked": "Journey hidden by the patient",
+      "patient_journey_file_viewed": "Journey photo viewed by the patient",
       "appointment_booked": "Appointment booked",
       "appointment_cancelled": "Appointment cancelled",
       "appointment_confirmation": "Appointment confirmation changed",
@@ -427,6 +432,8 @@
       "working_hours_updated": "Working hours changed"
     },
     "tables": {
+      "patient_journey_items": "Patient journey",
+      "patient_journey_access": "Journey access",
       "appointment_types": "Appointment types",
       "appointments": "Appointments",
       "booking_links": "Booking links",
@@ -478,6 +485,93 @@
       "time_off": "Time off",
       "treatment_plans": "Treatment plans",
       "working_hours": "Working hours"
+    }
+  },
+  "journey": {
+    "before": "Before",
+    "after": "After",
+    "kinds": {
+      "milestone": "Step",
+      "image": "Photo",
+      "comparison": "Before / after"
+    },
+    "access": {
+      "granted": "The patient sees their journey in their online space since {date}.",
+      "revoked": "The patient hid their journey on {date}: nothing is shown.",
+      "never": "The patient has not switched their journey on yet: nothing is shown for now.",
+      "explain": "They switch it on or off themselves in their patient space. What you share here only appears after they agree."
+    },
+    "progress": {
+      "title": "Plan progress (automatic)",
+      "count": "{done} of {total} done",
+      "automatic": "Calculated from the treatments recorded for the accepted plan: nothing to type."
+    },
+    "shared": {
+      "title": "Shared with the patient",
+      "empty": "Nothing shared yet.",
+      "by": "shared by {name}",
+      "withdrawn": "{count, plural, one {# item withdrawn} other {# items withdrawn}}"
+    },
+    "share": {
+      "title": "Share with the patient",
+      "hint": "Write simply, as you would explain it in the chair. The patient will read it in their online space.",
+      "kind": "Type",
+      "photo": "Photo",
+      "choose": "Choose…",
+      "noPhotos": "No photo in the file (Images and documents tab).",
+      "pair": "Before / after",
+      "noPairs": "No before/after pair in the file (Images and documents tab).",
+      "plan": "Treatment plan",
+      "noPlan": "None",
+      "titleField": "Title",
+      "titleHint": {
+        "milestone": "E.g. Cavity treatment finished",
+        "image": "E.g. Your tooth after the crown",
+        "comparison": "E.g. Whitening: before and after"
+      },
+      "body": "Explanation for the patient",
+      "bodyHint": "Short sentences, no jargon: what was done, what comes next, advice.",
+      "date": "Date",
+      "submit": "Share",
+      "done": "Shared. Visible as soon as the patient switches their journey on."
+    },
+    "withdraw": {
+      "button": "Withdraw",
+      "title": "Withdraw from the journey",
+      "hint": "The patient will no longer see it. The item stays in the record, with the reason.",
+      "reason": "Reason"
+    },
+    "errors": {
+      "patientUnavailable": "Patient not found.",
+      "fileUnavailable": "This photo is not an image of this patient.",
+      "comparisonUnavailable": "This before/after pair is not this patient's.",
+      "planUnavailable": "This plan is not this patient's.",
+      "itemUnavailable": "This item is no longer shared.",
+      "invalidText": "A title is required (160 characters max); explanation 2000 characters max.",
+      "invalidDate": "Invalid date.",
+      "reasonRequired": "Enter a reason."
+    },
+    "portal": {
+      "title": "My treatment journey",
+      "back": "My space",
+      "intro": "The steps of your treatment, explained by your practitioner, with the photos they chose to show you.",
+      "offTitle": "Your journey is hidden",
+      "offBody": "{count, plural, =0 {The progress of your treatment plan can be shown here.} one {Your clinic shared # item of your treatment.} other {Your clinic shared # items of your treatment.}}",
+      "point1": "You will see the steps, the progress of your plan and, where relevant, photos of your teeth.",
+      "point2": "Only your account can see it. Keep this in mind on a shared device.",
+      "point3": "You can hide it at any time.",
+      "show": "Show my journey",
+      "hide": "Hide my journey",
+      "hideExplain": "You can hide your journey: it will not be shown until you switch it on again.",
+      "tooth": "tooth {tooth}",
+      "doneOn": "done on {date}",
+      "planned": "planned",
+      "shared": "Shared by your practitioner",
+      "nothingYet": "Your practitioner has not shared anything yet.",
+      "cardOn": "The steps and photos of your treatment.",
+      "cardOff": "{count, plural, =0 {The progress of your treatment is available.} one {# item shared by your clinic.} other {# items shared by your clinic.}}",
+      "open": "Open",
+      "discover": "Discover"
     }
   },
   "toothGuide": {
@@ -807,6 +901,7 @@
     },
     "resolveAlert": "Mark as resolved",
     "tabs": {
+      "journey": "Patient journey",
       "overview": "Overview",
       "details": "Details",
       "clinical": "Clinical record",

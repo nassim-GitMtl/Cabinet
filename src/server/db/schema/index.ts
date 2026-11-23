@@ -22,3 +22,4 @@ export * from "./public-profile";
 export * from "./payment-plans";
 export * from "./clinic-branding";
 export * from "./sync";
+export * from "./journey";

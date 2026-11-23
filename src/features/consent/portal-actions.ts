@@ -8,6 +8,7 @@ import { createPatientSession, requirePatientSession, revokePatientSession } fro
 import { requestMeta } from "@/server/auth/session";
 import { portalLoginSchema, portalPasswordSchema } from "./schemas";
 import { decideConsentRequest, PatientConsentError, revokeConsentGrant } from "./portal";
+import { setPortalJourneyAccess } from "@/features/journey/portal";
 
 export async function activatePortalAction(token: string, _state: ActionState, formData: FormData): Promise<ActionState> {
   const values = formValues(formData);
@@ -68,4 +69,15 @@ export async function revokeConsentGrantAction(grantId: string, _state: ActionSt
     revalidatePath("/portal");
     return { ok: true };
   } catch (error) { return consentError(error); }
+}
+
+/** The patient switches his treatment journey on or off for one clinic. */
+export async function setJourneyAccessAction(organizationId: string, decision: "granted" | "revoked", _state: ActionState): Promise<ActionState> {
+  void _state;
+  const ctx = await requirePatientSession();
+  const ok = await setPortalJourneyAccess(ctx, organizationId, decision);
+  if (!ok) return { error: "errors.notFound" };
+  revalidatePath("/portal");
+  revalidatePath(`/portal/journey/${organizationId}`);
+  return { ok: true };
 }
