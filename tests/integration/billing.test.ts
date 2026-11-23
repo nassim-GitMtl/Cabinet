@@ -9,6 +9,7 @@ import {
   getPatientAccount,
   issueCreditNote,
   listInvoices,
+  listPatientsReadyToInvoice,
   listUnbilledProcedures,
   recordPayment,
   refundPayment,
@@ -84,6 +85,9 @@ describe("invoicing from completed work", () => {
     const a = await f.perform("CONS-01"); // 1 500 DA
     const b = await f.perform("PREV-01"); // 4 000 DA
     expect((await listUnbilledProcedures(f.ctx, f.patientId)).map((x) => x.id).sort()).toEqual([a, b].sort());
+    expect(await listPatientsReadyToInvoice(f.ctx)).toEqual([
+      expect.objectContaining({ patientId: f.patientId, procedureCount: 2, amountMinor: 550000 }),
+    ]);
 
     const id = await createInvoiceFromProcedures(f.ctx, f.patientId, { procedureIds: [a, b], issueNow: true });
     const inv = (await getInvoice(f.ctx, id))!;
@@ -92,6 +96,7 @@ describe("invoicing from completed work", () => {
     expect(inv.invoice.totalMinor).toBe(550000);
     expect(inv.state).toBe("unpaid");
     expect(await listUnbilledProcedures(f.ctx, f.patientId)).toHaveLength(0);
+    expect(await listPatientsReadyToInvoice(f.ctx)).toHaveLength(0);
 
     // The same work cannot be billed twice.
     await expect(createInvoiceFromProcedures(f.ctx, f.patientId, { procedureIds: [a], issueNow: true })).rejects.toMatchObject({ code: "alreadyBilled" });

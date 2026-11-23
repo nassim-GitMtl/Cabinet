@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { FileTextIcon } from "lucide-react";
+import { FileCheck2Icon, FileTextIcon } from "lucide-react";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { Pagination } from "@/components/app/pagination";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StateBadge } from "@/features/billing/components/state-badge";
 import { pageFormat } from "@/features/billing/page-format";
-import { listInvoices } from "@/features/billing/server";
+import { listInvoices, listPatientsReadyToInvoice } from "@/features/billing/server";
 import { formatDateOnly, parseDateOnly } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 import { can, requireClinicContext } from "@/server/auth/context";
@@ -31,7 +31,11 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
   const to = parseDateOnly(str(sp.to)) ?? "";
   const q = str(sp.q);
   const page = Math.max(1, Number(sp.page) || 1);
-  const [result, fmt] = await Promise.all([listInvoices(ctx, { state, from: from || null, to: to || null, q, page, pageSize: 25 }), pageFormat(ctx)]);
+  const [result, fmt, ready] = await Promise.all([
+    listInvoices(ctx, { state, from: from || null, to: to || null, q, page, pageSize: 25 }),
+    pageFormat(ctx),
+    can(ctx, "invoice.create") ? listPatientsReadyToInvoice(ctx) : Promise.resolve([]),
+  ]);
   const currency = ctx.organization.defaultCurrency;
   const m = (v: number) => fmt.money(v, currency);
   const href = (patch: Record<string, string | number | null>) => {
@@ -44,6 +48,49 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/invoice
   return (
     <>
       <PageHeader title={t("billing.title")} description={t("common.results", { count: result.count })} />
+
+      {ready.length ? (
+        <section className="mb-5 overflow-hidden rounded-xl border border-primary/20 bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b bg-primary/5 px-4 py-3">
+            <div>
+              <h2 className="flex items-center gap-2 font-semibold">
+                <FileCheck2Icon className="size-5 text-primary" aria-hidden />
+                {t("billing.readyToInvoice")}
+              </h2>
+              <p className="text-xs text-muted-foreground">{t("billing.readyToInvoiceHint", { count: ready.length })}</p>
+            </div>
+            <span className="rounded-full bg-primary px-2.5 py-1 text-xs font-bold text-primary-foreground">
+              {ready.reduce((total, row) => total + row.procedureCount, 0)}
+            </span>
+          </div>
+          <ul className="divide-y">
+            {ready.map((row) => (
+              <li key={row.patientId} className="flex flex-wrap items-center gap-3 p-4">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">
+                    <bdi>{`${row.lastName.toUpperCase()} ${row.firstName}`}</bdi>{" "}
+                    <span className="text-xs text-muted-foreground">{row.patientNumber}</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t("billing.readySummary", {
+                      count: row.procedureCount,
+                      from: formatDateOnly(row.oldestDate),
+                      to: formatDateOnly(row.newestDate),
+                    })}
+                  </p>
+                </div>
+                <p className="font-semibold tabular">{m(row.amountMinor)}</p>
+                <Link
+                  href={`/patients/${row.patientId}/billing/new`}
+                  className="inline-flex h-9 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                >
+                  {t("billing.invoiceNow")}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <form method="get" className="mb-3 grid gap-2 rounded-xl border bg-card p-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
         <input type="hidden" name="state" value={state} />

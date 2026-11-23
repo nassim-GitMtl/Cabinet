@@ -1158,6 +1158,7 @@
     "checkoutTitle": "Bill completed procedures",
     "checkoutSubtitle": "Select the completed procedures to bill. A procedure can only be billed once.",
     "unbilledEmpty": "No completed procedures to bill for this patient.",
+    "readyToInvoice": "Procedures ready to invoice", "readyToInvoiceHint": "{count, plural, one {# patient to process} other {# patients to process}}", "readySummary": "{count, plural, one {# procedure} other {# procedures}} · {from} to {to}", "invoiceNow": "Invoice now",
     "selected": "{count, plural, one {# procedure selected} other {# procedures selected}}",
     "subtotal": "Subtotal (excl. tax)",
     "tax": "Tax",

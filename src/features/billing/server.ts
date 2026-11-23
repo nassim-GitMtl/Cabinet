@@ -96,6 +96,30 @@ export async function listUnbilledProcedures(ctx: ClinicContext, patientId: stri
   );
 }
 
+/** Central billing work queue: completed clinical work that is not yet on a non-void invoice. */
+export async function listPatientsReadyToInvoice(ctx: ClinicContext) {
+  requirePermission(ctx, "invoice.create");
+  return tenantTx(ctx, async (tx) => {
+    const rows = await tx
+      .select({
+        patientId: patients.id,
+        patientNumber: patients.patientNumber,
+        firstName: patients.firstName,
+        lastName: patients.lastName,
+        procedureCount: count(),
+        amountMinor: sql<number>`sum(${performedProcedures.quantity} * ${performedProcedures.unitPriceMinor})::bigint`,
+        oldestDate: sql<string>`min(${performedProcedures.serviceDate})`,
+        newestDate: sql<string>`max(${performedProcedures.serviceDate})`,
+      })
+      .from(performedProcedures)
+      .innerJoin(patients, eq(patients.id, performedProcedures.patientId))
+      .where(and(eq(performedProcedures.status, "completed"), unbilledCondition))
+      .groupBy(patients.id, patients.patientNumber, patients.firstName, patients.lastName)
+      .orderBy(asc(sql`min(${performedProcedures.serviceDate})`));
+    return rows.map((row) => ({ ...row, amountMinor: Number(row.amountMinor) }));
+  });
+}
+
 /**
  * Practitioner-fee details typed at checkout for one procedure: who is paid for it (defaults to who performed it),
  * the lab fee, and optionally a one-off rule with its reason. Frozen on the invoice line.

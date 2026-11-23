@@ -1158,6 +1158,7 @@
     "checkoutTitle": "فوترة الأعمال المنجزة",
     "checkoutSubtitle": "اختر الأعمال المنجزة المراد فوترتها. لا يمكن فوترة العمل الواحد إلا مرة واحدة.",
     "unbilledEmpty": "لا توجد أعمال منجزة للفوترة لهذا المريض.",
+    "readyToInvoice": "أعمال جاهزة للفوترة", "readyToInvoiceHint": "{count, plural, one {مريض واحد للمعالجة} two {مريضان للمعالجة} few {# مرضى للمعالجة} other {# مريض للمعالجة}}", "readySummary": "{count, plural, one {عمل واحد} two {عملان} few {# أعمال} other {# عمل}} · من {from} إلى {to}", "invoiceNow": "فوترة الآن",
     "selected": "{count, plural, one {عمل واحد محدد} two {عملان محددان} few {# أعمال محددة} other {# عمل محدد}}",
     "subtotal": "المجموع دون الرسوم",
     "tax": "الرسوم",

@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-22 by Claude (session 46 — visual treatment journey in the patient portal).
+Last updated: 2026-11-23 by Codex (session 47 — central ready-to-invoice queue).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -572,6 +572,14 @@ through a session-checked route). French user guide: new sections for practition
 229/229 tests (+3 integration in `tests/integration/journey.test.ts`), typecheck, lint, build green. Browser-checked on the
 local database: clinician shares a step → patient activates the portal → dashboard card "1 item shared" → journey hidden
 until "Show my journey" → step visible; Arabic RTL at 375 px without horizontal scroll.
+
+Session 47 (Codex): completed procedures no longer require opening patient files one by one to discover what must be
+invoiced. `/invoices` now starts with a tenant-scoped "Actes prêts à facturer" queue, grouped by patient, showing the
+number of acts, oldest/newest service dates and real unbilled amount, with a one-click link to that patient's existing
+checkout. The queue is permission-gated by `invoice.create`, uses the same once-only invoice-line rule as checkout, and
+disappears for a patient as soon as those acts are billed. FR/EN/AR copy and integration coverage were added. 229/229
+tests, typecheck and full lint are green; `npx next build --webpack` is green. The standard Turbopack build still reaches
+the documented runner-only CSS helper-port `EPERM`, including when retried outside the normal sandbox.
 
 ## Requirement coverage map
 

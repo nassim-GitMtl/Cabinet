@@ -1158,6 +1158,7 @@
     "checkoutTitle": "Facturer les actes réalisés",
     "checkoutSubtitle": "Sélectionnez les actes terminés à facturer. Un acte ne peut être facturé qu'une seule fois.",
     "unbilledEmpty": "Aucun acte terminé à facturer pour ce patient.",
+    "readyToInvoice": "Actes prêts à facturer", "readyToInvoiceHint": "{count, plural, one {# patient à traiter} other {# patients à traiter}}", "readySummary": "{count, plural, one {# acte} other {# actes}} · du {from} au {to}", "invoiceNow": "Facturer maintenant",
     "selected": "{count, plural, one {# acte sélectionné} other {# actes sélectionnés}}",
     "subtotal": "Sous-total HT",
     "tax": "Taxes",
