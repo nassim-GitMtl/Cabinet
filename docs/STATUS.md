@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-23 by Codex (session 47 — central ready-to-invoice queue).
+Last updated: 2026-11-23 by Codex (session 48 — actionable navigation counters).
 
 ## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
 
@@ -581,6 +581,17 @@ disappears for a patient as soon as those acts are billed. FR/EN/AR copy and int
 tests, typecheck and full lint are green; `npx next build --webpack` is green. The standard Turbopack build still reaches
 the documented runner-only CSS helper-port `EPERM`, including when retried outside the normal sandbox.
 
+Session 48 (Codex): the persistent navigation now shows live, permission-filtered counters beside the exact modules
+that need action, using the same source as the global notification bell. Counts cover online booking requests, patients
+arrived/in the waiting room today, appointments still to confirm in the next seven days, completed acts ready to invoice,
+overdue invoice balances, practitioners with collected fees ready to pay, inventory alerts and sterilization releases.
+Desktop sidebar, mobile primary navigation and the mobile "More" menu all update from the shared 60-second/focus refresh;
+urgent items use the destructive badge treatment. Counts contain no patient or financial detail, remain tenant-scoped,
+and disappear for users without the exact source permission. FR/EN/AR copy, pure navigation mapping tests and two
+PostgreSQL end-to-end notification scenarios were added (including unbilled act → overdue invoice → receipt → payable
+honorarium). 232/232 tests, typecheck and full lint are green; `npx next build --webpack` is green. The standard Turbopack
+build still reaches the documented runner-only CSS helper-port `EPERM`, including when retried outside the sandbox.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -601,7 +612,7 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Guardians / relationships (§6) | 🟡 | Table only; UI ⏳ |
 | Service catalog with default prices & history (§11) | ✅ | 41 editable demo services (flagged, FR/EN/AR), append-only price history, reusable category/search picker with per-user favorites and recents |
 | i18n FR/EN/AR + RTL (§2, §5) | ✅ | Key parity test; invoices, receipts, estimates and statements print in Arabic RTL or bilingual FR/AR ✅ |
-| Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, always-available FR/EN/AR FDI tooth-number guide, and a permission-filtered global operational notification center. Service worker/offline policy ⏳ (no patient data offline by design) |
+| Responsive/mobile shell, PWA manifest (§5, §27) | 🟡 | Modern desktop sidebar, floating mobile bottom nav, FAB, sticky form actions, always-available FR/EN/AR FDI tooth-number guide, a permission-filtered global operational notification center, and live per-module task counters on desktop/mobile navigation. Service worker/offline policy ⏳ (no patient data offline by design) |
 | Scheduler & booking (§9, §9A) | ✅ | Clinic public page `/c/[slug]` + QR poster ✅. Agenda: clinician day view (phone list), patient search, book/move (version-checked)/cancel/no-show/confirm, working hours + time off with explicit override, PostgreSQL EXCLUDE constraints prevent overlaps per clinician/chair/patient (concurrency-tested). Online booking: `/book/[token]` public page with real free slots (hours − booked − time off, min notice, horizon), pending requests only, secret status page; staff `/agenda/requests` edit a pending type/clinician/date/time/duration (version + availability checked), approve (duplicate-checked patient creation or existing pick, locked single approval, taken slot stays pending) / decline with patient-safe reason; link create/copy/deactivate; limits 3/phone/day, 10/IP/hour, honeypot; public org resolution only via SECURITY DEFINER functions. Settings at `/settings/agenda`: chairs (add/deactivate), appointment types (FR/EN/AR names, default duration, online-bookable, active), weekly working hours per clinician (two ranges/day, overlap-validated), time off (clinician or whole clinic; leave/holiday/blocked) that blocks staff + online booking and reports overlapping appointments. Week view (Sun–Sat). Drag-and-drop, recurring, curated offers, propose-alternative acceptance, SMS/WhatsApp notifications ⏳ 🔌 |
 | Reception/queue (§10) | ✅ | Today's queue with forward-only arrival → waiting → in treatment → completed workflow |
 | Visits & fast procedure entry "Ajouter un acte" (§14) | ✅ | Completed encounter + procedure snapshot, FDI anatomy, clinician/date/qty/price, controlled overrides, reversal/error correction, phone UI + clinical history |

@@ -29,6 +29,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { logoutAction } from "@/features/auth/actions";
+import { navigationNotificationSummary } from "@/features/notifications/navigation";
 import type { OperationalNotification } from "@/features/notifications/types";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
@@ -83,11 +84,50 @@ function Brand() {
   );
 }
 
+function NavigationCountBadge({
+  count,
+  urgent,
+  inverted = false,
+  label,
+  className,
+}: {
+  count: number;
+  urgent: boolean;
+  inverted?: boolean;
+  label: string;
+  className?: string;
+}) {
+  if (!count) return null;
+  return (
+    <span
+      aria-label={label}
+      className={cn(
+        "ms-auto inline-flex min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-bold leading-5 tabular-nums",
+        urgent ? "bg-destructive text-white" : inverted ? "bg-primary-foreground text-primary" : "bg-primary/12 text-primary",
+        className,
+      )}
+    >
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient, hasMultipleClinics, isPlatformOperator, initialNotifications, children }: Props) {
   const t = useTranslations("nav");
+  const nt = useTranslations("notifications");
   const pathname = usePathname();
   const [notifications, setNotifications] = useState(initialNotifications);
   const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const navSummary = (key: NavKey) => navigationNotificationSummary(notifications, key);
+  const moreSummary = nav
+    .filter((key) => !MOBILE_PRIMARY.includes(key))
+    .reduce(
+      (summary, key) => {
+        const next = navSummary(key);
+        return { count: summary.count + next.count, urgent: summary.urgent || next.urgent };
+      },
+      { count: 0, urgent: false },
+    );
 
   useEffect(() => {
     let stopped = false;
@@ -148,6 +188,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
           {nav.map((key) => {
             const item = NAV[key];
             const active = isActive(item.href);
+            const summary = navSummary(key);
             return (
               <Link
                 key={key}
@@ -162,6 +203,11 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
               >
                 <item.icon className={cn("size-4.5 transition-transform group-hover:scale-105", active && "text-primary-foreground")} aria-hidden />
                 {t(item.label as never)}
+                <NavigationCountBadge
+                  {...summary}
+                  inverted={active}
+                  label={nt("navigationCount", { count: summary.count })}
+                />
               </Link>
             );
           })}
@@ -227,6 +273,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
             {nav.filter((key) => MOBILE_PRIMARY.includes(key)).map((key) => {
               const item = NAV[key];
               const active = isActive(item.href);
+              const summary = navSummary(key);
               return (
                 <li key={key} className="flex-1">
                   <Link
@@ -237,7 +284,14 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
                       active ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    <item.icon className={cn("size-5", active && "drop-shadow-sm")} aria-hidden />
+                    <span className="relative">
+                      <item.icon className={cn("size-5", active && "drop-shadow-sm")} aria-hidden />
+                      <NavigationCountBadge
+                        {...summary}
+                        label={nt("navigationCount", { count: summary.count })}
+                        className="absolute -end-3.5 -top-2.5 ms-0 min-w-4.5 px-1 leading-[18px]"
+                      />
+                    </span>
                     {t((item.short ?? item.label) as never)}
                   </Link>
                 </li>
@@ -252,7 +306,14 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
                       nav.some((key) => !MOBILE_PRIMARY.includes(key) && isActive(NAV[key].href)) ? "text-primary" : "text-muted-foreground",
                     )}
                   >
-                    <MenuIcon className="size-5" aria-hidden />
+                    <span className="relative">
+                      <MenuIcon className="size-5" aria-hidden />
+                      <NavigationCountBadge
+                        {...moreSummary}
+                        label={nt("navigationCount", { count: moreSummary.count })}
+                        className="absolute -end-3.5 -top-2.5 ms-0 min-w-4.5 px-1 leading-[18px]"
+                      />
+                    </span>
                     {t("more")}
                   </SheetTrigger>
                   <SheetContent side="bottom" className="pb-[calc(1rem+env(safe-area-inset-bottom))]">
@@ -262,11 +323,16 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
                     <ul className="grid gap-1 px-4">
                       {nav.filter((key) => !MOBILE_PRIMARY.includes(key)).map((key) => {
                         const item = NAV[key];
+                        const summary = navSummary(key);
                         return (
                           <li key={key}>
                             <Link href={item.href} className="flex min-h-12 items-center gap-3 rounded-lg px-3 font-medium hover:bg-accent">
                               <item.icon className="size-5 text-primary" aria-hidden />
                               {t(item.label as never)}
+                              <NavigationCountBadge
+                                {...summary}
+                                label={nt("navigationCount", { count: summary.count })}
+                              />
                             </Link>
                           </li>
                         );

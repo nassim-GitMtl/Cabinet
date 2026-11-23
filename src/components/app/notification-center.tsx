@@ -2,7 +2,20 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { AlertTriangleIcon, BellIcon, CalendarClockIcon, InboxIcon, PackageSearchIcon, ShieldCheckIcon, type LucideIcon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  BellIcon,
+  BellRingIcon,
+  CalendarClockIcon,
+  ClipboardCheckIcon,
+  FileTextIcon,
+  HandCoinsIcon,
+  InboxIcon,
+  PackageSearchIcon,
+  ReceiptIcon,
+  ShieldCheckIcon,
+  type LucideIcon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import type { OperationalNotification, OperationalNotificationKind } from "@/features/notifications/types";
@@ -10,6 +23,11 @@ import { cn } from "@/lib/utils";
 
 const icons: Record<OperationalNotificationKind, LucideIcon> = {
   bookingRequests: InboxIcon,
+  receptionWaiting: ClipboardCheckIcon,
+  followUpsDue: BellRingIcon,
+  billingReady: FileTextIcon,
+  invoicePaymentsDue: ReceiptIcon,
+  honorariaPayable: HandCoinsIcon,
   inventoryLow: PackageSearchIcon,
   inventoryExpiring: CalendarClockIcon,
   inventoryExpired: AlertTriangleIcon,

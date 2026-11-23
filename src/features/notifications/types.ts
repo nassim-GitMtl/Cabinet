@@ -1,5 +1,10 @@
 export type OperationalNotificationKind =
   | "bookingRequests"
+  | "receptionWaiting"
+  | "followUpsDue"
+  | "billingReady"
+  | "invoicePaymentsDue"
+  | "honorariaPayable"
   | "inventoryLow"
   | "inventoryExpiring"
   | "inventoryExpired"
