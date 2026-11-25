@@ -13,12 +13,16 @@ n'interrompt rien : agenda, patients, actes, factures, paiements, caisse et rapp
 | --- | --- |
 | Toute l'application du personnel : agenda, accueil, patients, actes, plans de traitement, factures, paiements, caisse, dépenses, rapports, impressions, comptes et rôles, double authentification | Liens de prise de rendez-vous en ligne pour les patients **depuis chez eux** |
 | Sauvegardes automatiques sur le serveur | Portail patient et page publique du cabinet (`/c/…`, affiche QR) accessibles hors du cabinet |
-| Relances : les messages WhatsApp/SMS partent du téléphone du personnel | Partage de dossiers entre cabinets différents, envoi automatique de SMS |
+| Relances : les messages WhatsApp/SMS partent du téléphone du personnel | Envoi automatique de SMS par un fournisseur externe |
 
-Ces fonctions « internet » nécessiteront une synchronisation avec une copie en ligne (prévue, non incluse).
-Sur le réseau du cabinet, le lien de réservation et le portail fonctionnent pour un appareil connecté au Wi-Fi.
-Si le cabinet dispose d'un nom de domaine pointant vers ce serveur, indiquez-le dans `PUBLIC_APP_URL`
-(fichier `.env`) : la page publique et l'affiche QR utiliseront cette adresse.
+Pour rendre la réservation, la page publique et le portail accessibles depuis l'extérieur tout en continuant à travailler
+pendant les coupures, déployez d'abord la copie cloud (Vercel/Neon ou VPS/Neon), puis jumelez ce serveur avec elle. Le
+serveur du cabinet ouvre lui-même la connexion sortante : aucun port du routeur n'est exposé. Les changements en attente
+sont envoyés et reçus dès que l'internet revient.
+
+Sans copie cloud, le lien de réservation et le portail restent utilisables uniquement par les appareils connectés au
+Wi-Fi du cabinet. Un `PUBLIC_APP_URL` pointant directement vers ce serveur est déconseillé : n'ouvrez pas ses ports sur
+internet.
 
 ## Matériel conseillé
 
@@ -61,7 +65,14 @@ cd deploy/clinic
    (iPhone : Réglages › Général › VPN et gestion de l'appareil, puis Réglages › Général › Informations ›
    Réglages des certificats › activer ; Android : Paramètres › Sécurité › Installer un certificat CA ;
    Windows/macOS : double-cliquez et faites-lui confiance). Ceci évite l'alerte « connexion non sécurisée ».
-2. Ouvrez `https://<IP-du-serveur>` et créez le cabinet (**une seule fois** : ensuite l'inscription est fermée).
+2. Choisissez un seul mode de démarrage :
+   - **avec copie cloud** : créez d'abord le cabinet et son propriétaire sur l'adresse HTTPS hébergée. Dans cette copie,
+     ouvrez Paramètres › Ordinateur du cabinet et créez un code valable 30 minutes. Sur le serveur local encore vide,
+     ouvrez `https://<IP-du-serveur>/sync-setup`, saisissez l'adresse cloud et le code, puis attendez la fin de la copie
+     initiale avant de vous connecter ;
+   - **local uniquement** : ouvrez `https://<IP-du-serveur>` et créez le cabinet une seule fois. Cette base n'est plus
+     jumelable automatiquement après la création; pour passer au mode cloud, repartez d'une installation locale vide
+     après sauvegarde et migration contrôlée des données.
 3. Invitez le personnel depuis Paramètres › Équipe (chaque personne a son propre compte).
 4. Remplacez les tarifs de démonstration du catalogue par vos prix.
 5. Sur téléphone, « Ajouter à l'écran d'accueil » installe l'application.
@@ -120,6 +131,8 @@ cd deploy/clinic
   directement le port 3000 de l'application : un accès internet doit rester derrière un proxy de confiance.
 - `AUTH_RATE_LIMIT_SECRET` est généré automatiquement dans `.env`. `update.sh` l'ajoute également aux anciennes
   installations sans modifier leurs autres secrets.
+- `DB_SYNC_PASSWORD` est distinct des mots de passe propriétaire et applicatif. Il est généré à l'installation (ou lors
+  de la première mise à jour d'une ancienne installation), puis injecté uniquement dans les composants de synchronisation.
 - Mettez le serveur dans une pièce fermée, avec un mot de passe de session et le chiffrement du disque
   (BitLocker / FileVault / LUKS).
 - Activez la double authentification pour les comptes du propriétaire et de la comptabilité.

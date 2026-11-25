@@ -17,6 +17,7 @@ if [ ! -f .env ]; then
 CLINIC_HOST=$host
 DB_OWNER_PASSWORD=$(rand)
 DB_APP_PASSWORD=$(rand)
+DB_SYNC_PASSWORD=$(rand)
 MFA_ENCRYPTION_KEY=$(rand)$(rand)
 AUTH_RATE_LIMIT_SECRET=$(rand)$(rand)
 TZ=Africa/Algiers
@@ -25,9 +26,17 @@ BACKUP_KEEP_DAYS=30
 BACKUP_DIR=./backups
 HTTPS_PORT=443
 HTTP_PORT=80
+CABINET_SYNC_WORKER=on
 ENV
   chmod 600 .env
   echo "Fichier .env créé (secrets générés)."
+fi
+# A rerun over an installation created before clinic/cloud sync must remain
+# safe: add only the new secret and preserve every existing value.
+if ! grep -q '^DB_SYNC_PASSWORD=' .env; then
+  sync_secret=$(openssl rand -hex 24 2>/dev/null || head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')
+  printf '\nDB_SYNC_PASSWORD=%s\n' "$sync_secret" >> .env
+  chmod 600 .env
 fi
 mkdir -p backups
 

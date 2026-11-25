@@ -17,7 +17,9 @@ l'endpoint direct.
 
 N'utilisez jamais le rôle propriétaire comme `DATABASE_URL` du serveur web. Chez Neon, les rôles créés depuis la Console
 héritent normalement de `neon_superuser`, qui inclut `BYPASSRLS`. Le projet crée donc `cabinet_app` directement en SQL,
-sans rôle hérité et sans capacité de contourner l'isolation des cabinets.
+sans rôle hérité et sans capacité de contourner l'isolation des cabinets. Un second compte restreint, `cabinet_sync`,
+est réservé aux routes de synchronisation avec l'ordinateur du cabinet; il hérite uniquement de `cabinet_app` et ne
+contourne jamais le RLS.
 
 ## 2. Initialiser le rôle et le schéma
 
@@ -27,6 +29,7 @@ Sur une machine disposant du dépôt et de Node.js :
 npm ci
 export DATABASE_URL_ADMIN='postgresql://OWNER:PASSWORD@ep-example.region.aws.neon.tech/neondb?sslmode=require'
 export DATABASE_RUNTIME_PASSWORD='une-cle-aleatoire-d-au-moins-24-caracteres'
+export DATABASE_SYNC_PASSWORD='une-autre-cle-aleatoire-d-au-moins-24-caracteres'
 npm run db:setup:neon -- --print-runtime-url
 ```
 
@@ -35,13 +38,16 @@ Le script :
 1. refuse un endpoint poolé ou non chiffré pour l'administration ;
 2. crée/répare `cabinet_app`, retire ses rôles hérités et vérifie `NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE` ;
 3. applique toutes les migrations par l'endpoint direct ;
-4. se reconnecte par l'endpoint `-pooler` et vérifie le rôle, les privilèges et le RLS sans contexte de cabinet.
+4. active `cabinet_sync`, lui laisse pour seul rôle parent `cabinet_app` et vérifie les mêmes attributs sûrs ;
+5. se reconnecte aux deux comptes par l'endpoint `-pooler` et vérifie leurs privilèges, le RLS sans contexte de cabinet
+   et le rôle de nœud `cloud`.
 
-La dernière ligne `DATABASE_URL` contient un secret. Copiez-la immédiatement dans le coffre de secrets du serveur; ne la
-committez jamais. Pour une clé robuste : `openssl rand -base64 36`.
+Les deux lignes `DATABASE_URL` et `SYNC_DATABASE_URL` contiennent des secrets. Copiez-les immédiatement dans le coffre
+de secrets du serveur; ne les commettez jamais. Utilisez deux clés différentes, par exemple avec
+`openssl rand -base64 36`.
 
-Le script est réexécutable. Une nouvelle valeur de `DATABASE_RUNTIME_PASSWORD` effectue une rotation du mot de passe; il
-faut ensuite remplacer `DATABASE_URL` sur tous les serveurs applicatifs dans la même opération.
+Le script est réexécutable. Une nouvelle valeur de `DATABASE_RUNTIME_PASSWORD` ou `DATABASE_SYNC_PASSWORD` effectue la
+rotation du mot de passe correspondant; remplacez l'URL associée sur tous les serveurs applicatifs dans la même opération.
 
 ## 3. Préparer le serveur applicatif
 
@@ -58,6 +64,7 @@ Renseignez :
 - `TLS_EMAIL` : contact Let's Encrypt ;
 - `DATABASE_URL_ADMIN` : URL directe propriétaire, utilisée uniquement par le conteneur de migration ;
 - `DATABASE_URL` : URL poolée `cabinet_app` produite par le script ;
+- `SYNC_DATABASE_URL` : URL poolée `cabinet_sync` produite par le script ;
 - `MFA_ENCRYPTION_KEY` et `AUTH_RATE_LIMIT_SECRET` : deux secrets distincts d'au moins 32 octets ;
 - SMTP si les liens « mot de passe oublié » doivent partir par courriel.
 
@@ -92,6 +99,7 @@ termine avant le démarrage de la nouvelle application et l'URL propriétaire n'
 | Variable | Conteneur | Rôle |
 |---|---|---|
 | `DATABASE_URL` | application | Endpoint Neon poolé, utilisateur `cabinet_app` uniquement |
+| `SYNC_DATABASE_URL` | application | Endpoint Neon poolé, utilisateur `cabinet_sync`, routes de synchronisation uniquement |
 | `DATABASE_POOL_MAX` | application | Connexions par processus; `5` est le défaut du déploiement Neon |
 | `DATABASE_URL_ADMIN` | migration | Endpoint Neon direct, jamais le serveur web |
 | `APP_URL`, `PUBLIC_APP_URL` | application | URL HTTPS publique générée depuis `APP_HOST` |
@@ -99,6 +107,10 @@ termine avant le démarrage de la nouvelle application et l'URL propriétaire n'
 | `MFA_ENCRYPTION_KEY` | application | Chiffrement des secrets TOTP |
 | `AUTH_RATE_LIMIT_SECRET` | application | HMAC des adresses utilisées pour le throttling |
 | `REGISTRATION_MODE` | application | `first-only` recommandé pour un cabinet unique |
+
+Le conteneur cloud fixe `CABINET_SYNC_WORKER=off` : il répond aux routes de synchronisation mais n'exécute pas la boucle
+sortante réservée à l'ordinateur du cabinet. La procédure de jumelage est décrite dans
+`docs/INSTALLATION-CABINET.md`.
 
 ## Limites actuelles
 

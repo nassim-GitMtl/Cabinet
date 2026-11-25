@@ -4,9 +4,9 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-23 by Codex (session 49 — chairside visit cockpit).
+Last updated: 2026-11-25 by Codex (session 50 — clinic/cloud sync deployment completed).
 
-## In progress (Claude, 2026-11-21): offline clinic computer + cloud sync
+## Recently completed: offline clinic computer + cloud sync
 
 User chose "Clinic PC + cloud sync" (like Dentus). Design: docs/ARCHITECTURE.md "Offline clinic computer and cloud sync".
 - ✅ Step 1–2 (committed): migration 0043 (sync login `cabinet_sync`, change log, trigger bypass, read-only guard for
@@ -26,8 +26,15 @@ User chose "Clinic PC + cloud sync" (like Dentus). Design: docs/ARCHITECTURE.md 
   servers (cloud dev + standalone clinic build on its own database): pair, first copy in < 5 s, sign in with the usual
   account, new patient at the clinic visible in the cloud, view-only cloud, internet cut (notice, work continues),
   catch-up when back, unpair.
-- ⏳ Step 5: deployment: `cabinet_sync` role + `SYNC_DATABASE_URL` in `deploy/clinic` (node role clinic) and Neon setup
-  script; docs for both.
+- ✅ Step 5 (session 50): the clinic Compose stack now generates a separate sync secret, enables and verifies
+  `cabinet_sync` after migrations, marks the local database as a `clinic` node, injects `SYNC_DATABASE_URL`, and starts
+  the worker. The Neon setup creates two distinct pooled URLs, restricts/verifies both roles and keeps the owner URL
+  migration-only; VPS and Vercel deployment examples include the cloud sync URL and disable the clinic polling loop.
+  The French installation guide now documents the real fresh-computer pairing flow and offline catch-up. Both Compose
+  files resolve, the clinic role script ran against the isolated node database, and all application checks are green
+  through the supported webpack build. Before pairing a real clinic with the existing Frankfurt production deployment,
+  rerun `db:setup:neon` with a new `DATABASE_SYNC_PASSWORD`, then add `SYNC_DATABASE_URL` and
+  `CABINET_SYNC_WORKER=off` to Vercel.
 - Hosting (user decision 2026-11-21, "Yes, Frankfurt"): Vercel project **cabinet-dentaire** runs in `fra1`
   (`vercel.json`); its Production/Preview `DATABASE_URL` points to the Neon project **Cabinet Frankfurt**
   (`frosty-poetry-90310081`, aws-eu-central-1, PG 18, set up with `npm run db:setup:neon`, migrations through 0044).
@@ -602,6 +609,19 @@ permission-checked and tenant-scoped; integration coverage verifies the assemble
 and cross-clinic invisibility. 234/234 tests, typecheck and full lint are green; `npx next build --webpack` is green and
 includes `/patients/[id]/visit`. The standard Turbopack build still reaches the documented runner-only CSS helper-port
 `EPERM`. Browser-checked the French desktop cockpit, including the real note action and all destination links.
+
+Session 50 (Codex): completed the interrupted deployment phase of clinic-computer/cloud synchronization. The local
+Compose stack now upgrades old installations safely with a distinct `DB_SYNC_PASSWORD`, configures the migration-created
+`cabinet_sync` login, verifies its restricted attributes and sole `cabinet_app` membership, sets the database node role
+to `clinic`, and starts the worker only after that configuration succeeds. Neon setup now provisions and verifies both
+restricted pooled connections (`DATABASE_URL` and `SYNC_DATABASE_URL`), while direct owner access remains setup/migration
+only; the Neon VPS and Vercel guides and examples carry the sync connection and explicitly disable the clinic polling
+loop on cloud nodes. The clinic guide replaces the obsolete "sync planned" text with the actual fresh-node pairing and
+offline recovery workflow. Verification: both Compose files resolve; all three deployment shell scripts pass `sh -n`;
+the role configurator executed successfully against `cabinet_test_node`; 236/236 tests pass; typecheck and full lint are
+green; `npx next build --webpack` is green and includes every sync route plus `/sync-setup`. The required standard
+Turbopack build was retried both normally and with elevated sandbox access, but this runner still denies Tailwind's
+internal helper port (`EPERM`), the unchanged environment limitation documented in prior sessions.
 
 ## Requirement coverage map
 

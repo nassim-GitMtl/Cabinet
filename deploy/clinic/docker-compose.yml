@@ -35,6 +35,20 @@ services:
     restart: "no"
     networks: [internal]
 
+  configure-sync:
+    image: postgres:18-alpine
+    environment:
+      PGPASSWORD: ${DB_OWNER_PASSWORD:?run install.sh first}
+      DB_SYNC_PASSWORD: ${DB_SYNC_PASSWORD:?run install.sh first}
+    volumes:
+      - ./configure-sync.sh:/configure-sync.sh:ro
+    entrypoint: ["/bin/sh", "/configure-sync.sh"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+    networks: [internal]
+
   app:
     image: cabinet-dentaire-pro:${APP_VERSION:-local}
     build:
@@ -43,6 +57,9 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://cabinet_app:${DB_APP_PASSWORD}@db:5432/cabinet
+      # Dedicated login: only sync code may replay rows while RLS stays enabled.
+      SYNC_DATABASE_URL: postgres://cabinet_sync:${DB_SYNC_PASSWORD}@db:5432/cabinet
+      CABINET_SYNC_WORKER: ${CABINET_SYNC_WORKER:-on}
       APP_URL: https://${CLINIC_HOST}
       # Optional public address (domain pointing to this server) for the clinic page and QR posters.
       PUBLIC_APP_URL: ${PUBLIC_APP_URL:-}
@@ -62,7 +79,7 @@ services:
       REGISTRATION_MODE: ${REGISTRATION_MODE:-first-only}
       TZ: ${TZ:-Africa/Algiers}
     depends_on:
-      migrate:
+      configure-sync:
         condition: service_completed_successfully
     networks: [internal]
     volumes:

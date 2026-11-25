@@ -20,6 +20,10 @@ services:
     environment:
       # Pooled Neon endpoint using the SQL-created cabinet_app role.
       DATABASE_URL: ${DATABASE_URL:?pooled cabinet_app Neon URL required}
+      # Separate pooled login used only by the clinic-computer sync routes.
+      SYNC_DATABASE_URL: ${SYNC_DATABASE_URL:?pooled cabinet_sync Neon URL required}
+      # Cloud nodes expose sync routes but never run the clinic-side polling loop.
+      CABINET_SYNC_WORKER: "off"
       DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-5}
       APP_URL: https://${APP_HOST:?public hostname required}
       PUBLIC_APP_URL: https://${APP_HOST}

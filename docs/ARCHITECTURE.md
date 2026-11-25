@@ -429,6 +429,10 @@ and double bookings are only safe with one copy in charge.
   (append-only tables: insert-only) with the tenant context set, so RLS still applies. `sync_row_versions` keeps the
   last change id per row and origin: an older change never overwrites a newer one; re-sending a batch is harmless.
   A row whose parent has not arrived (FK violation) waits in `sync_pending` and is retried after each batch.
+- **Deployment credentials.** `cabinet_app` and `cabinet_sync` always have distinct secrets. Hosted deployments use
+  pooled Neon URLs for both application connections; the direct owner URL exists only in migrations/setup. The clinic
+  Compose stack enables `cabinet_sync` after migrations, marks `node_settings.node_role = 'clinic'`, and starts the
+  worker there. Cloud deployments expose the sync routes but set `CABINET_SYNC_WORKER=off`.
 - **Pairing and first copy.** The owner creates a 30-minute single-use code in the cloud (`createPairingCode`,
   `org.settings.manage`); the clinic computer exchanges it for a long-lived node key (`claim_sync_pairing`: from
   this moment the clinic computer is in charge). Only SHA-256 hashes are stored in the cloud; the clinic computer

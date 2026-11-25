@@ -32,12 +32,14 @@ Depuis une machine sûre qui possède le dépôt :
 npm ci
 export DATABASE_URL_ADMIN='postgresql://OWNER:PASSWORD@ep-example.region.aws.neon.tech/neondb?sslmode=require'
 export DATABASE_RUNTIME_PASSWORD='une-cle-aleatoire-d-au-moins-24-caracteres'
+export DATABASE_SYNC_PASSWORD='une-autre-cle-aleatoire-d-au-moins-24-caracteres'
 npm run db:setup:neon -- --print-runtime-url
 ```
 
-Le script crée `cabinet_app` sans rôle hérité, vérifie `NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE`, applique les
-migrations, puis teste l'isolation RLS par l'endpoint poolé. La dernière ligne affiche l'URL d'exécution secrète à copier
-dans Vercel. La procédure détaillée et la rotation du mot de passe sont dans `docs/DEPLOYMENT-NEON.md`.
+Le script crée `cabinet_app`, active le compte dédié `cabinet_sync`, vérifie leurs attributs sûrs et leurs rôles hérités,
+applique les migrations, puis teste l'isolation RLS des deux connexions par l'endpoint poolé. Il affiche les deux URL
+secrètes à copier dans Vercel. La procédure détaillée et la rotation des mots de passe sont dans
+`docs/DEPLOYMENT-NEON.md`.
 
 ## 3. Créer le projet Vercel
 
@@ -56,6 +58,8 @@ Ajoutez ces variables à l'environnement **Production** :
 | Variable | Valeur / usage |
 |---|---|
 | `DATABASE_URL` | URL Neon **poolée**, utilisateur `cabinet_app` |
+| `SYNC_DATABASE_URL` | deuxième URL Neon **poolée**, utilisateur `cabinet_sync` |
+| `CABINET_SYNC_WORKER` | `off` sur le cloud (les routes restent actives; seule la boucle sortante est coupée) |
 | `DATABASE_POOL_MAX` | `1` recommandé par instance serverless |
 | `APP_URL` | `https://cabinet.example.com` |
 | `PUBLIC_APP_URL` | la même URL publique définitive |
@@ -130,7 +134,8 @@ openssl enc -d -aes-256-cbc -md sha256 -pbkdf2 -iter 200000 -in cabinet-AAAAMMJJ
 # (la phrase secrète BACKUP_PASSPHRASE est demandée)
 # 2. Restaurer dans une base vide (PostgreSQL 18) :
 pg_restore --no-owner --no-privileges -d "<URL directe de la base cible>" cabinet.dump
-# 3. Recréer le rôle restreint et vérifier : DATABASE_URL_ADMIN=<même URL> npm run db:setup:neon
+# 3. Recréer les rôles restreints et vérifier (fournir aussi DATABASE_RUNTIME_PASSWORD et DATABASE_SYNC_PASSWORD) :
+DATABASE_URL_ADMIN='<même URL>' npm run db:setup:neon
 ```
 
 Le chiffrement, le déchiffrement et la restauration ont été testés sur une copie locale (86 tables restaurables).

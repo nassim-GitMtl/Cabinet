@@ -2,6 +2,7 @@ const NEON_HOST_SUFFIX = ".neon.tech";
 const NEON_POOLER_MARKER = "-pooler.";
 
 export const RUNTIME_DATABASE_ROLE = "cabinet_app";
+export const SYNC_DATABASE_ROLE = "cabinet_sync";
 
 function parseDatabaseUrl(raw: string) {
   let url: URL;
@@ -59,26 +60,35 @@ export function validateNeonAdminUrl(raw: string) {
   if (url.searchParams.get("sslmode") !== "require") {
     throw new Error("DATABASE_URL_ADMIN must include sslmode=require");
   }
-  if (decodeURIComponent(url.username) === RUNTIME_DATABASE_ROLE) {
-    throw new Error("DATABASE_URL_ADMIN must use the Neon owner role, not cabinet_app");
+  const username = decodeURIComponent(url.username);
+  if (username === RUNTIME_DATABASE_ROLE || username === SYNC_DATABASE_ROLE) {
+    throw new Error("DATABASE_URL_ADMIN must use the Neon owner role, not an application role");
   }
 }
 
-export function buildNeonRuntimeUrl(adminUrl: string, password: string) {
+function buildNeonRoleUrl(adminUrl: string, role: string, password: string, passwordVariable: string) {
   validateNeonAdminUrl(adminUrl);
   if (password.length < 24) {
-    throw new Error("DATABASE_RUNTIME_PASSWORD must contain at least 24 characters");
+    throw new Error(`${passwordVariable} must contain at least 24 characters`);
   }
 
   const url = parseDatabaseUrl(adminUrl);
   const [endpoint, ...rest] = url.hostname.split(".");
   if (!endpoint || rest.length === 0) throw new Error("Unexpected Neon hostname");
   url.hostname = `${endpoint}-pooler.${rest.join(".")}`;
-  url.username = RUNTIME_DATABASE_ROLE;
+  url.username = role;
   url.password = password;
   url.searchParams.set("sslmode", "require");
   url.searchParams.delete("channel_binding");
   return url.toString();
+}
+
+export function buildNeonRuntimeUrl(adminUrl: string, password: string) {
+  return buildNeonRoleUrl(adminUrl, RUNTIME_DATABASE_ROLE, password, "DATABASE_RUNTIME_PASSWORD");
+}
+
+export function buildNeonSyncUrl(adminUrl: string, password: string) {
+  return buildNeonRoleUrl(adminUrl, SYNC_DATABASE_ROLE, password, "DATABASE_SYNC_PASSWORD");
 }
 
 export function redactDatabaseUrl(raw: string) {

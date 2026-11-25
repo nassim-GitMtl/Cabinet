@@ -6,6 +6,8 @@ TLS_EMAIL=admin@example.com
 DATABASE_URL_ADMIN=postgresql://neondb_owner:replace-me@ep-example.region.aws.neon.tech/neondb?sslmode=require
 # Pooled endpoint and restricted cabinet_app role: web container only.
 DATABASE_URL=postgresql://cabinet_app:replace-me@ep-example-pooler.region.aws.neon.tech/neondb?sslmode=require
+# Pooled endpoint and restricted cabinet_sync role: sync routes only.
+SYNC_DATABASE_URL=postgresql://cabinet_sync:replace-me@ep-example-pooler.region.aws.neon.tech/neondb?sslmode=require
 DATABASE_POOL_MAX=5
 
 MFA_ENCRYPTION_KEY=replace-with-at-least-32-random-bytes

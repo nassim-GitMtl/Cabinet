@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildNeonRuntimeUrl,
+  buildNeonSyncUrl,
   databasePoolMax,
   isNeonDatabaseUrl,
   isPooledNeonUrl,
@@ -17,6 +18,15 @@ describe("database deployment URLs", () => {
     expect(url.hostname).toBe("ep-green-field-a1b2c3-pooler.us-east-2.aws.neon.tech");
     expect(url.username).toBe("cabinet_app");
     expect(url.password).toBe("a-very-long-runtime-password");
+    expect(url.searchParams.get("sslmode")).toBe("require");
+    expect(url.searchParams.has("channel_binding")).toBe(false);
+  });
+
+  it("builds a separate pooled URL for synchronization", () => {
+    const url = new URL(buildNeonSyncUrl(direct, "a-very-long-sync-password"));
+    expect(url.hostname).toBe("ep-green-field-a1b2c3-pooler.us-east-2.aws.neon.tech");
+    expect(url.username).toBe("cabinet_sync");
+    expect(url.password).toBe("a-very-long-sync-password");
     expect(url.searchParams.get("sslmode")).toBe("require");
     expect(url.searchParams.has("channel_binding")).toBe(false);
   });
@@ -40,6 +50,12 @@ describe("database deployment URLs", () => {
     expect(() => validateNeonAdminUrl(pooled)).toThrow(/direct Neon endpoint/);
     expect(() => validateNeonAdminUrl("postgres://owner:pass@localhost/db?sslmode=require")).toThrow(/Neon host/);
     expect(() => validateNeonAdminUrl(direct.replace("sslmode=require", "sslmode=disable"))).toThrow(/sslmode=require/);
+    expect(() => validateNeonAdminUrl(direct.replace("neondb_owner", "cabinet_sync"))).toThrow(/owner role/);
+  });
+
+  it("validates both generated role passwords", () => {
+    expect(() => buildNeonRuntimeUrl(direct, "too-short")).toThrow(/DATABASE_RUNTIME_PASSWORD/);
+    expect(() => buildNeonSyncUrl(direct, "too-short")).toThrow(/DATABASE_SYNC_PASSWORD/);
   });
 
   it("redacts passwords and validates pool sizes", () => {
