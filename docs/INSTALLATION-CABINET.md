@@ -49,15 +49,21 @@ Sur un ordinateur **avec** internet, dans une copie du projet :
 
 ```bash
 cd deploy/clinic
-./export-images.sh        # crée cabinet-images.tar.gz
+./export-images.sh        # crée cabinet-offline-amd64.tar.gz + son empreinte SHA-256
 ```
 
-Copiez tout le dossier du projet **avec** `cabinet-images.tar.gz` (clé USB) sur le serveur, puis :
+Copiez `cabinet-offline-amd64.tar.gz` et `cabinet-offline-amd64.tar.gz.sha256` sur la clé USB. Le paquet cible les PC
+Intel/AMD 64 bits courants; pour un serveur ARM, utilisez `TARGET_PLATFORM=linux/arm64 ./export-images.sh`.
+
+Sur le serveur du cabinet, vérifiez l'empreinte, décompressez le paquet, puis :
 
 ```bash
-cd deploy/clinic
-./install.sh              # charge les images depuis l'archive, sans internet
+cd cabinet-offline
+./install.sh              # Linux/macOS : charge les images, sans internet
+# Windows PowerShell : powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
+
+Le paquet contient aussi `README-OFFLINE.md` (procédure courte client) et `GUIDE-INSTALLATION-COMPLET.md`.
 
 ## Premier démarrage
 

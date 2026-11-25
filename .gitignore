@@ -47,3 +47,4 @@ next-env.d.ts
 deploy/clinic/.env
 deploy/clinic/backups/
 deploy/clinic/*.tar.gz
+deploy/clinic/*.tar.gz.sha256

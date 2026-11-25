@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-25 by Codex (session 50 — clinic/cloud sync deployment completed).
+Last updated: 2026-11-25 by Codex (session 51 — client-ready offline installer).
 
 ## Recently completed: offline clinic computer + cloud sync
 
@@ -622,6 +622,19 @@ the role configurator executed successfully against `cabinet_test_node`; 236/236
 green; `npx next build --webpack` is green and includes every sync route plus `/sync-setup`. The required standard
 Turbopack build was retried both normally and with elevated sandbox access, but this runner still denies Tailwind's
 internal helper port (`EPERM`), the unchanged environment limitation documented in prior sessions.
+
+Session 51 (Codex): produced a client-ready offline installer instead of requiring the whole source repository.
+`deploy/clinic/export-images.sh` now cross-builds a single-platform bundle (AMD64 by default, ARM64 optional), pins the
+exact PostgreSQL/Caddy child manifests so Docker can save them without missing multi-architecture layers, verifies every
+image architecture, packages all runtime/initdb/backup/restore files and both French guides, and writes SHA-256 checksums.
+The package includes the existing Linux/macOS installer plus a new Windows PowerShell installer that generates distinct
+database/MFA/rate-limit secrets, loads the images and starts the full Compose stack. A clean-room test from the generated
+206 MB `cabinet-offline-amd64.tar.gz` caught and fixed a missing `initdb` directory, then passed from an empty volume:
+migrations and sync-role configuration completed, all services became healthy, HTTPS `/api/health` returned 200, the
+database reported `clinic:unpaired`, `cabinet_app`/`cabinet_sync` had neither superuser nor BYPASSRLS, the dedicated sync
+login connected successfully, and an immediate database + clinical-files backup with checksum succeeded. The bundled
+`install.sh` itself was rerun successfully. Outer and inner archive checksums pass; 236/236 application tests, typecheck,
+full lint and the AMD64 Docker/Turbopack production build are green.
 
 ## Requirement coverage map
 
