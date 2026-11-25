@@ -6,6 +6,7 @@
 #   TARGET_PLATFORM=linux/arm64 ./export-images.sh
 set -eu
 cd "$(dirname "$0")"
+output_dir=$(pwd)
 
 target_platform="${TARGET_PLATFORM:-linux/amd64}"
 case "$target_platform" in
@@ -104,7 +105,25 @@ else
   shasum -a 256 "$bundle" > "$bundle.sha256"
 fi
 
+windows_bundle="cabinet-offline-windows-$target_arch.zip"
+if command -v zip >/dev/null; then
+  rm -f "$windows_bundle" "$windows_bundle.sha256"
+  (cd "$bundle_tmp" && zip -q -0 -r "$output_dir/$windows_bundle" cabinet-offline)
+  if command -v sha256sum >/dev/null; then
+    sha256sum "$windows_bundle" > "$windows_bundle.sha256"
+  else
+    shasum -a 256 "$windows_bundle" > "$windows_bundle.sha256"
+  fi
+else
+  echo "Attention : commande zip absente, paquet Windows non créé." >&2
+  windows_bundle=""
+fi
+
 echo
 echo "Paquet client créé : $(pwd)/$bundle"
 echo "Empreinte SHA-256 :  $(pwd)/$bundle.sha256"
-echo "Copiez ces deux fichiers sur la clé USB du client."
+if [ -n "$windows_bundle" ]; then
+  echo "Paquet Windows créé : $(pwd)/$windows_bundle"
+  echo "Empreinte Windows :   $(pwd)/$windows_bundle.sha256"
+fi
+echo "Copiez le paquet adapté au système et son fichier .sha256 sur la clé USB du client."

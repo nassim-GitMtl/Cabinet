@@ -49,13 +49,19 @@ Sur un ordinateur **avec** internet, dans une copie du projet :
 
 ```bash
 cd deploy/clinic
-./export-images.sh        # crée cabinet-offline-amd64.tar.gz + son empreinte SHA-256
+./export-images.sh        # crée les paquets Linux/macOS et Windows + leurs empreintes SHA-256
 ```
 
-Copiez `cabinet-offline-amd64.tar.gz` et `cabinet-offline-amd64.tar.gz.sha256` sur la clé USB. Le paquet cible les PC
-Intel/AMD 64 bits courants; pour un serveur ARM, utilisez `TARGET_PLATFORM=linux/arm64 ./export-images.sh`.
+Copiez sur la clé USB le paquet du système et son fichier `.sha256` :
 
-Sur le serveur du cabinet, vérifiez l'empreinte, décompressez le paquet, puis :
+- Windows : `cabinet-offline-windows-amd64.zip` et `cabinet-offline-windows-amd64.zip.sha256` ;
+- Linux/macOS Intel : `cabinet-offline-amd64.tar.gz` et `cabinet-offline-amd64.tar.gz.sha256`.
+
+Les paquets ciblent les PC Intel/AMD 64 bits courants. Pour un serveur ARM, utilisez
+`TARGET_PLATFORM=linux/arm64 ./export-images.sh`.
+
+Sur le serveur du cabinet, vérifiez l'empreinte, décompressez le paquet (`Extraire tout` dans l'Explorateur Windows),
+puis :
 
 ```bash
 cd cabinet-offline

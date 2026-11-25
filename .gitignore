@@ -48,3 +48,5 @@ deploy/clinic/.env
 deploy/clinic/backups/
 deploy/clinic/*.tar.gz
 deploy/clinic/*.tar.gz.sha256
+deploy/clinic/*.zip
+deploy/clinic/*.zip.sha256

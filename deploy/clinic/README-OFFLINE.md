@@ -22,12 +22,14 @@ sha256sum -c cabinet-offline-amd64.tar.gz.sha256
 Sous Windows PowerShell, comparez le résultat avec le contenu du fichier `.sha256` :
 
 ```powershell
-Get-FileHash .\cabinet-offline-amd64.tar.gz -Algorithm SHA256
+Get-FileHash .\cabinet-offline-windows-amd64.zip -Algorithm SHA256
 ```
 
 ## Installer sous Windows
 
-1. Décompressez `cabinet-offline-amd64.tar.gz` avec 7-Zip.
+1. Dans l'Explorateur de fichiers, faites un clic droit sur `cabinet-offline-windows-amd64.zip`, choisissez
+   « Extraire tout », puis ouvrez le dossier `cabinet-offline` extrait. Aucun logiciel de décompression supplémentaire
+   n'est nécessaire.
 2. Démarrez Docker Desktop et attendez l'indication « Engine running ».
 3. Ouvrez PowerShell dans ce dossier puis exécutez :
 

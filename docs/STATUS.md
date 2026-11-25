@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-25 by Codex (session 51 — client-ready offline installer).
+Last updated: 2026-11-25 by Codex (session 52 — native Windows offline package).
 
 ## Recently completed: offline clinic computer + cloud sync
 
@@ -635,6 +635,16 @@ database reported `clinic:unpaired`, `cabinet_app`/`cabinet_sync` had neither su
 login connected successfully, and an immediate database + clinical-files backup with checksum succeeded. The bundled
 `install.sh` itself was rerun successfully. Outer and inner archive checksums pass; 236/236 application tests, typecheck,
 full lint and the AMD64 Docker/Turbopack production build are green.
+
+Session 52 (Codex): added a native Windows delivery around the same verified AMD64 offline stack. The exporter now
+writes `cabinet-offline-windows-amd64.zip` beside the Linux/macOS tarball, with a separate SHA-256 checksum, while
+keeping the image archive uncompressed inside the ZIP to avoid wasting time recompressing Docker layers. Windows staff
+can use Explorer's built-in “Extract all” and run `install.ps1`; no 7-Zip or source checkout is needed. The 206 MB ZIP
+passed its SHA-256 check and `unzip -t`; its contents include the PowerShell installer, Compose stack, restricted-role
+initializer, backup/restore/update tools, both client guides, and the checked Docker image archive. 236/236 tests,
+typecheck, full lint, shell syntax and the Webpack production build are green. The standard Turbopack command was also
+retried and reached the unchanged runner-only CSS helper-port `EPERM`; the packaged AMD64 Turbopack image build was
+already verified in session 51 and application source did not change in this session.
 
 ## Requirement coverage map
 
