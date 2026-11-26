@@ -5,7 +5,8 @@ internet n'est nécessaire pendant l'installation, mais **Docker doit être inst
 
 ## Prérequis
 
-- PC Intel/AMD 64 bits, 8 Go de RAM conseillés, SSD avec chiffrement activé.
+- Ordinateur 64 bits, 8 Go de RAM conseillés, SSD avec chiffrement activé. Utilisez le paquet `amd64` pour un
+  PC Intel/AMD ou un Mac Intel, et `arm64` pour un Mac Apple Silicon (M1/M2/M3/M4).
 - Adresse IP fixe réservée dans le routeur du cabinet.
 - Windows : Docker Desktop démarré en mode « Linux containers ».
 - Linux : Docker Engine avec le plugin Compose.
@@ -17,6 +18,15 @@ Le fichier livré avec ce dossier possède une empreinte `.sha256`. Sous Linux :
 
 ```bash
 sha256sum -c cabinet-offline-amd64.tar.gz.sha256
+```
+
+Sous macOS, utilisez la ligne correspondant au processeur :
+
+```bash
+# Mac Intel
+shasum -a 256 -c cabinet-offline-amd64.tar.gz.sha256
+# Mac Apple Silicon (M1/M2/M3/M4)
+shasum -a 256 -c cabinet-offline-arm64.tar.gz.sha256
 ```
 
 Sous Windows PowerShell, comparez le résultat avec le contenu du fichier `.sha256` :
@@ -37,7 +47,7 @@ Get-FileHash .\cabinet-offline-windows-amd64.zip -Algorithm SHA256
 powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-## Installer sous Linux ou macOS Intel
+## Installer sous Linux ou macOS
 
 ```bash
 chmod +x *.sh

@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-25 by Codex (session 52 — native Windows offline package).
+Last updated: 2026-11-26 by Codex (session 53 — raw-IP TLS and native Apple Silicon package).
 
 ## Recently completed: offline clinic computer + cloud sync
 
@@ -645,6 +645,15 @@ initializer, backup/restore/update tools, both client guides, and the checked Do
 typecheck, full lint, shell syntax and the Webpack production build are green. The standard Turbopack command was also
 retried and reached the unchanged runner-only CSS helper-port `EPERM`; the packaged AMD64 Turbopack image build was
 already verified in session 51 and application source did not change in this session.
+
+Session 53 (Codex): fixed clinic-LAN HTTPS for browsers that omit SNI when opening a raw IP address. Caddy now uses
+`CLINIC_HOST` as its documented `default_sni`; before the fix OpenSSL worked only when explicitly given the IP as SNI,
+while macOS curl and a clean headless Chrome profile both reproduced `ERR_SSL_PROTOCOL_ERROR`. After the live proxy was
+recreated, the same curl and Chrome checks returned `/api/health` with HTTP 200. The installed local CA was unchanged.
+Regenerated and checksum-verified the AMD64 packages, then built a native ARM64/Turbopack image set and 202 MB
+`cabinet-offline-arm64.tar.gz` for Apple Silicon Macs. Docker build context now excludes generated ZIP packages, and
+the client/full guides identify `amd64` versus `arm64` explicitly. Both ARM64 and AMD64 Docker/Turbopack production
+builds are green; 236/236 tests, typecheck, full lint, package checksums and archive-content verification pass.
 
 ## Requirement coverage map
 

@@ -29,7 +29,8 @@ internet.
 - Un PC ou mini-PC dédié (4 Go de RAM minimum, 8 Go conseillés, SSD 128 Go), allumé pendant les heures d'ouverture.
 - Un onduleur (coupures de courant) et un disque/clé USB pour copier les sauvegardes.
 - Un routeur Wi-Fi ; réservez une **adresse IP fixe** pour le serveur dans le routeur (ex. `192.168.1.10`).
-- Docker : Docker Desktop (Windows/macOS) ou Docker Engine (Linux, recommandé).
+- Docker : Docker Desktop (Windows/macOS) ou Docker Engine (Linux, recommandé). Sur un Mac Apple Silicon
+  (M1/M2/M3/M4), utilisez le paquet `arm64`; sur un Mac Intel ou un PC Intel/AMD, utilisez `amd64`.
 
 ## Installation
 
@@ -55,10 +56,11 @@ cd deploy/clinic
 Copiez sur la clé USB le paquet du système et son fichier `.sha256` :
 
 - Windows : `cabinet-offline-windows-amd64.zip` et `cabinet-offline-windows-amd64.zip.sha256` ;
-- Linux/macOS Intel : `cabinet-offline-amd64.tar.gz` et `cabinet-offline-amd64.tar.gz.sha256`.
+- Linux/macOS Intel : `cabinet-offline-amd64.tar.gz` et `cabinet-offline-amd64.tar.gz.sha256` ;
+- macOS Apple Silicon : `cabinet-offline-arm64.tar.gz` et `cabinet-offline-arm64.tar.gz.sha256`.
 
-Les paquets ciblent les PC Intel/AMD 64 bits courants. Pour un serveur ARM, utilisez
-`TARGET_PLATFORM=linux/arm64 ./export-images.sh`.
+Le paquet `amd64` cible les PC Intel/AMD et Mac Intel. Pour un Mac Apple Silicon (M1/M2/M3/M4) ou un serveur ARM,
+utilisez `TARGET_PLATFORM=linux/arm64 ./export-images.sh`, puis copiez `cabinet-offline-arm64.tar.gz` et son empreinte.
 
 Sur le serveur du cabinet, vérifiez l'empreinte, décompressez le paquet (`Extraire tout` dans l'Explorateur Windows),
 puis :
