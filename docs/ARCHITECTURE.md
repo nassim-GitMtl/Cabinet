@@ -156,6 +156,11 @@ tests/                    integration tests + support (global setup resets cabin
   `entitledPermissions()` when `ClinicContext` is built, so the same `requirePermission()` checks protect UI and server
   mutations. Public entry points without a staff permission (currently online booking) also check the module explicitly.
   `core` is always present; migration 0045 assigned all modules to pre-existing clinics to avoid accidental lockout.
+- Free trials (0053): `organizations.trial_ends_at` (null = paid), set only through `platform_set_trial` from the
+  console (start/extend/convert to paid, audited `platform.trial.*`) or at self sign-up (`SIGNUP_TRIAL_DAYS`). Once the end
+  has passed, `sessionPermissions()` keeps view/report/export keys only (`trialExpiredPermissions`), public booking and
+  automatic reminders stop; nothing is deleted. Trial requests from the public `/essai` page are platform data
+  (`trial_requests`, no `organization_id`, no direct app access) read and handled only through `app_private.platform_*`.
 
 ## Financial subledger (implemented — `src/features/billing`, migrations 0005/0006)
 

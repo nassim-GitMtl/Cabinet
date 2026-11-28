@@ -11,6 +11,7 @@ import { createSession, requestMeta, revokeCurrentSession, setActiveOrganization
 import { createMfaChallenge, verifyMfaChallenge } from "@/server/auth/mfa";
 import { authenticate, listMyClinics } from "@/server/services/auth";
 import { EmailTakenError, registerClinic } from "@/server/services/onboarding";
+import { signupTrialDays } from "@/lib/trial";
 import { isRegistrationAllowed } from "@/server/deployment/registration";
 
 const loginSchema = z.object({
@@ -68,9 +69,11 @@ export async function registerAction(_prev: ActionState, formData: FormData): Pr
 
   const localeCookie = (await cookies()).get(LOCALE_COOKIE)?.value;
   try {
+    const trialDays = signupTrialDays();
     const { userId, organizationId } = await registerClinic({
       ...parsed.data,
       locale: isLocale(localeCookie) ? localeCookie : "fr",
+      trialEndsAt: trialDays ? new Date(Date.now() + trialDays * 86_400_000) : null,
     });
     await createSession(userId, organizationId);
   } catch (err) {

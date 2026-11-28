@@ -24,6 +24,7 @@ import { normalizePhone } from "@/lib/phone";
 import { AgendaError, bookInTx, conflictFrom, validateAppointmentSlot } from "@/features/agenda/server";
 import { dateRange, freeSlots, type Interval } from "./slots";
 import type { LocalizedText } from "@/server/db/schema/_shared";
+import { trialState } from "@/lib/trial";
 
 export class BookingError extends Error {
   constructor(public readonly code: string) {
@@ -50,9 +51,15 @@ function publicTx<T>(organizationId: string, fn: (tx: Tx) => Promise<T>) {
   return withDbContext({ organizationId, actorType: "system" }, fn);
 }
 
+/** Online booking is sold as a module (an empty list = a clinic from before modules) and stops when a trial is over. */
+function bookingOpen(org: { enabledModules: string[]; trialEndsAt: Date | null }) {
+  const sold = org.enabledModules.includes("online_booking") || org.enabledModules.length === 0;
+  return sold && !trialState(org.trialEndsAt).expired;
+}
+
 async function loadLinkData(tx: Tx, linkId: string) {
   const [link] = await tx.select().from(bookingLinks).where(eq(bookingLinks.id, linkId));
-  const [org] = await tx.select({ name: organizations.name, timezone: organizations.timezone, locale: organizations.defaultLocale, enabledModules: organizations.enabledModules }).from(organizations);
+  const [org] = await tx.select({ name: organizations.name, timezone: organizations.timezone, locale: organizations.defaultLocale, enabledModules: organizations.enabledModules, trialEndsAt: organizations.trialEndsAt }).from(organizations);
   const types = await tx
     .select({ id: appointmentTypes.id, name: appointmentTypes.name, durationMin: appointmentTypes.defaultDurationMin })
     .from(appointmentTypes)
@@ -72,7 +79,7 @@ export async function getPublicBookingInfo(token: string) {
   if (!r) return null;
   return publicTx(r.organizationId, async (tx) => {
     const d = await loadLinkData(tx, r.linkId);
-    if (!d.org.enabledModules.includes("online_booking") && d.org.enabledModules.length > 0) return null;
+    if (!bookingOpen(d.org)) return null;
     return {
       clinicName: d.org.name,
       timezone: d.org.timezone,
@@ -122,7 +129,7 @@ export async function getPublicAvailability(token: string, typeId: string, date:
   if (!r) return null;
   return publicTx(r.organizationId, async (tx) => {
     const d = await loadLinkData(tx, r.linkId);
-    if (!d.org.enabledModules.includes("online_booking") && d.org.enabledModules.length > 0) return null;
+    if (!bookingOpen(d.org)) return null;
     const today = todayInZone(d.org.timezone);
     const dates = dateRange(today, Math.min(Math.max(d.link.horizonDays, 1), 60));
     const all = await computeAvailability(tx, d, typeId, dates);
@@ -155,7 +162,7 @@ export async function submitBookingRequest(token: string, input: SubmitInput, ip
   if (input.contactName.trim().length < 3) throw new BookingError("nameRequired");
   return publicTx(r.organizationId, async (tx) => {
     const d = await loadLinkData(tx, r.linkId);
-    if (!d.org.enabledModules.includes("online_booking") && d.org.enabledModules.length > 0) throw new BookingError("linkInvalid");
+    if (!bookingOpen(d.org)) throw new BookingError("linkInvalid");
     const type = d.types.find((t) => t.id === input.typeId);
     if (!type || !d.providers.some((p) => p.id === input.providerId)) throw new BookingError("slotUnavailable");
     // Abuse limits, counted from stored requests.

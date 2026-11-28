@@ -104,6 +104,11 @@ const READ_ONLY_EXTRA: readonly string[] = ["report.operational", "report.financ
 export function readOnlyCopyPermissions(permissions: readonly string[]): string[] {
   return permissions.filter((p) => (p.endsWith(".read") && p !== "shared_profile.read") || READ_ONLY_EXTRA.includes(p));
 }
+/** Trial over: same view-only set, plus taking the patient file out (the clinic's data stays the clinic's). */
+export function trialExpiredPermissions(permissions: readonly string[]): string[] {
+  const viewOnly = new Set(readOnlyCopyPermissions(permissions));
+  return permissions.filter((p) => viewOnly.has(p) || p === "patient.export");
+}
 
 const ALL: Permission[] = [...PERMISSIONS];
 

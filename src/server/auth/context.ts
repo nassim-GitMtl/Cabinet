@@ -7,8 +7,9 @@ import type { Tx } from "../db/client";
 import { branches, memberships, organizations, roles, type OrganizationSettings } from "../db/schema";
 import { SITE_COOKIE } from "../sites";
 import { withDbContext } from "../db/tenant";
-import { hasPermission, readOnlyCopyPermissions, roleEffectivePermissions, type Permission } from "../authz/permissions";
-import { entitledPermissions, moduleEnabled, type ProductModule } from "../authz/modules";
+import { hasPermission, type Permission } from "../authz/permissions";
+import { trialState, type TrialState } from "@/lib/trial";
+import { moduleEnabled, sessionPermissions, type ProductModule } from "../authz/modules";
 import { nodeRole } from "../sync/node";
 import { readSession, type SessionRecord } from "./session";
 
@@ -33,6 +34,8 @@ export type ClinicContext = {
   readOnlyCopy: boolean;
   /** May pair/unpair the clinic computer (kept even on a read-only copy, so the owner can take control back). */
   canManageClinicComputer: boolean;
+  /** Free trial. Once expired, `permissions` only holds view, report and export keys (see trialExpiredPermissions). */
+  trial: TrialState;
   organization: {
     id: string;
     name: string;
@@ -109,7 +112,10 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
   const picked = (await cookies()).get(SITE_COOKIE)?.value;
   const readOnlyCopy = row.org.dataHome === "clinic" && (await nodeRole()) === "cloud";
 
-  const entitled = entitledPermissions(roleEffectivePermissions(row.roleKey, row.permissions), row.org.enabledModules);
+  const trial = trialState(row.org.trialEndsAt);
+  const permissions = sessionPermissions({
+    roleKey: row.roleKey, rolePermissions: row.permissions, enabledModules: row.org.enabledModules, readOnlyCopy, trialExpired: trial.expired,
+  });
   return {
     sessionId: session.sessionId,
     userId: session.userId,
@@ -121,9 +127,10 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
     displayName: row.displayName,
     roleKey: row.roleKey,
     roleName: row.roleName,
-    permissions: readOnlyCopy ? readOnlyCopyPermissions(entitled) : entitled,
+    permissions,
     readOnlyCopy,
     canManageClinicComputer: hasPermission(row.permissions, "org.settings.manage"),
+    trial,
     organization: {
       id: row.org.id,
       name: row.org.name,

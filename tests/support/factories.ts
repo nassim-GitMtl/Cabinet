@@ -3,6 +3,7 @@ import type { ClinicContext } from "@/server/auth/context";
 import { ROLE_TEMPLATES, type RoleTemplateKey } from "@/server/authz/permissions";
 import { PRODUCT_MODULES } from "@/server/authz/modules";
 import { registerClinic } from "@/server/services/onboarding";
+import { NO_TRIAL } from "@/lib/trial";
 
 /** Creates an isolated clinic tenant and returns a staff context for it. */
 export async function makeClinic(name = "Cabinet Test", role: RoleTemplateKey = "owner"): Promise<ClinicContext> {
@@ -37,6 +38,7 @@ export function contextFor(
     roleName: ROLE_TEMPLATES[role].name,
     permissions: ROLE_TEMPLATES[role].permissions,
     readOnlyCopy: false,
+    trial: NO_TRIAL,
     canManageClinicComputer: ROLE_TEMPLATES[role].permissions.includes("org.settings.manage"),
     organization: {
       id: base.organizationId,

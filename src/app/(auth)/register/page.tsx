@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DEFAULT_TRIAL_DAYS } from "@/lib/trial";
 import { getSession } from "@/server/auth/context";
 import { isRegistrationAllowed } from "@/server/deployment/registration";
 import { nodeRole } from "@/server/sync/node";
@@ -22,7 +23,12 @@ export default async function RegisterPage() {
           <CardTitle className="text-xl">{t("registerTitle")}</CardTitle>
           <CardDescription>{t("registrationClosed")}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          {(await nodeRole()) !== "clinic" ? (
+            <Link href="/essai" className="block rounded-lg border border-primary/30 bg-primary/5 p-3 text-center text-sm font-medium text-primary hover:underline">
+              {t("trialLink", { days: DEFAULT_TRIAL_DAYS })}
+            </Link>
+          ) : null}
           <Link href="/login" className="font-medium text-primary hover:underline">{t("signIn")}</Link>
         </CardContent>
       </Card>

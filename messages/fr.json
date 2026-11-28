@@ -436,7 +436,10 @@
       "treatment_plan_item_converted": "Acte du plan réalisé",
       "treatment_plan_proposed": "Devis proposé",
       "treatment_plan_revised": "Plan de traitement révisé",
-      "working_hours_updated": "Horaires de travail modifiés"
+      "working_hours_updated": "Horaires de travail modifiés",
+        "platform_trial_started": "Essai gratuit démarré",
+        "platform_trial_extended": "Essai gratuit prolongé",
+        "platform_trial_converted": "Cabinet passé en payant"
     },
     "tables": {
       "outbound_messages": "Messages WhatsApp",
@@ -719,7 +722,8 @@
     "mfaCode": "Code d'authentification",
     "mfaInvalid": "Le code est invalide ou la demande a expiré.",
     "verify": "Vérifier",
-    "registrationClosed": "Ce serveur de cabinet est déjà configuré. Demandez une invitation au responsable du cabinet."
+    "registrationClosed": "Ce serveur de cabinet est déjà configuré. Demandez une invitation au responsable du cabinet.",
+    "trialLink": "Nouveau cabinet ? Essai gratuit de {days} jours"
   },
   "errors": {
     "crashTitle": "Une erreur est survenue",
@@ -2915,6 +2919,61 @@
     "enforcementHint": "Les écrans et les actions serveur correspondants deviennent indisponibles dès l'enregistrement.",
     "saveModules": "Enregistrer les modules",
     "modulesUpdated": "Modules mis à jour",
+      "clinicsTitle": "Cabinets",
+      "summary": {
+        "newRequests": "Nouvelles demandes",
+        "onTrial": "En essai",
+        "endingSoon": "Essai finissant sous 7 jours",
+        "expired": "Essai terminé",
+        "paid": "Payants"
+      },
+      "requests": {
+        "title": "Demandes d'essai",
+        "empty": "Aucune demande pour l'instant. Partagez la page /essai avec les cabinets.",
+        "practitioners": "{count, plural, one {# praticien} other {# praticiens}}",
+        "statuses": {
+          "new": "Nouvelle",
+          "contacted": "Contactée",
+          "converted": "Cabinet créé",
+          "declined": "Refusée"
+        },
+        "createTrial": "Créer le cabinet d'essai",
+        "markContacted": "Marquer contactée",
+        "decline": "Refuser",
+        "reopen": "Rouvrir",
+        "converted": "Cabinet d'essai créé",
+        "statusSaved": "Demande mise à jour",
+        "statusFailed": "Impossible de modifier cette demande",
+        "sendWhatsApp": "Envoyer par WhatsApp",
+        "activationMessage": "Bonjour {name}, votre cabinet d'essai Cabinet Dentaire Pro est prêt. Choisissez votre mot de passe ici (lien valable 7 jours) : {link}"
+      },
+      "trial": {
+        "plan": "Formule",
+        "planTrial": "Essai gratuit",
+        "planPaid": "Payant dès maintenant",
+        "days": "Durée de l'essai (jours)",
+        "daysHint": "30 jours conseillés : assez pour un mois complet de rendez-vous et de facturation.",
+        "paid": "Payant",
+        "expired": "Essai terminé",
+        "daysLeft": "{days, plural, one {# jour d'essai} other {# jours d'essai}}",
+        "endsOn": "Fin de l'essai : {date}",
+        "extend": "Prolonger l'essai",
+        "start": "Mettre en essai",
+        "convert": "Passer en payant",
+        "extendHint": "Les jours s'ajoutent à la fin actuelle ; un essai terminé repart d'aujourd'hui et le cabinet peut de nouveau travailler.",
+        "addDays": "Jours à ajouter",
+        "daysOption": "{days} jours",
+        "save": "Enregistrer",
+        "extended": "Essai prolongé",
+        "convertedToast": "Cabinet passé en payant",
+        "convertHint": "{clinic} n'aura plus de date de fin. À faire une fois l'abonnement réglé.",
+        "convertConfirm": "Confirmer le passage en payant"
+      },
+      "usage": {
+        "line": "{patients} patients · {appointments} RDV créés et {invoices} factures émises en 30 jours",
+        "lastActivity": "Dernière action de l'équipe {when}",
+        "noActivity": "Aucune action de l'équipe pour l'instant"
+      },
     "statuses": { "onboarding": "Configuration", "active": "Actif", "suspended": "Suspendu", "closed": "Fermé" },
     "kinds": { "solo": "Cabinet individuel", "group": "Cabinet de groupe", "specialist": "Spécialiste", "pediatric": "Pédiatrique", "multi_branch": "Multi-sites" },
     "locales": { "fr": "Français", "en": "Anglais", "ar": "Arabe" },
@@ -2931,7 +2990,7 @@
       "patient_engagement": { "name": "Relation patient", "hint": "Relances et partage inter-cabinets consenti." },
       "laboratory": { "name": "Laboratoire", "hint": "Suivi des travaux de laboratoire." }
     },
-    "errors": { "emailTaken": "Cette adresse appartient déjà à un compte. Utilisez une autre adresse pour ce nouveau propriétaire.", "clinicUnavailable": "Ce cabinet n'est plus disponible." }
+    "errors": { "emailTaken": "Cette adresse appartient déjà à un compte. Utilisez une autre adresse pour ce nouveau propriétaire.", "clinicUnavailable": "Ce cabinet n'est plus disponible.", "invalidTrialDays": "Choisissez une durée d'essai entre 1 et 120 jours.", "requestUnavailable": "Cette demande d'essai n'existe plus." }
   },
   "visitCockpit": {
     "title": "Séance clinique",
@@ -3063,6 +3122,41 @@
       "notPairable": "cet ordinateur contient déjà un cabinet ou est déjà relié",
       "syncDisabled": "la synchronisation n'est pas configurée sur la copie en ligne",
       "notCloud": "cette adresse n'est pas une copie en ligne"
+    }
+  },
+  "trial": {
+    "title": "Essai gratuit de {days} jours",
+    "subtitle": "Laissez vos coordonnées : nous créons votre cabinet, vous montrons le logiciel et vous accompagnons pendant tout l'essai. Sans engagement ni paiement.",
+    "points": {
+      "agenda": "Agenda, fauteuils et prise de rendez-vous en ligne",
+      "patients": "Dossier patient, schéma dentaire et plans de traitement",
+      "billing": "Factures en DA, caisse du jour et honoraires des praticiens",
+      "languages": "En français, en arabe et en anglais",
+      "data": "Vos données restent les vôtres : export à tout moment"
+    },
+    "clinicName": "Nom du cabinet",
+    "contactName": "Votre nom",
+    "phone": "Téléphone (WhatsApp de préférence)",
+    "email": "Email",
+    "city": "Ville",
+    "practitioners": "Nombre de praticiens",
+    "message": "Message",
+    "messageHint": "Vos besoins, vos horaires pour un appel, votre logiciel actuel…",
+    "privacy": "Vos coordonnées servent uniquement à vous contacter pour cet essai.",
+    "submit": "Demander mon essai gratuit",
+    "sentTitle": "Demande envoyée, merci !",
+    "sentBody": "Nous vous contactons très vite pour créer votre cabinet et vous montrer le logiciel. Gardez votre téléphone à portée de main.",
+    "haveAccount": "Déjà un compte ?",
+    "signIn": "Se connecter",
+    "errors": {
+      "tooMany": "Trop de demandes envoyées depuis cette connexion. Réessayez dans une heure."
+    },
+    "notice": {
+      "daysLeft": "{days, plural, one {Dernier jour d'essai gratuit.} other {Essai gratuit : # jours restants.}}",
+      "endsOn": "Fin le {date}.",
+      "whatsApp": "Nous écrire sur WhatsApp",
+      "expiredTitle": "Votre essai gratuit est terminé.",
+      "expiredBody": "Vos données sont conservées et restent consultables (dossiers, rapports, exports). Pour continuer à travailler, contactez-nous pour activer votre abonnement."
     }
   }
 }

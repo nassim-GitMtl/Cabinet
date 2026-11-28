@@ -37,6 +37,8 @@ export type RegisterClinicInput = {
   countryCode?: string;
   enabledModules?: string[];
   createdByPlatformUserId?: string;
+  /** Free trial end (null/absent = paid). */
+  trialEndsAt?: Date | null;
 };
 
 export class EmailTakenError extends Error {}
@@ -87,6 +89,7 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
       // WhatsApp reminders cost the platform per message: only the operator turns them on (/platform).
       enabledModules: input.enabledModules ?? PRODUCT_MODULES.filter((m) => m !== "whatsapp_reminders"),
       settings: { currencyDisplay: currency === "DZD" ? "DA" : currency, dateFormat: "DD/MM/YYYY" },
+      trialEndsAt: input.trialEndsAt ?? null,
     });
 
     const [legalEntity] = await tx

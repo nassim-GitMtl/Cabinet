@@ -2,6 +2,7 @@ import { and, eq } from "drizzle-orm";
 import type { ClinicContext } from "@/server/auth/context";
 import { memberships, organizations, roles } from "@/server/db/schema";
 import { withDbContext } from "@/server/db/tenant";
+import { NO_TRIAL } from "@/lib/trial";
 
 /** Builds a staff context for scripts (no HTTP session). */
 export async function contextFromIds(userId: string, organizationId: string): Promise<ClinicContext> {
@@ -26,6 +27,7 @@ export async function contextFromIds(userId: string, organizationId: string): Pr
       roleName: row.r.name,
       permissions: row.r.permissions,
       readOnlyCopy: false,
+      trial: NO_TRIAL,
       canManageClinicComputer: row.r.permissions.includes("org.settings.manage"),
       organization: {
         id: row.o.id,

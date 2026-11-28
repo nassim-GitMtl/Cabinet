@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { ConnectionBanner } from "@/components/app/connection-banner";
 import { AppShell, type NavKey } from "@/components/app/app-shell";
 import { SyncNotice } from "@/features/sync/components/sync-notice";
+import { TrialNotice } from "@/features/trials/components/trial-notice";
 import { getOperationalNotifications } from "@/features/notifications/server";
 import { can, requireClinicContext } from "@/server/auth/context";
 import { listMyClinics } from "@/server/services/auth";
@@ -53,6 +54,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     >
       <ConnectionBanner />
       <SyncNotice ctx={ctx} />
+      <TrialNotice ctx={ctx} />
       {children}
     </AppShell>
   );

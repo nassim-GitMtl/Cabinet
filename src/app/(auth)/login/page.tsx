@@ -3,7 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DEFAULT_TRIAL_DAYS } from "@/lib/trial";
 import { getSession } from "@/server/auth/context";
+import { nodeRole } from "@/server/sync/node";
 import { LoginForm } from "./login-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   if (await getSession()) redirect("/dashboard");
-  const [t, query] = await Promise.all([getTranslations("auth"), searchParams]);
+  const [t, query, role] = await Promise.all([getTranslations("auth"), searchParams, nodeRole()]);
   const notice = query.reset === "1" ? t("passwordChanged") : query.invited === "1" ? t("invitationAccepted") : null;
   return (
     <Card className="w-full max-w-sm">
@@ -32,6 +34,11 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
             {t("registerLink")}
           </Link>
         </p>
+        {role !== "clinic" ? (
+          <Link href="/essai" className="block rounded-lg border border-primary/30 bg-primary/5 p-3 text-center text-sm font-medium text-primary hover:underline">
+            {t("trialLink", { days: DEFAULT_TRIAL_DAYS })}
+          </Link>
+        ) : null}
       </CardContent>
     </Card>
   );

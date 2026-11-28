@@ -50,14 +50,26 @@ export function resetEmailContent(mail: ResetEmail): { subject: string; text: st
   return { subject: t("subject"), text: t("body", { name: mail.fullName, link: mail.link, minutes: mail.minutes }) };
 }
 
-export async function sendResetEmail(mail: ResetEmail): Promise<void> {
-  const settings = mailSettings();
-  if (!settings) return;
-  const transport = nodemailer.createTransport({
+function transportFor(settings: MailSettings) {
+  return nodemailer.createTransport({
     host: settings.host, port: settings.port, secure: settings.secure,
     auth: settings.user ? { user: settings.user, pass: settings.password ?? "" } : undefined,
     connectionTimeout: 15_000, greetingTimeout: 15_000, socketTimeout: 30_000,
   });
+}
+
+export async function sendResetEmail(mail: ResetEmail): Promise<void> {
+  const settings = mailSettings();
+  if (!settings) return;
   const { subject, text } = resetEmailContent(mail);
-  await transport.sendMail({ from: settings.from, to: mail.to, subject, text });
+  await transportFor(settings).sendMail({ from: settings.from, to: mail.to, subject, text });
+}
+
+/** Plain-text note to the platform operator (PLATFORM_CONTACT_EMAIL). Skipped when email is not configured. */
+export async function sendOperatorEmail(subject: string, text: string, env: Record<string, string | undefined> = process.env): Promise<boolean> {
+  const settings = mailSettings(env);
+  const to = env.PLATFORM_CONTACT_EMAIL?.trim();
+  if (!settings || !to) return false;
+  await transportFor(settings).sendMail({ from: settings.from, to, subject, text });
+  return true;
 }

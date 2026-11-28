@@ -186,3 +186,24 @@ l’écran du cabinet affiche « non configuré » et rien ne part.
 
 Coût : Meta facture chaque message « utilitaire » envoyé hors conversation ouverte ; consultez la grille tarifaire de
 Meta pour l’Algérie avant de fixer le prix du module.
+
+## 10. Essais gratuits
+
+Chaque cabinet peut avoir une date de fin d’essai. Pendant l’essai, un bandeau affiche les jours restants ; une fois
+l’essai terminé, le cabinet reste consultable (dossiers, rapports, exports) mais plus rien ne peut être modifié, la prise
+de rendez-vous en ligne et les rappels automatiques s’arrêtent. Aucune donnée n’est supprimée.
+
+1. Les cabinets intéressés remplissent la page publique `https://<votre-domaine>/essai` (liée depuis la connexion).
+2. Les demandes arrivent dans `/platform` → « Demandes d’essai » : appelez ou écrivez sur WhatsApp, puis « Créer le cabinet
+   d’essai » (formulaire prérempli, 30 jours, tous les modules sauf WhatsApp et laboratoire). Envoyez le lien d’activation
+   au propriétaire (bouton WhatsApp).
+3. Sur chaque cabinet : « Prolonger l’essai » (ajoute des jours ; un essai terminé repart d’aujourd’hui) ou « Passer en
+   payant » une fois l’abonnement réglé. Les compteurs d’utilisation montrent qui utilise vraiment le logiciel.
+
+Variables facultatives (Production) :
+
+| Variable | Usage |
+|---|---|
+| `PLATFORM_CONTACT_PHONE` | votre numéro (WhatsApp) affiché dans le bandeau d’essai des cabinets |
+| `PLATFORM_CONTACT_EMAIL` | adresse affichée dans le bandeau ; reçoit aussi chaque nouvelle demande si le SMTP est configuré |
+| `SIGNUP_TRIAL_DAYS` | durée de l’essai des cabinets inscrits eux-mêmes via `/register` (30 par défaut sur Vercel, `0` = aucun) |

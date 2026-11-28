@@ -136,6 +136,8 @@ export const organizations = pgTable("organizations", {
     .array()
     .notNull()
     .default(sql`ARRAY['core']::text[]`),
+  /** Free trial end, set by the platform operator; null = not on trial (paid). After it the clinic is read-only. */
+  trialEndsAt: timestamp("trial_ends_at", { withTimezone: true }),
   settings: jsonb("settings").$type<OrganizationSettings>().notNull().default({}),
   /**
    * Which copy is in charge of this clinic's data: "cloud" (the hosted copy is the only one) or "clinic"
@@ -300,7 +302,7 @@ export const authRateLimits = pgTable("auth_rate_limits", {
 }, (t) => [
   primaryKey({ columns: [t.scope, t.keyHash] }),
   index("auth_rate_limits_updated_idx").on(t.updatedAt),
-  check("auth_rate_limits_scope_ck", sql`${t.scope} in ('staff_login', 'patient_login', 'password_reset')`),
+  check("auth_rate_limits_scope_ck", sql`${t.scope} in ('staff_login', 'patient_login', 'password_reset', 'trial_request')`),
   check("auth_rate_limits_key_hash_ck", sql`char_length(${t.keyHash}) = 64`),
   check("auth_rate_limits_attempt_count_ck", sql`${t.attemptCount} >= 0`),
 ]);
@@ -370,5 +372,42 @@ export const recordChanges = pgTable(
     index("record_changes_row_idx").on(t.tableName, t.rowId, t.occurredAt),
     index("record_changes_actor_idx").on(t.organizationId, t.actorUserId, t.occurredAt),
     check("record_changes_operation_valid", sql`${t.operation} in ('insert', 'update', 'delete')`),
+  ],
+);
+
+/**
+ * Requests for a free trial sent from the public /essai page (platform level, no clinic yet). Readable and writable
+ * only through SECURITY DEFINER functions: submit (public, rate-limited by the app) and the operator console.
+ */
+export const trialRequests = pgTable(
+  "trial_requests",
+  {
+    id: uuid("id").primaryKey().default(sql`uuidv7()`),
+    clinicName: text("clinic_name").notNull(),
+    contactName: text("contact_name").notNull(),
+    phone: text("phone").notNull(),
+    email: text("email").notNull(),
+    city: text("city"),
+    practitioners: integer("practitioners"),
+    message: text("message"),
+    locale: text("locale").notNull().default("fr"),
+    status: text("status").notNull().default("new"),
+    /** Clinic created from this request (not "organization_id": this is platform data, not a clinic's). */
+    convertedOrganizationId: uuid("converted_organization_id").references(() => organizations.id),
+    handledByUserId: uuid("handled_by_user_id").references(() => users.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("trial_requests_created_idx").on(t.createdAt),
+    check("trial_requests_status_valid", sql`${t.status} in ('new', 'contacted', 'converted', 'declined')`),
+    check("trial_requests_locale_valid", sql`${t.locale} in ('fr', 'en', 'ar')`),
+    check(
+      "trial_requests_text_valid",
+      sql`length(trim(${t.clinicName})) between 2 and 160 and length(trim(${t.contactName})) between 2 and 120
+        and length(${t.phone}) between 6 and 32 and length(${t.email}) between 5 and 200
+        and (${t.message} is null or length(${t.message}) <= 1000) and (${t.city} is null or length(${t.city}) <= 120)
+        and (${t.practitioners} is null or ${t.practitioners} between 1 and 100)`,
+    ),
   ],
 );

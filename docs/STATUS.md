@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-28 by Claude (session 54 — automatic WhatsApp reminders + multi-site).
+Last updated: 2026-11-28 by Claude (session 55 — free trials and trial requests).
 
 ## Recently completed: offline clinic computer + cloud sync
 
@@ -669,6 +669,27 @@ Also fixed in passing: reversing a cash receipt on a closed cash day was not ref
 +3 sites integration, +4 WhatsApp unit), typecheck, lint, build green. Browser-checked on the local database: add a
 site, switch to it, its own empty cash drawer, reminders screen "not configured", close the site.
 
+Session 55 (Claude): **free trials** so the user can offer clinics a test period. Migration 0053: `organizations.trial_ends_at`
+(null = paid) and platform table `trial_requests` (no `organization_id`: not tenant data; RLS on, no direct access for
+`cabinet_app`), SECURITY DEFINER `submit_trial_request` (public form), `platform_list_trial_requests`,
+`platform_update_trial_request`, `platform_set_trial`; `platform_list_organizations` now also returns the trial end and
+usage counts (patients, appointments/invoices of the last 30 days, last staff audit event — counts only);
+`consume_auth_rate_limit` gains scope `trial_request` (5/hour). **Fixed:** 0045's `platform_set_modules` allowed list
+lacked `whatsapp_reminders` and `multi_site`, so the console could not sell them (test now enables every
+`BILLABLE_MODULES`). App: `src/lib/trial.ts` (`trialState`, `extendedTrialEnd`, `signupTrialDays`); `sessionPermissions()`
+in `src/server/authz/modules.ts` builds `ClinicContext.permissions` — an expired trial keeps view, report and export keys
+plus `patient.export` (`trialExpiredPermissions`), so the clinic can read and take its data out but change nothing; data is
+never deleted. Public booking and automatic WhatsApp reminders stop while a trial is over. Console `/platform`: summary
+counts, "Demandes d'essai" inbox (call/WhatsApp/email, mark contacted/declined, "create the trial clinic" prefilled and
+marked converted, activation link sendable by WhatsApp), per clinic plan badge, usage, extend/start trial, switch to paid.
+Public page `/essai` (FR/EN/AR, honeypot, rate limit, optional email to `PLATFORM_CONTACT_EMAIL`), linked from login and
+from the closed-registration card. Clinic banner with days left (warning colours the last 7 days) and the platform
+contact (`PLATFORM_CONTACT_PHONE`/`PLATFORM_CONTACT_EMAIL`). Self sign-ups get `SIGNUP_TRIAL_DAYS` (default 30 on Vercel,
+none self-hosted; production has `REGISTRATION_MODE=first-only`, so new clinics come through `/essai` + the console).
+253/253 tests (+3 trials integration, +3 trial unit, +1 expired-trial permissions), typecheck, lint, build green.
+**Not browser-checked yet** (another agent was editing the folder; committed only these files). Next session: open
+`/essai`, submit, create the clinic from the console, check the banner and the read-only mode after setting a past end.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
@@ -745,6 +766,9 @@ Later / on hold: inventory follow-ups (pending consumptions on the patient scree
 form), treatment consent capture (§12A), lab cases (§22).
 
 ## Known gaps / decisions to revisit
+
+- `organizations.enabled_modules` and `trial_ends_at` are changed only by the operator functions, but the protection is in
+  the application (staff code never writes them); a database trigger refusing other writers would add defence in depth.
 
 - Clinical notes: links to specific performed procedures/odontogram findings are by tooth number and date only; a note-template editor UI and per-encounter auto-note are not built yet.
 

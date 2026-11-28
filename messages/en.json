@@ -436,7 +436,10 @@
       "treatment_plan_item_converted": "Planned treatment done",
       "treatment_plan_proposed": "Estimate proposed",
       "treatment_plan_revised": "Treatment plan revised",
-      "working_hours_updated": "Working hours changed"
+      "working_hours_updated": "Working hours changed",
+        "platform_trial_started": "Free trial started",
+        "platform_trial_extended": "Free trial extended",
+        "platform_trial_converted": "Clinic switched to paying"
     },
     "tables": {
       "outbound_messages": "WhatsApp messages",
@@ -719,7 +722,8 @@
     "mfaCode": "Authenticator code",
     "mfaInvalid": "The code is invalid or the challenge expired.",
     "verify": "Verify",
-    "registrationClosed": "This clinic server is already set up. Ask the clinic manager for an invitation."
+    "registrationClosed": "This clinic server is already set up. Ask the clinic manager for an invitation.",
+    "trialLink": "New clinic? {days}-day free trial"
   },
   "errors": {
     "crashTitle": "Something went wrong",
@@ -2908,6 +2912,61 @@
     "enforcementHint": "The related screens and server actions become unavailable as soon as you save.",
     "saveModules": "Save modules",
     "modulesUpdated": "Modules updated",
+      "clinicsTitle": "Clinics",
+      "summary": {
+        "newRequests": "New requests",
+        "onTrial": "On trial",
+        "endingSoon": "Trial ending within 7 days",
+        "expired": "Trial over",
+        "paid": "Paying"
+      },
+      "requests": {
+        "title": "Trial requests",
+        "empty": "No requests yet. Share the /essai page with clinics.",
+        "practitioners": "{count, plural, one {# practitioner} other {# practitioners}}",
+        "statuses": {
+          "new": "New",
+          "contacted": "Contacted",
+          "converted": "Clinic created",
+          "declined": "Declined"
+        },
+        "createTrial": "Create the trial clinic",
+        "markContacted": "Mark contacted",
+        "decline": "Decline",
+        "reopen": "Reopen",
+        "converted": "Trial clinic created",
+        "statusSaved": "Request updated",
+        "statusFailed": "This request could not be changed",
+        "sendWhatsApp": "Send by WhatsApp",
+        "activationMessage": "Hello {name}, your Cabinet Dentaire Pro trial clinic is ready. Choose your password here (link valid for 7 days): {link}"
+      },
+      "trial": {
+        "plan": "Plan",
+        "planTrial": "Free trial",
+        "planPaid": "Paying from now",
+        "days": "Trial length (days)",
+        "daysHint": "30 days recommended: enough for a full month of appointments and billing.",
+        "paid": "Paying",
+        "expired": "Trial over",
+        "daysLeft": "{days, plural, one {# trial day} other {# trial days}}",
+        "endsOn": "Trial ends: {date}",
+        "extend": "Extend trial",
+        "start": "Put on trial",
+        "convert": "Switch to paying",
+        "extendHint": "Days are added to the current end; a finished trial restarts from today and the clinic can work again.",
+        "addDays": "Days to add",
+        "daysOption": "{days} days",
+        "save": "Save",
+        "extended": "Trial extended",
+        "convertedToast": "Clinic switched to paying",
+        "convertHint": "{clinic} will no longer have an end date. Do this once the subscription is paid.",
+        "convertConfirm": "Confirm switch to paying"
+      },
+      "usage": {
+        "line": "{patients} patients · {appointments} appointments created and {invoices} invoices issued in 30 days",
+        "lastActivity": "Last team action {when}",
+        "noActivity": "No team action yet"
+      },
     "statuses": { "onboarding": "Onboarding", "active": "Active", "suspended": "Suspended", "closed": "Closed" },
     "kinds": { "solo": "Solo clinic", "group": "Group clinic", "specialist": "Specialist", "pediatric": "Pediatric", "multi_branch": "Multi-site" },
     "locales": { "fr": "French", "en": "English", "ar": "Arabic" },
@@ -2924,7 +2983,7 @@
       "patient_engagement": { "name": "Patient engagement", "hint": "Follow-ups and consented cross-clinic sharing." },
       "laboratory": { "name": "Laboratory", "hint": "Laboratory work tracking." }
     },
-    "errors": { "emailTaken": "This address already belongs to an account. Use another address for this new owner.", "clinicUnavailable": "This clinic is no longer available." }
+    "errors": { "emailTaken": "This address already belongs to an account. Use another address for this new owner.", "clinicUnavailable": "This clinic is no longer available.", "invalidTrialDays": "Choose a trial length between 1 and 120 days.", "requestUnavailable": "This trial request no longer exists." }
   },
   "visitCockpit": {
     "title": "Clinical visit",
@@ -3056,6 +3115,41 @@
       "notPairable": "this computer already holds a clinic or is already paired",
       "syncDisabled": "sync is not configured on the online copy",
       "notCloud": "this address is not an online copy"
+    }
+  },
+  "trial": {
+    "title": "{days}-day free trial",
+    "subtitle": "Leave your details: we set up your clinic, show you the software and support you throughout the trial. No commitment, no payment.",
+    "points": {
+      "agenda": "Agenda, chairs and online booking",
+      "patients": "Patient file, dental chart and treatment plans",
+      "billing": "Invoices in DZD, daily cash drawer and practitioner fees",
+      "languages": "In French, Arabic and English",
+      "data": "Your data stays yours: export it any time"
+    },
+    "clinicName": "Clinic name",
+    "contactName": "Your name",
+    "phone": "Phone (WhatsApp preferred)",
+    "email": "Email",
+    "city": "City",
+    "practitioners": "Number of practitioners",
+    "message": "Message",
+    "messageHint": "Your needs, good times to call, your current software…",
+    "privacy": "Your details are only used to contact you about this trial.",
+    "submit": "Request my free trial",
+    "sentTitle": "Request sent, thank you!",
+    "sentBody": "We will contact you very soon to set up your clinic and show you the software. Keep your phone close.",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "errors": {
+      "tooMany": "Too many requests from this connection. Try again in an hour."
+    },
+    "notice": {
+      "daysLeft": "{days, plural, one {Last day of your free trial.} other {Free trial: # days left.}}",
+      "endsOn": "Ends on {date}.",
+      "whatsApp": "Message us on WhatsApp",
+      "expiredTitle": "Your free trial is over.",
+      "expiredBody": "Your data is kept and can still be viewed (records, reports, exports). To keep working, contact us to activate your subscription."
     }
   }
 }

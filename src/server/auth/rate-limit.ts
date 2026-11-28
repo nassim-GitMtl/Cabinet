@@ -8,6 +8,8 @@ export const AUTH_RATE_LIMITS = {
   staff_login: { attempts: 30, windowSeconds: 15 * 60, blockSeconds: 15 * 60 },
   patient_login: { attempts: 30, windowSeconds: 15 * 60, blockSeconds: 15 * 60 },
   password_reset: { attempts: 10, windowSeconds: 60 * 60, blockSeconds: 60 * 60 },
+  /** Public "try it free" form (not authentication, same shared throttle). */
+  trial_request: { attempts: 5, windowSeconds: 60 * 60, blockSeconds: 60 * 60 },
 } as const;
 
 export type AuthRateLimitScope = keyof typeof AUTH_RATE_LIMITS;

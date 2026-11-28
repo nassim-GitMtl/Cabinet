@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // Optimistic check only: redirects visitors without a session cookie away from
 // the staff app. Real authentication and authorization happen on the server
 // for every request (src/server/auth/context.ts) and in PostgreSQL RLS.
-const PUBLIC_PREFIXES = ["/login", "/register", "/book/", "/c/", "/portal", "/staff/activate/", "/reset-password/", "/forgot-password", "/sync-setup", "/api/health", "/api/sync/", "/api/cron/", "/api/whatsapp/", "/offline.html", "/sw.js", "/manifest.webmanifest", "/icon.svg"];
+const PUBLIC_PREFIXES = ["/login", "/register", "/essai", "/book/", "/c/", "/portal", "/staff/activate/", "/reset-password/", "/forgot-password", "/sync-setup", "/api/health", "/api/sync/", "/api/cron/", "/api/whatsapp/", "/offline.html", "/sw.js", "/manifest.webmanifest", "/icon.svg"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

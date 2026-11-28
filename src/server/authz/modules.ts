@@ -1,4 +1,4 @@
-import type { Permission } from "./permissions";
+import { readOnlyCopyPermissions, roleEffectivePermissions, trialExpiredPermissions, type Permission } from "./permissions";
 
 /** Commercial entitlements. `core` is always provisioned and is not sold separately. */
 export const PRODUCT_MODULES = [
@@ -87,4 +87,16 @@ export function entitledPermissions(permissions: readonly string[], modules: rea
     const requiredModule = MODULE_PERMISSIONS[permission as Permission];
     return !requiredModule || moduleEnabled(modules, requiredModule);
   });
+}
+
+/**
+ * What a member may do in a clinic on this request: the role's keys (owner-only keys kept for the owner), limited to the
+ * modules sold, then to viewing on the cloud copy of a clinic run from its clinic computer or once a trial is over.
+ */
+export function sessionPermissions(input: {
+  roleKey: string; rolePermissions: readonly string[]; enabledModules: readonly string[]; readOnlyCopy: boolean; trialExpired: boolean;
+}): string[] {
+  const entitled = entitledPermissions(roleEffectivePermissions(input.roleKey, input.rolePermissions), input.enabledModules);
+  if (input.readOnlyCopy) return readOnlyCopyPermissions(entitled);
+  return input.trialExpired ? trialExpiredPermissions(entitled) : entitled;
 }

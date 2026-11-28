@@ -8,6 +8,7 @@ import { sendWhatsAppTemplate, templateLanguage, whatsAppConfig, type SendResult
 import { addDays, timeInZone, todayInZone, zonedToUtc } from "@/lib/dates";
 import { formatPhone, normalizePhone } from "@/lib/phone";
 import { asMessageLocale, messageDate } from "@/features/follow-ups/messages";
+import { trialState } from "@/lib/trial";
 
 /**
  * Automatic WhatsApp appointment reminders (module `whatsapp_reminders`). Once a day (Vercel Cron, see vercel.json)
@@ -123,8 +124,10 @@ export async function runAutoReminders(opts: { now?: Date; send?: Sender; config
     const tz = clinic.timezone;
     const tomorrow = addDays(todayInZone(tz, now), 1);
     await withDbContext({ organizationId: clinic.organization_id, actorType: "system" }, async (tx) => {
-      const [org] = await tx.select({ countryCode: organizations.countryCode }).from(organizations).where(eq(organizations.id, clinic.organization_id)).limit(1);
-      const country = org?.countryCode ?? "DZ";
+      const [org] = await tx.select({ countryCode: organizations.countryCode, trialEndsAt: organizations.trialEndsAt }).from(organizations).where(eq(organizations.id, clinic.organization_id)).limit(1);
+      // A clinic whose trial is over sends nothing until it is extended or paid.
+      if (!org || trialState(org.trialEndsAt, now).expired) return;
+      const country = org.countryCode;
       const branchRows = await tx.select({ id: branches.id, phone: branches.phone, createdAt: branches.createdAt }).from(branches).orderBy(asc(branches.createdAt));
       const fallbackPhone = branchRows.map((b) => normalizePhone(b.phone, country)).find(Boolean) ?? null;
       const phoneOf = (branchId: string) => normalizePhone(branchRows.find((b) => b.id === branchId)?.phone, country) ?? fallbackPhone;
