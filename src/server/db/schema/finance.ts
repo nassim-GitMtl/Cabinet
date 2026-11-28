@@ -28,7 +28,7 @@ import { createdAt, id, organizationId, updatedAt, version, type LocalizedText }
 import { performedProcedures } from "./clinical";
 import { services } from "./catalog";
 import { patients } from "./patients";
-import { legalEntities, memberships, organizations, users } from "./platform";
+import { branches, legalEntities, memberships, organizations, users } from "./platform";
 
 /**
  * Financial subledger (§16). Rules enforced in PostgreSQL (migration 0006):
@@ -187,6 +187,8 @@ export const payments = pgTable(
   {
     id: id(),
     organizationId: organizationId().references(() => organizations.id),
+    /** Site (branch) whose cash drawer this belongs to; null only on rows older than multi-site = the first site. */
+    branchId: uuid("branch_id").references(() => branches.id),
     /** Issuer identity frozen when the document is issued (legal name, identifiers, address); null = draft. */
     issuerSnapshot: jsonb("issuer_snapshot").$type<IssuerSnapshot>(),
     legalEntityId: uuid("legal_entity_id")
@@ -257,6 +259,8 @@ export const refunds = pgTable(
   {
     id: id(),
     organizationId: organizationId().references(() => organizations.id),
+    /** Site (branch) whose cash drawer this belongs to; null only on rows older than multi-site = the first site. */
+    branchId: uuid("branch_id").references(() => branches.id),
     paymentId: uuid("payment_id")
       .notNull()
       .references(() => payments.id),

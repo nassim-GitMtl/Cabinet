@@ -128,7 +128,7 @@ export default async function NewProcedurePage({
           providerPrices={support.providerPrices}
           branches={support.branches}
           defaultProviderId={defaultProviderId}
-          defaultBranchId={support.branches[0]!.id}
+          defaultBranchId={support.branches.find((b) => b.id === ctx.siteId)?.id ?? support.branches[0]!.id}
           defaultServiceDate={todayInZone(ctx.organization.timezone)}
           currencySymbol={ctx.organization.settings.currencyDisplay ?? ctx.organization.defaultCurrency}
           canOverridePrice={can(ctx, "price.override")}

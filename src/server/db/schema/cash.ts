@@ -1,8 +1,8 @@
 import { sql } from "drizzle-orm";
-import { bigint, check, date, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigint, check, date, index, pgEnum, pgTable, text, timestamp, unique, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 import { createdAt, id, organizationId } from "./_shared";
 import { paymentMethod } from "./finance";
-import { legalEntities, organizations, users } from "./platform";
+import { branches, legalEntities, organizations, users } from "./platform";
 
 /**
  * Cash control and expenses (§17).
@@ -35,6 +35,8 @@ export const expenses = pgTable(
     legalEntityId: uuid("legal_entity_id")
       .notNull()
       .references(() => legalEntities.id),
+    /** Site (branch) whose cash drawer this belongs to; null only on rows older than multi-site = the first site. */
+    branchId: uuid("branch_id").references(() => branches.id),
     /** Category key from EXPENSE_CATEGORIES (configurable list in code). */
     category: text("category").notNull(),
     supplierId: uuid("supplier_id").references(() => suppliers.id),
@@ -64,12 +66,15 @@ export const expenses = pgTable(
 
 export const cashSessionStatus = pgEnum("cash_session_status", ["open", "closed", "approved"]);
 
-/** One cash drawer session per clinic and business day. */
+/** One cash drawer session per site and business day. */
 export const cashSessions = pgTable(
   "cash_sessions",
   {
     id: id(),
     organizationId: organizationId().references(() => organizations.id),
+    /** Site (branch) whose cash drawer this belongs to; null only on rows older than multi-site = the first site. */
+    branchId: uuid("branch_id").references(() => branches.id),
+
     businessDate: date("business_date", { mode: "string" }).notNull(),
     currency: text("currency").notNull(),
     openingFloatMinor: bigint("opening_float_minor", { mode: "number" }).notNull(),
@@ -89,7 +94,7 @@ export const cashSessions = pgTable(
     notes: text("notes"),
   },
   (t) => [
-    uniqueIndex("cash_sessions_org_date_uq").on(t.organizationId, t.businessDate),
+    unique("cash_sessions_org_branch_date_uq").on(t.organizationId, t.branchId, t.businessDate).nullsNotDistinct(),
     check("cash_sessions_float_nonnegative", sql`${t.openingFloatMinor} >= 0`),
     check(
       "cash_sessions_close_complete",

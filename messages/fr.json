@@ -267,6 +267,13 @@
     "fields": "Champs :",
     "patientHistory": "Historique",
     "actions": {
+      "site_created": "Site ajouté",
+      "site_updated": "Site modifié",
+      "site_activated": "Site rouvert",
+      "site_deactivated": "Site fermé",
+      "reminders_auto_enabled": "Rappels WhatsApp activés",
+      "reminders_auto_disabled": "Rappels WhatsApp désactivés",
+      "reminders_test_sent": "Message WhatsApp de test",
       "patient_journey_item_shared": "Élément partagé dans le parcours patient",
       "patient_journey_item_withdrawn": "Élément retiré du parcours patient",
       "patient_journey_access_granted": "Parcours activé par le patient",
@@ -432,6 +439,7 @@
       "working_hours_updated": "Horaires de travail modifiés"
     },
     "tables": {
+      "outbound_messages": "Messages WhatsApp",
       "patient_journey_items": "Parcours patient",
       "patient_journey_access": "Accès au parcours",
       "appointment_types": "Types de rendez-vous",
@@ -572,6 +580,88 @@
       "cardOff": "{count, plural, =0 {L’avancement de votre traitement est disponible.} one {# élément partagé par votre cabinet.} other {# éléments partagés par votre cabinet.}}",
       "open": "Ouvrir",
       "discover": "Découvrir"
+    }
+  },
+  "reminders": {
+    "title": "Rappels WhatsApp automatiques",
+    "subtitle": "La veille de chaque rendez-vous, le patient reçoit un rappel sur WhatsApp, sans que personne n’ait à l’envoyer.",
+    "notConfigured": "Le service WhatsApp n’est pas encore configuré sur la plateforme : aucun message ne peut partir pour l’instant.",
+    "on": "Activés : chaque patient reçoit un rappel la veille de son rendez-vous.",
+    "off": "Désactivés : aucun rappel automatique n’est envoyé.",
+    "how": "Envoi chaque jour vers 16 h pour les rendez-vous du lendemain, aux patients qui ont un numéro de mobile et n’ont pas refusé les messages. Un seul message par rendez-vous ; si le rendez-vous est déplacé, un nouveau rappel part avec la nouvelle heure.",
+    "turnOn": "Activer les rappels",
+    "turnOff": "Désactiver les rappels",
+    "needPhone": "Ajoutez d’abord le numéro de téléphone du cabinet : il figure dans chaque message.",
+    "setPhone": "Saisir le numéro",
+    "phonesUsed": "Numéro indiqué dans les messages :",
+    "preview": {
+      "title": "Exemple de message",
+      "text": "Bonjour Karim, nous vous rappelons votre rendez-vous chez {clinic} le mardi 25/11/2026 à 10:00. En cas d’empêchement, merci de nous prévenir au 0661 00 00 00.",
+      "hint": "Chaque patient le reçoit dans sa langue (français, arabe ou anglais). Le texte est validé par WhatsApp et ne se modifie pas ici."
+    },
+    "test": {
+      "title": "Tester avec votre numéro",
+      "phone": "Numéro WhatsApp",
+      "send": "Envoyer un test",
+      "sent": "Message de test accepté par WhatsApp : il arrive dans quelques secondes."
+    },
+    "history": {
+      "title": "Derniers rappels",
+      "empty": "Aucun rappel envoyé pour l’instant.",
+      "for": "RDV {date} à {time}"
+    },
+    "status": {
+      "queued": "En attente",
+      "sent": "Envoyé",
+      "delivered": "Reçu",
+      "read": "Lu",
+      "failed": "Échec"
+    },
+    "failure": {
+      "opted_out": "Le patient a refusé les messages.",
+      "appointment_changed": "Rendez-vous annulé ou déplacé avant l’envoi.",
+      "too_late": "Trop tard pour l’envoyer.",
+      "invalid_number": "Numéro invalide.",
+      "131026": "Ce numéro n’a pas WhatsApp ou ne peut pas recevoir le message."
+    },
+    "errors": {
+      "notConfigured": "Le service WhatsApp n’est pas configuré sur la plateforme.",
+      "noClinicPhone": "Ajoutez d’abord le numéro de téléphone du cabinet.",
+      "invalidPhone": "Numéro invalide.",
+      "sendFailed": "WhatsApp a refusé le message de test."
+    }
+  },
+  "sites": {
+    "title": "Sites",
+    "subtitle": "Les sites de votre cabinet. Patients, catalogue, équipe et factures sont communs ; chaque site a ses fauteuils, ses horaires, son agenda et sa caisse.",
+    "singleSubtitle": "Adresse et téléphone de votre cabinet.",
+    "current": "Site actuel",
+    "add": "Ajouter un site",
+    "addHint": "Le nouveau site apparaît dans le sélecteur de site de chaque membre de l’équipe.",
+    "edit": "Modifier",
+    "name": "Nom du site",
+    "address": "Adresse",
+    "phone": "Téléphone",
+    "phoneHint": "Affiché aux patients (rappels WhatsApp, page publique).",
+    "email": "E-mail",
+    "save": "Enregistrer",
+    "close": "Fermer le site",
+    "reopen": "Rouvrir",
+    "main": "Site principal",
+    "closed": "Fermé",
+    "explain": "Choisissez le site où vous travaillez dans le menu, sous le nom du cabinet : l’agenda, l’accueil et la caisse affichent alors ce site. Les factures gardent la même numérotation pour tout le cabinet.",
+    "moduleHint": "Pour ouvrir d’autres sites, demandez le module « Multi-sites ».",
+    "reportTitle": "Par site",
+    "site": "Site",
+    "production": "Production",
+    "collected": "Encaissé (net)",
+    "errors": {
+      "nameRequired": "Indiquez le nom du site.",
+      "nameTaken": "Un site porte déjà ce nom.",
+      "invalidPhone": "Numéro de téléphone invalide.",
+      "lastSite": "Le dernier site ouvert ne peut pas être fermé.",
+      "siteHasAppointments": "Ce site a encore des rendez-vous à venir : déplacez-les ou annulez-les d’abord.",
+      "notFound": "Site introuvable."
     }
   },
   "toothGuide": {
@@ -2274,6 +2364,7 @@
     }
   },
   "followUps": {
+    "autoWhatsApp": {"queued": "WhatsApp automatique : en attente", "sent": "WhatsApp automatique : envoyé", "delivered": "WhatsApp automatique : reçu", "read": "WhatsApp automatique : lu", "failed": "WhatsApp automatique : échec"},
     "title": "Relances patients",
     "subtitle": "Rappels de rendez-vous, contrôles et suivis : le message est prêt dans la langue du patient, il reste à l'envoyer depuis WhatsApp ou par SMS.",
     "tabs": {
@@ -2828,6 +2919,8 @@
     "kinds": { "solo": "Cabinet individuel", "group": "Cabinet de groupe", "specialist": "Spécialiste", "pediatric": "Pédiatrique", "multi_branch": "Multi-sites" },
     "locales": { "fr": "Français", "en": "Anglais", "ar": "Arabe" },
     "modules": {
+      "multi_site": {"name": "Multi-sites", "hint": "Plusieurs sites, chacun avec son agenda et sa caisse."},
+      "whatsapp_reminders": {"name": "Rappels WhatsApp", "hint": "Rappel automatique la veille du rendez-vous."},
       "title": "Fonctionnalités incluses",
       "online_booking": { "name": "Réservation en ligne", "hint": "Liens publics et validation des demandes." },
       "advanced_clinical": { "name": "Clinique avancée", "hint": "Questionnaires, imagerie et plans de traitement." },

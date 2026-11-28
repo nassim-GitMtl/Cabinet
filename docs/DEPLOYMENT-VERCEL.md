@@ -151,3 +151,38 @@ Le chiffrement, le déchiffrement et la restauration ont été testés sur une c
 Vercel et Neon fournissent l'infrastructure, pas une certification automatique de conformité médicale. Avant production,
 le responsable du cabinet doit valider le contrat de traitement, la localisation, la rétention, la procédure d'incident,
 les accès administrateurs et un exercice réel de restauration.
+
+## 9. Rappels WhatsApp automatiques (Meta WhatsApp Cloud API)
+
+Le module « Rappels WhatsApp » envoie la veille de chaque rendez-vous un message au patient, depuis **votre** compte
+WhatsApp Business (la plateforme paie Meta et revend le module aux cabinets). Tant que les clés ci-dessous manquent,
+l’écran du cabinet affiche « non configuré » et rien ne part.
+
+1. **Meta** : créez un compte Meta Business (business.facebook.com), faites vérifier l’entreprise, puis dans
+   developers.facebook.com créez une application de type « Business » avec le produit **WhatsApp**. Ajoutez le numéro
+   qui enverra les messages (un numéro dédié, pas votre WhatsApp personnel) et notez son **Phone number ID**.
+2. **Jeton permanent** : Paramètres de l’entreprise → Utilisateurs système → créez un utilisateur système, donnez-lui
+   l’application et le compte WhatsApp avec la permission `whatsapp_business_messaging`, générez un jeton sans
+   expiration. Ce jeton ne va que dans Vercel (jamais dans le code, jamais dans un message).
+3. **Modèle de message** (WhatsApp Manager → Modèles) : nom `rappel_rendez_vous`, catégorie **Utilitaire**, trois
+   langues, corps exactement avec 5 variables dans cet ordre (prénom, cabinet, date, heure, téléphone du site) :
+   - Français : `Bonjour {{1}}, nous vous rappelons votre rendez-vous chez {{2}} le {{3}} à {{4}}. En cas d'empêchement, merci de nous prévenir au {{5}}.`
+   - Arabe : `مرحبًا {{1}}، نذكّركم بموعدكم في {{2}} يوم {{3}} على الساعة {{4}}. في حال تعذّر الحضور، يرجى إعلامنا على الرقم {{5}}.`
+   - Anglais : `Hello {{1}}, this is a reminder of your appointment at {{2}} on {{3}} at {{4}}. If you cannot come, please let us know at {{5}}.`
+   Attendez l’approbation de Meta. Une langue non approuvée bascule automatiquement sur le français.
+4. **Accusés de réception (webhook)** : dans l’application Meta → WhatsApp → Configuration, URL de rappel
+   `https://<votre-domaine>/api/whatsapp/webhook`, jeton de vérification = une longue chaîne aléatoire que vous
+   choisissez, puis abonnez le champ `messages`. Notez aussi la **clé secrète de l’application** (Paramètres → Général).
+5. **Vercel** (Production, chiffrées) :
+   `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_WEBHOOK_VERIFY_TOKEN`,
+   `CRON_SECRET` (chaîne aléatoire d’au moins 16 caractères ; Vercel l’envoie à la tâche planifiée).
+   Facultatif : `WHATSAPP_API_VERSION` (défaut `v26.0`), `WHATSAPP_REMINDER_TEMPLATE` (défaut `rappel_rendez_vous`),
+   `WHATSAPP_TEMPLATE_LANGUAGES` (défaut `fr,ar,en`). Redéployez.
+6. **Planification** : `vercel.json` lance `/api/cron/reminders` chaque jour à 15 h UTC (16 h à Alger). Sur le plan
+   Hobby, Vercel exécute une tâche par jour, à une heure près.
+7. **Par cabinet** : dans `/platform`, cochez le module « Rappels WhatsApp » pour le cabinet ; son propriétaire
+   l’active dans Paramètres → Rappels WhatsApp (le téléphone du site doit être renseigné) et peut envoyer un message de
+   test à son propre numéro.
+
+Coût : Meta facture chaque message « utilitaire » envoyé hors conversation ouverte ; consultez la grille tarifaire de
+Meta pour l’Algérie avant de fixer le prix du module.

@@ -11,6 +11,8 @@ export const PRODUCT_MODULES = [
   "sterilization",
   "patient_engagement",
   "laboratory",
+  "whatsapp_reminders",
+  "multi_site",
 ] as const;
 
 export type ProductModule = (typeof PRODUCT_MODULES)[number];
@@ -60,6 +62,8 @@ const MODULE_PERMISSIONS: Partial<Record<Permission, ProductModule>> = {
   "shared_profile.request": "patient_engagement",
   "shared_profile.read": "patient_engagement",
   "lab.manage": "laboratory",
+  "reminders.auto.manage": "whatsapp_reminders",
+  "branches.manage": "multi_site",
 };
 
 export function isProductModule(value: string): value is ProductModule {

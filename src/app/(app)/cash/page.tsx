@@ -45,7 +45,7 @@ export default async function CashPage({ searchParams }: PageProps<"/cash">) {
     <>
       <PageHeader
         title={t("cash.title")}
-        description={formatDateOnly(date)}
+        description={ctx.sites.length > 1 ? `${formatDateOnly(date)} · ${ctx.sites.find((x) => x.id === day.siteId)?.name ?? ""}` : formatDateOnly(date)}
         actions={
           <form method="get" className="no-print flex items-end gap-2">
             <Input type="date" name="date" defaultValue={date} max={today} aria-label={t("reports.day")} />

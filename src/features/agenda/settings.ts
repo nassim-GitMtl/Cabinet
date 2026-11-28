@@ -2,7 +2,8 @@ import "server-only";
 import { and, asc, count, desc, eq, gt, lt } from "drizzle-orm";
 import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
-import { appointments, appointmentTypes, branches, chairs, memberships, timeOff, workingHours } from "@/server/db/schema";
+import { appointments, appointmentTypes, chairs, memberships, timeOff, workingHours } from "@/server/db/schema";
+import { currentSiteId } from "@/server/sites";
 import { zonedToUtc } from "@/lib/dates";
 import { AgendaError } from "./server";
 
@@ -12,14 +13,16 @@ const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
 export async function getAgendaSettings(ctx: ClinicContext) {
   requirePermission(ctx, "appointment.read");
   return tenantTx(ctx, async (tx) => {
-    const chairRows = await tx.select().from(chairs).orderBy(asc(chairs.sortOrder), asc(chairs.name));
+    // Chairs and weekly hours are per site: the screen shows the site the user works at.
+    const siteId = await currentSiteId(tx, ctx);
+    const chairRows = await tx.select().from(chairs).where(eq(chairs.branchId, siteId)).orderBy(asc(chairs.sortOrder), asc(chairs.name));
     const types = await tx.select().from(appointmentTypes).orderBy(desc(appointmentTypes.isActive), asc(appointmentTypes.defaultDurationMin));
     const providers = await tx
       .select({ id: memberships.id, displayName: memberships.displayName, title: memberships.title })
       .from(memberships)
       .where(and(eq(memberships.isProvider, true), eq(memberships.status, "active")))
       .orderBy(asc(memberships.displayName));
-    const hours = await tx.select().from(workingHours).orderBy(asc(workingHours.weekday), asc(workingHours.startTime));
+    const hours = await tx.select().from(workingHours).where(eq(workingHours.branchId, siteId)).orderBy(asc(workingHours.weekday), asc(workingHours.startTime));
     const off = await tx
       .select({ t: timeOff, providerName: memberships.displayName, providerTitle: memberships.title })
       .from(timeOff)
@@ -36,9 +39,9 @@ export async function createChair(ctx: ClinicContext, name: string) {
   requirePermission(ctx, "org.settings.manage");
   if (!name.trim()) throw new AgendaError("nameRequired");
   return tenantTx(ctx, async (tx) => {
-    const [branch] = await tx.select({ id: branches.id }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)).limit(1);
-    const [n] = await tx.select({ n: count() }).from(chairs);
-    const [c] = await tx.insert(chairs).values({ organizationId: ctx.organizationId, branchId: branch!.id, name: name.trim(), sortOrder: n?.n ?? 0 }).returning({ id: chairs.id });
+    const branchId = await currentSiteId(tx, ctx);
+    const [n] = await tx.select({ n: count() }).from(chairs).where(eq(chairs.branchId, branchId));
+    const [c] = await tx.insert(chairs).values({ organizationId: ctx.organizationId, branchId, name: name.trim(), sortOrder: n?.n ?? 0 }).returning({ id: chairs.id });
     await audit(tx, { ...staff(ctx), action: "chair.created", entityType: "chair", entityId: c!.id });
   });
 }
@@ -111,11 +114,12 @@ export async function setWorkingHours(ctx: ClinicContext, providerId: string, in
   return tenantTx(ctx, async (tx) => {
     const [provider] = await tx.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.id, providerId), eq(memberships.isProvider, true)));
     if (!provider) throw new AgendaError("providerUnavailable");
-    const [branch] = await tx.select({ id: branches.id }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)).limit(1);
-    await tx.delete(workingHours).where(eq(workingHours.providerId, providerId));
+    // Replaces this practitioner's hours at the current site only (other sites keep theirs).
+    const branchId = await currentSiteId(tx, ctx);
+    await tx.delete(workingHours).where(and(eq(workingHours.providerId, providerId), eq(workingHours.branchId, branchId)));
     if (intervals.length) {
       await tx.insert(workingHours).values(
-        intervals.map((i) => ({ organizationId: ctx.organizationId, providerId, branchId: branch!.id, weekday: i.weekday, startTime: i.start, endTime: i.end })),
+        intervals.map((i) => ({ organizationId: ctx.organizationId, providerId, branchId, weekday: i.weekday, startTime: i.start, endTime: i.end })),
       );
     }
     await audit(tx, { ...staff(ctx), action: "working_hours.updated", entityType: "membership", entityId: providerId, metadata: { intervals: intervals.length } });

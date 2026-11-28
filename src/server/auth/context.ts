@@ -1,9 +1,11 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 import type { Tx } from "../db/client";
-import { memberships, organizations, roles, type OrganizationSettings } from "../db/schema";
+import { branches, memberships, organizations, roles, type OrganizationSettings } from "../db/schema";
+import { SITE_COOKIE } from "../sites";
 import { withDbContext } from "../db/tenant";
 import { hasPermission, readOnlyCopyPermissions, roleEffectivePermissions, type Permission } from "../authz/permissions";
 import { entitledPermissions, moduleEnabled, type ProductModule } from "../authz/modules";
@@ -15,6 +17,10 @@ export type ClinicContext = {
   userId: string;
   user: SessionRecord["user"];
   organizationId: string;
+  /** Site picked by the user (validated again by currentSiteId); null = the clinic's main site. */
+  siteId: string | null;
+  /** Active sites this member can work at, main first (one entry for a single-site clinic). */
+  sites: Array<{ id: string; name: string }>;
   membershipId: string;
   displayName: string;
   roleKey: string;
@@ -75,6 +81,7 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
           roleKey: roles.key,
           roleName: roles.name,
           permissions: roles.permissions,
+          branchIds: memberships.branchIds,
           org: organizations,
         })
         .from(memberships)
@@ -88,10 +95,18 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
           ),
         )
         .limit(1);
-      return rows[0];
+      const sites = rows[0]
+        ? await tx
+            .select({ id: branches.id, name: branches.name })
+            .from(branches)
+            .where(and(eq(branches.isActive, true), rows[0].branchIds ? inArray(branches.id, rows[0].branchIds) : undefined))
+            .orderBy(asc(branches.createdAt), asc(branches.id))
+        : [];
+      return rows[0] ? { ...rows[0], sites } : undefined;
     },
   );
   if (!row || row.org.status === "suspended" || row.org.status === "closed") return null;
+  const picked = (await cookies()).get(SITE_COOKIE)?.value;
   const readOnlyCopy = row.org.dataHome === "clinic" && (await nodeRole()) === "cloud";
 
   const entitled = entitledPermissions(roleEffectivePermissions(row.roleKey, row.permissions), row.org.enabledModules);
@@ -101,6 +116,8 @@ export const getClinicContext = cache(async (): Promise<ClinicContext | null> =>
     user: session.user,
     organizationId: orgId,
     membershipId: row.membershipId,
+    siteId: row.sites.find((b) => b.id === picked)?.id ?? row.sites[0]?.id ?? null,
+    sites: row.sites,
     displayName: row.displayName,
     roleKey: row.roleKey,
     roleName: row.roleName,

@@ -7,6 +7,7 @@ import { ButtonLink } from "@/components/button-link";
 import { ForbiddenState, PageHeader } from "@/components/app/page-header";
 import { careInstructionsFor, composeMessage, resolveTemplates } from "@/features/follow-ups/compose";
 import { FollowUpCard, type FollowUpItem } from "@/features/follow-ups/components/follow-up-card";
+import { autoReminderStatuses } from "@/features/reminders/server";
 import { asMessageLocale, messageDate, type FollowUpReason } from "@/features/follow-ups/messages";
 import { getFollowUps, getMessageContext, suggestReminderDate, type FollowUpPatient, type LastContact } from "@/features/follow-ups/server";
 import { addDays, formatDateOnly, parseDateOnly, todayInZone } from "@/lib/dates";
@@ -44,6 +45,8 @@ export default async function FollowUpsPage(props: PageProps<"/follow-ups">) {
   const [data, messageContext, uiLocale, h, ta] = await Promise.all([
     getFollowUps(ctx, { today, reminderDate: date, visitDate: visitDay }), getMessageContext(ctx), getLocale(), headers(), getTranslations("acquisition.report"),
   ]);
+  // Reminders already sent automatically by WhatsApp (status from the provider), so nobody sends them twice.
+  const autoSent = tab === "reminders" ? await autoReminderStatuses(ctx, data.reminders.map((r) => r.appointmentId)) : new Map<string, { status: string; at: Date }>();
   const followUpSettings = ctx.organization.settings.followUps;
 
   const host = h.get("x-forwarded-host") ?? h.get("host");
@@ -96,7 +99,7 @@ export default async function FollowUpsPage(props: PageProps<"/follow-ups">) {
     : tab === "reminders"
       ? data.reminders.map((r) => ({
           ...base(REASON.reminders, r, r.appointmentId), appointmentId: r.appointmentId,
-          details: [r.time, t("withProvider", { name: r.provider })],
+          details: [r.time, t("withProvider", { name: r.provider }), ...(autoSent.get(r.appointmentId) ? [t(`autoWhatsApp.${autoSent.get(r.appointmentId)!.status as "sent"}`)] : [])],
           confirmation: { status: r.confirmation, label: t(`confirmation.${r.confirmation as "pending"}`), canConfirm },
         }))
       : tab === "recall"

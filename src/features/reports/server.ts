@@ -1,8 +1,11 @@
 import "server-only";
 import { and, asc, eq, gte, inArray, lte } from "drizzle-orm";
 import { can, ForbiddenError, tenantTx, type ClinicContext } from "@/server/auth/context";
+import { mainSiteId } from "@/server/sites";
 import {
+  branches,
   creditNotes,
+  encounters,
   invoiceLines,
   invoices,
   memberships,
@@ -45,6 +48,8 @@ type ProcRow = {
   patientNumber: string;
   patientName: string;
   providerId: string;
+  /** Site of the visit (null = recorded before sites: the main site). */
+  siteId: string | null;
   providerName: string;
   invoiceId: string | null;
   invoiceNumber: string | null;
@@ -70,6 +75,7 @@ async function loadProcedures(ctx: ClinicContext, p: Period) {
         providerId: memberships.id,
         providerName: memberships.displayName,
         providerTitle: memberships.title,
+        siteId: encounters.branchId,
         invoiceId: invoices.id,
         invoiceNumber: invoices.number,
         invoiceStatus: invoices.status,
@@ -77,6 +83,7 @@ async function loadProcedures(ctx: ClinicContext, p: Period) {
       .from(performedProcedures)
       .innerJoin(patients, eq(patients.id, performedProcedures.patientId))
       .innerJoin(memberships, eq(memberships.id, performedProcedures.performingProviderId))
+      .leftJoin(encounters, eq(encounters.id, performedProcedures.encounterId))
       .leftJoin(invoiceLines, and(eq(invoiceLines.performedProcedureId, performedProcedures.id), eq(invoiceLines.released, false)))
       .leftJoin(invoices, eq(invoices.id, invoiceLines.invoiceId))
       .where(and(gte(performedProcedures.serviceDate, p.from), lte(performedProcedures.serviceDate, p.to)))
@@ -103,6 +110,7 @@ async function loadProcedures(ctx: ClinicContext, p: Period) {
         patientName: `${r.lastName.toUpperCase()} ${r.firstName}`,
         providerId: r.providerId,
         providerName: [r.providerTitle, r.providerName].filter(Boolean).join(" "),
+        siteId: r.siteId,
         invoiceId: r.invoiceId,
         invoiceNumber: r.invoiceNumber,
         invoiceStatus: r.invoiceStatus,
@@ -150,6 +158,7 @@ async function loadFinance(ctx: ClinicContext, p: Period) {
         purpose: payments.purpose,
         amountMinor: payments.amountMinor,
         currency: payments.currency,
+        siteId: payments.branchId,
         patientNumber: patients.patientNumber,
         firstName: patients.firstName,
         lastName: patients.lastName,
@@ -159,7 +168,7 @@ async function loadFinance(ctx: ClinicContext, p: Period) {
       .where(and(eq(payments.status, "posted"), gte(payments.receivedOn, p.from), lte(payments.receivedOn, p.to)))
       .orderBy(asc(payments.receivedOn), asc(payments.receiptNumber));
     const refundRows = await tx
-      .select({ id: refunds.id, refundedOn: refunds.refundedOn, method: refunds.method, amountMinor: refunds.amountMinor, currency: payments.currency, receiptNumber: payments.receiptNumber, reason: refunds.reason })
+      .select({ id: refunds.id, refundedOn: refunds.refundedOn, method: refunds.method, amountMinor: refunds.amountMinor, currency: payments.currency, receiptNumber: payments.receiptNumber, reason: refunds.reason, siteId: refunds.branchId })
       .from(refunds)
       .innerJoin(payments, eq(payments.id, refunds.paymentId))
       .where(and(gte(refunds.refundedOn, p.from), lte(refunds.refundedOn, p.to)))
@@ -270,9 +279,31 @@ export async function getReport(ctx: ClinicContext, period: Period) {
     for (const r of inCurrency(fin.refunds)) day(r.refundedOn).refundedMinor += r.amountMinor;
   }
 
+  // Per site (clinic groups): production by the site of the visit, net collections by the site that took the money.
+  const sites = ctx.sites.length > 1
+    ? await tenantTx(ctx, async (tx) => ({
+        main: await mainSiteId(tx),
+        rows: await tx.select({ id: branches.id, name: branches.name }).from(branches).orderBy(asc(branches.createdAt), asc(branches.id)),
+      }))
+    : null;
+  const bySite = sites
+    ? sites.rows.map((b) => {
+        const mine = (id: string | null) => (id ?? sites.main) === b.id;
+        return {
+          siteId: b.id,
+          name: b.name,
+          productionMinor: sum(procs.filter((r) => mine(r.siteId)), (r) => r.amountMinor),
+          collectedMinor: fin
+            ? sum(inCurrency(fin.payments).filter((r) => mine(r.siteId)), (r) => r.amountMinor) - sum(inCurrency(fin.refunds).filter((r) => mine(r.siteId)), (r) => r.amountMinor)
+            : null,
+        };
+      }).filter((s) => s.productionMinor !== 0 || (s.collectedMinor ?? 0) !== 0 || ctx.sites.some((a) => a.id === s.siteId))
+    : [];
+
   return {
     period,
     currency,
+    bySite,
     otherCurrencies: [...otherCurrencies],
     generatedAt: new Date(),
     procedures: procs,

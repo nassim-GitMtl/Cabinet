@@ -61,7 +61,7 @@ export default async function TreatmentPlanPage({ params }: { params: Promise<{ 
               {item.performedProcedureId ? <Link href={`/patients/${id}?tab=clinical`} className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-success hover:underline"><CheckCircle2Icon className="size-4" aria-hidden />{t("treatmentPlans.converted")}<ExternalLinkIcon className="size-3" aria-hidden /></Link> : null}
               {canConvert && !item.performedProcedureId && support ? <ConvertItemForm planId={planId} itemId={item.id} expectedVersion={plan.version}
                 providers={providers} branches={branches} defaultProviderId={patient.provider?.id ?? providers[0]?.id ?? ""}
-                defaultBranchId={branches[0]?.id ?? ""} defaultDate={todayInZone(ctx.organization.timezone)} /> : null}
+                defaultBranchId={branches.find((b) => b.id === ctx.siteId)?.id ?? branches[0]?.id ?? ""} defaultDate={todayInZone(ctx.organization.timezone)} /> : null}
             </li>)}
           </ol>
           <div className="flex items-center justify-between bg-muted/40 p-4 sm:px-5"><strong>{t("treatmentPlans.estimatedTotal")}</strong><strong className="text-lg tabular">{fmt.money(plan.totalMinor, plan.currency)}</strong></div>

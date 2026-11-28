@@ -4,7 +4,7 @@
 checks green, then update this file (move items, add notes) before ending your turn. Claude and Codex
 alternate on this repo; this file is the shared memory between them.
 
-Last updated: 2026-11-26 by Codex (session 53 — raw-IP TLS and native Apple Silicon package).
+Last updated: 2026-11-28 by Claude (session 54 — automatic WhatsApp reminders + multi-site).
 
 ## Recently completed: offline clinic computer + cloud sync
 
@@ -655,13 +655,27 @@ Regenerated and checksum-verified the AMD64 packages, then built a native ARM64/
 the client/full guides identify `amd64` versus `arm64` explicitly. Both ARM64 and AMD64 Docker/Turbopack production
 builds are green; 236/236 tests, typecheck, full lint, package checksums and archive-content verification pass.
 
+Session 54 (Claude): two new sellable modules requested by the user. (1) **WhatsApp reminders** (`whatsapp_reminders`,
+WhatsApp only by user decision): migration 0051 (`outbound_messages`, guarded and no-delete; scheduler and webhook
+SECURITY DEFINER functions), Meta WhatsApp Cloud API client with retry classification and webhook signature check, daily
+Vercel Cron `/api/cron/reminders` (16 h Algiers), delivery receipts `/api/whatsapp/webhook`, Settings → Rappels WhatsApp
+(switch, test message, 30-day counts, history), status on follow-up reminder cards. Self-registered clinics do not get
+the module. **Not live until the platform's Meta keys are added** (docs/DEPLOYMENT-VERCEL.md §9: business verification,
+approved template `rappel_rendez_vous` in FR/AR/EN, Vercel variables, webhook). (2) **Multi-site** (`multi_site`):
+migration 0052 (site on cash days, payments, refunds, expenses and practitioner payouts; old rows assigned to the first
+site; one cash day per site), Settings → Sites (add, edit, close/reopen with checks), site switcher under the clinic
+name, agenda/reception/agenda settings/procedure entry per current site, per-site cash drawer, report table by site.
+Also fixed in passing: reversing a cash receipt on a closed cash day was not refused. 246/246 tests (+3 reminders,
++3 sites integration, +4 WhatsApp unit), typecheck, lint, build green. Browser-checked on the local database: add a
+site, switch to it, its own empty cash drawer, reminders screen "not configured", close the site.
+
 ## Requirement coverage map
 
 Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation · 🔌 integration-dependent · ⏳ planned · ⛔ out of scope (reason)
 
 | Area (brief §) | Status | Notes |
 | --- | --- | --- |
-| Multi-tenant orgs, legal entity, branch (§2, §25) | ✅ | Created at registration; clinic identity screen (legal name, NIF/NIS/RC/AI, address, contact, logo) ✅, issuer details frozen on issued documents. Multi-branch/multi-entity management UI ⏳ |
+| Multi-tenant orgs, legal entity, branch (§2, §25) | ✅ | Multi-site module ✅: sites screen, current-site switcher, per-site agenda/chairs/hours/cash, report by site. Created at registration; clinic identity screen (legal name, NIF/NIS/RC/AI, address, contact, logo) ✅, issuer details frozen on issued documents. Multi-branch/multi-entity management UI ⏳ |
 | Postgres RLS tenant isolation (§4A, §27) | ✅ | Integration tests: cross-tenant read/write denied, no-context = 0 rows |
 | Roles & permission templates (§4) | ✅ | Permission-key templates, tenant custom role editor, owner-role protection and exact membership assignment |
 | Staff auth: login, sessions, lockout, logout (§4, §27) | ✅ | Invite activation, account lockout, PostgreSQL per-IP throttles for staff/portal login and forgot-password, encrypted TOTP + recovery codes, MFA challenge, active session list/revocation. Password reset ✅ (admin link, optional email, server command for the owner) and change-own-password ✅. |
@@ -684,9 +698,9 @@ Legend: ✅ implemented and verified · 🟡 implemented, awaiting validation ·
 | Images/documents, object storage (§12A, §15) | ✅ | Private filesystem or Vercel Blob storage, direct browser upload on Vercel, magic-byte type check, sha256, append-only metadata, before/after pairs and audited private views. DICOM viewer and annotations/measurements ⏳ |
 | Invoices, payments, deposits, refunds, ledger (§16) | ✅ | Invoices from completed procedures (snapshots, billed once, draft/issue/void), per-entity yearly numbering (F-/AV-/R-), payments with idempotency key, partial/auto/over-payment, deposits + later application (no new receipt), credit notes (release excess allocations), refunds ≤ unapplied, payment reversal reopening balances. DB triggers enforce immutability and all allocation/refund/credit limits. Split billing of one procedure, line discounts UI, installments, third-party/family allocation ⏳ |
 | Practitioner fees / honoraires | ✅ | Owner-only setup and visibility (doctor sees his own); per-doctor price list per service (own price, % or fixed; default % fallback), one-off line rule with reason, lab fee deducted when the service says so; append-only ledger frozen at invoice issue; share net of credit notes and collected share derived from payments; payouts with reversal and cash-day integration; closed months; older-line assignment; corrections; own-only view for dentists; XLSX/CSV. Statement per practitioner (PDF), payroll export ⏳ |
-| Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses − cash practitioner payouts ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-branch drawers, supplier balances, recurring expenses, attachments ⏳ |
+| Cash close, expenses (§17) | ✅ | `/cash`: one session per day, opening float, expected cash derived from ledger (cash receipts − cash refunds − cash expenses − cash practitioner payouts ± transfers; card/transfer excluded), count + mandatory discrepancy reason, approval (`cash.close.approve`), print. Cash entries dated on a closed day are blocked (payments, refunds, expenses, movements). `/expenses`: categories, suppliers (auto-created), unpaid/paid/void with DB guards. Per-site drawers ✅ (multi-site). supplier balances, recurring expenses, attachments ⏳ |
 | Dashboards & reports, daily/monthly grouped by invoice, print (§18, §19) | 🟡 | Acquisition report ✅ (sources, treated share, production, booking funnel, referrers). `/reports`: daily + monthly with §18 metric bases (production, invoiced sales, gross/net collections, unbilled), procedures grouped by invoice, invoice list, credit notes, payments by method, by service/provider, per-day breakdown; A4 print. CSV/Excel export, receivables aging, saved views, branch/provider filters ⏳ |
-| Messaging/reminders (§20) | 🟡 | Relances ✅: reminders, after-visit care + review requests, referral thanks, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic sending through an SMS/WhatsApp Business provider ⏳ 🔌 |
+| Messaging/reminders (§20) | 🟡 | Automatic WhatsApp appointment reminders ✅ (module, Meta Cloud API, daily cron, delivery receipts; live once the platform's Meta keys are set). Relances ✅: reminders, after-visit care + review requests, referral thanks, recalls, unfinished treatments, pending estimates, no-shows with ready messages (FR/EN/AR) sent by staff via WhatsApp/SMS links, contact log, opt-out, editable templates. Automatic SMS sending ⏳ 🔌 |
 | Patient portal (§21) | 🟡 | Visual treatment journey ✅ (clinician-chosen steps/photos/before-after, patient switch on/off, plan progress). Invite-only activation, separate patient accounts/sessions with lockout, consent inbox/history/revocation, linked-clinic appointments, accepted estimates, invoice/payment history, assisted single-use account recovery, and exact-clinic medical questionnaire completion ✅. Wider health-record views and online payment provider integration ⏳ |
 | Lab, inventory, sterilization (§22, §23) | 🟡 | Inventory ✅: items, per-branch lots, immutable movement ledger, low/expiry alerts, FEFO usage, supplier purchase orders/receiving, barcode/QR camera and GS1 scan actions. Consumable recipes per procedure (confirm or auto), patient-to-lot recall with export, and explainable reorder suggestions ✅. Sterilization ✅: equipment/sets, immutable cycles and indicators, authorized release/fail/recall, Code 128 pouch labels, patient/procedure linkage and full trace. Lab ⏳ |
 | Imports/FHIR/integrations (§26) | 🟡 | Patient list import (CSV/XLSX, mapping, preview, duplicates, history) ✅. Clinical/financial history import, FHIR and other integrations ⏳ 🔌 |

@@ -428,6 +428,28 @@ function MonthlySections({ report, m, label, t }: Props) {
             </tbody>
           </table>
         </Section>
+        {report.bySite.length > 1 ? (
+          <Section title={t("sites.reportTitle")}>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className={th}>{t("sites.site")}</th>
+                  <th className={cn(th, "text-end")}>{t("sites.production")}</th>
+                  {report.bySite.some((s) => s.collectedMinor !== null) ? <th className={cn(th, "text-end")}>{t("sites.collected")}</th> : null}
+                </tr>
+              </thead>
+              <tbody>
+                {report.bySite.map((s) => (
+                  <tr key={s.siteId} className="border-b">
+                    <td className={td}><bdi>{s.name}</bdi></td>
+                    <td className={num}>{m(s.productionMinor)}</td>
+                    {s.collectedMinor !== null ? <td className={num}>{m(s.collectedMinor)}</td> : null}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Section>
+        ) : null}
       </div>
       {f && f.invoices.length ? <InvoicesTable report={report} m={m} t={t} /> : null}
     </>

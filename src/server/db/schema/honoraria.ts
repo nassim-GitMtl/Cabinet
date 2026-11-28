@@ -19,7 +19,7 @@ import { createdAt, id, organizationId, updatedAt, version, type LocalizedText }
 import { services } from "./catalog";
 import { invoiceLines, invoices, paymentMethod } from "./finance";
 import { patients } from "./patients";
-import { memberships, organizations, users } from "./platform";
+import { branches, memberships, organizations, users } from "./platform";
 
 /**
  * Practitioner fees ("honoraires"): the share of each billed act that goes to the dentist who did it.
@@ -146,6 +146,8 @@ export const honorariumPayments = pgTable(
     id: id(),
     organizationId: organizationId().references(() => organizations.id),
     providerId: uuid("provider_id").notNull().references(() => memberships.id),
+    /** Site (branch) whose cash drawer this belongs to; null only on rows older than multi-site = the first site. */
+    branchId: uuid("branch_id").references(() => branches.id),
     paidOn: date("paid_on", { mode: "string" }).notNull(),
     amountMinor: bigint("amount_minor", { mode: "number" }).notNull(),
     currency: text("currency").notNull(),

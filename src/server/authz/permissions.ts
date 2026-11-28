@@ -22,6 +22,8 @@ export const PERMISSIONS = [
   "patient.alerts.manage",
   /** Contact patients for reminders, recalls and follow-ups (sees phone numbers and visit/estimate status). */
   "patient.followup",
+  "reminders.auto.manage",
+  "branches.manage",
   // Clinical
   "clinical.read",
   "clinical.write",

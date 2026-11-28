@@ -19,6 +19,7 @@ import {
 } from "@/server/db/schema";
 import { parseDateOnly, todayInZone } from "@/lib/dates";
 import { assertCashDayOpen } from "@/features/cash/server";
+import { currentSiteId, mainSiteId } from "@/server/sites";
 import { invoiceCreditedSql, invoicePaidSql } from "@/features/billing/sql";
 import { withTitle } from "@/features/activity/server";
 import { calculateHonorarium, isValidRule, resolveRule, type FeeRule } from "./calculation";
@@ -714,12 +715,14 @@ export async function recordHonorariumPayment(
   return tenantTx(ctx, async (tx) => {
     const provider = await requireProvider(tx, input.providerId);
     if (await monthClosed(tx, provider.id, paidOn)) throw new HonorariumError("periodClosed");
-    // Cash handed over comes out of the cash drawer of that day (see cash day "expected").
-    await assertCashDayOpen(tx, paidOn, input.method);
+    // Cash handed over comes out of this site's cash drawer of that day (see cash day "expected").
+    const siteId = await currentSiteId(tx, ctx);
+    await assertCashDayOpen(tx, paidOn, input.method, siteId);
     const [row] = await tx
       .insert(honorariumPayments)
       .values({
         organizationId: ctx.organizationId,
+        branchId: siteId,
         providerId: provider.id,
         paidOn,
         amountMinor: input.amountMinor,
@@ -753,12 +756,14 @@ export async function reverseHonorariumPayment(ctx: ClinicContext, paymentId: st
       .where(and(eq(honorariumPayments.id, paymentId), isNull(honorariumPayments.reversesPaymentId)))
       .limit(1);
     if (!original) throw new HonorariumError("paymentUnavailable");
-    await assertCashDayOpen(tx, today, original.method);
+    const siteId = original.branchId ?? (await mainSiteId(tx));
+    await assertCashDayOpen(tx, today, original.method, siteId);
     // A payment is reversed at most once (unique index on reverses_payment_id).
     const [row] = await tx
       .insert(honorariumPayments)
       .values({
         organizationId: ctx.organizationId,
+        branchId: siteId,
         providerId: original.providerId,
         paidOn: today,
         amountMinor: -original.amountMinor,

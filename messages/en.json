@@ -267,6 +267,13 @@
     "fields": "Fields:",
     "patientHistory": "History",
     "actions": {
+      "site_created": "Site added",
+      "site_updated": "Site updated",
+      "site_activated": "Site reopened",
+      "site_deactivated": "Site closed",
+      "reminders_auto_enabled": "WhatsApp reminders turned on",
+      "reminders_auto_disabled": "WhatsApp reminders turned off",
+      "reminders_test_sent": "WhatsApp test message",
       "patient_journey_item_shared": "Item shared on the patient journey",
       "patient_journey_item_withdrawn": "Item withdrawn from the patient journey",
       "patient_journey_access_granted": "Journey switched on by the patient",
@@ -432,6 +439,7 @@
       "working_hours_updated": "Working hours changed"
     },
     "tables": {
+      "outbound_messages": "WhatsApp messages",
       "patient_journey_items": "Patient journey",
       "patient_journey_access": "Journey access",
       "appointment_types": "Appointment types",
@@ -572,6 +580,88 @@
       "cardOff": "{count, plural, =0 {The progress of your treatment is available.} one {# item shared by your clinic.} other {# items shared by your clinic.}}",
       "open": "Open",
       "discover": "Discover"
+    }
+  },
+  "reminders": {
+    "title": "Automatic WhatsApp reminders",
+    "subtitle": "The day before each appointment, the patient gets a WhatsApp reminder, without anyone having to send it.",
+    "notConfigured": "The WhatsApp service is not configured on the platform yet: no message can go out for now.",
+    "on": "On: every patient gets a reminder the day before their appointment.",
+    "off": "Off: no automatic reminder is sent.",
+    "how": "Sent every day around 4 pm for the next day's appointments, to patients who have a mobile number and did not refuse messages. One message per appointment; if the appointment is moved, a new reminder goes out with the new time.",
+    "turnOn": "Turn reminders on",
+    "turnOff": "Turn reminders off",
+    "needPhone": "First add the clinic's phone number: it appears in every message.",
+    "setPhone": "Add the number",
+    "phonesUsed": "Number shown in the messages:",
+    "preview": {
+      "title": "Sample message",
+      "text": "Hello Karim, this is a reminder of your appointment at {clinic} on Tuesday 25/11/2026 at 10:00. If you cannot come, please let us know at 0661 00 00 00.",
+      "hint": "Each patient receives it in their language (French, Arabic or English). The wording is approved by WhatsApp and cannot be edited here."
+    },
+    "test": {
+      "title": "Test with your number",
+      "phone": "WhatsApp number",
+      "send": "Send a test",
+      "sent": "Test message accepted by WhatsApp: it arrives in a few seconds."
+    },
+    "history": {
+      "title": "Latest reminders",
+      "empty": "No reminder sent yet.",
+      "for": "Appointment {date} at {time}"
+    },
+    "status": {
+      "queued": "Waiting",
+      "sent": "Sent",
+      "delivered": "Received",
+      "read": "Read",
+      "failed": "Failed"
+    },
+    "failure": {
+      "opted_out": "The patient refused messages.",
+      "appointment_changed": "Appointment cancelled or moved before sending.",
+      "too_late": "Too late to send.",
+      "invalid_number": "Invalid number.",
+      "131026": "This number has no WhatsApp or cannot receive the message."
+    },
+    "errors": {
+      "notConfigured": "The WhatsApp service is not configured on the platform.",
+      "noClinicPhone": "First add the clinic's phone number.",
+      "invalidPhone": "Invalid number.",
+      "sendFailed": "WhatsApp refused the test message."
+    }
+  },
+  "sites": {
+    "title": "Sites",
+    "subtitle": "Your clinic's sites. Patients, catalog, team and invoices are shared; each site has its own chairs, hours, schedule and cash drawer.",
+    "singleSubtitle": "Your clinic's address and phone.",
+    "current": "Current site",
+    "add": "Add a site",
+    "addHint": "The new site appears in every team member's site selector.",
+    "edit": "Edit",
+    "name": "Site name",
+    "address": "Address",
+    "phone": "Phone",
+    "phoneHint": "Shown to patients (WhatsApp reminders, public page).",
+    "email": "Email",
+    "save": "Save",
+    "close": "Close the site",
+    "reopen": "Reopen",
+    "main": "Main site",
+    "closed": "Closed",
+    "explain": "Choose the site you work at in the menu, under the clinic name: the schedule, reception and cash drawer then show that site. Invoices keep one numbering for the whole clinic.",
+    "moduleHint": "To open more sites, ask for the \"Multi-site\" module.",
+    "reportTitle": "By site",
+    "site": "Site",
+    "production": "Production",
+    "collected": "Collected (net)",
+    "errors": {
+      "nameRequired": "Enter the site name.",
+      "nameTaken": "A site already has this name.",
+      "invalidPhone": "Invalid phone number.",
+      "lastSite": "The last open site cannot be closed.",
+      "siteHasAppointments": "This site still has upcoming appointments: move or cancel them first.",
+      "notFound": "Site not found."
     }
   },
   "toothGuide": {
@@ -2267,6 +2357,7 @@
     }
   },
   "followUps": {
+    "autoWhatsApp": {"queued": "Automatic WhatsApp: waiting", "sent": "Automatic WhatsApp: sent", "delivered": "Automatic WhatsApp: received", "read": "Automatic WhatsApp: read", "failed": "Automatic WhatsApp: failed"},
     "title": "Patient follow-ups",
     "subtitle": "Appointment reminders, check-ups and follow-ups: the message is ready in the patient's language, you just send it from WhatsApp or by SMS.",
     "tabs": {
@@ -2821,6 +2912,8 @@
     "kinds": { "solo": "Solo clinic", "group": "Group clinic", "specialist": "Specialist", "pediatric": "Pediatric", "multi_branch": "Multi-site" },
     "locales": { "fr": "French", "en": "English", "ar": "Arabic" },
     "modules": {
+      "multi_site": {"name": "Multi-site", "hint": "Several sites, each with its own schedule and cash drawer."},
+      "whatsapp_reminders": {"name": "WhatsApp reminders", "hint": "Automatic reminder the day before the appointment."},
       "title": "Included features",
       "online_booking": { "name": "Online booking", "hint": "Public links and request approval." },
       "advanced_clinical": { "name": "Advanced clinical", "hint": "Questionnaires, imaging, and treatment plans." },

@@ -4,6 +4,7 @@ import { audit } from "@/server/audit";
 import { requirePermission, tenantTx, type ClinicContext } from "@/server/auth/context";
 import type { Tx } from "@/server/db/client";
 import { appointments, appointmentTypes, branches, chairs, memberships, patients, timeOff, workingHours } from "@/server/db/schema";
+import { currentSiteId } from "@/server/sites";
 import { isoWeekday, timeInZone, todayInZone, zonedToUtc } from "@/lib/dates";
 
 export class AgendaError extends Error {
@@ -25,9 +26,11 @@ export function conflictFrom(err: unknown): AgendaError | null {
 export async function getAgendaSetup(ctx: ClinicContext) {
   requirePermission(ctx, "appointment.read");
   return tenantTx(ctx, async (tx) => {
+    // Chairs are those of the site the user works at.
+    const siteId = await currentSiteId(tx, ctx);
     const [providers, chairRows, types, branchRows, hours] = [
       await tx.select({ id: memberships.id, displayName: memberships.displayName, title: memberships.title }).from(memberships).where(and(eq(memberships.isProvider, true), eq(memberships.status, "active"))).orderBy(asc(memberships.displayName)),
-      await tx.select().from(chairs).where(eq(chairs.isActive, true)).orderBy(asc(chairs.sortOrder), asc(chairs.name)),
+      await tx.select().from(chairs).where(and(eq(chairs.isActive, true), eq(chairs.branchId, siteId))).orderBy(asc(chairs.sortOrder), asc(chairs.name)),
       await tx.select().from(appointmentTypes).where(eq(appointmentTypes.isActive, true)).orderBy(asc(appointmentTypes.defaultDurationMin)),
       await tx.select({ id: branches.id, name: branches.name }).from(branches).where(eq(branches.isActive, true)),
       await tx.select().from(workingHours).orderBy(asc(workingHours.weekday), asc(workingHours.startTime)),
@@ -53,12 +56,13 @@ export async function validateAppointmentSlot(tx: Tx, ctx: ClinicContext, input:
   const [provider] = await tx.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.id, input.providerId), eq(memberships.isProvider, true), eq(memberships.status, "active")));
   if (!provider) throw new AgendaError("providerUnavailable");
   if (input.chairId) {
-    const [chair] = await tx.select({ id: chairs.id }).from(chairs).where(and(eq(chairs.id, input.chairId), eq(chairs.isActive, true)));
+    const [chair] = await tx.select({ id: chairs.id }).from(chairs).where(and(eq(chairs.id, input.chairId), eq(chairs.isActive, true), eq(chairs.branchId, await currentSiteId(tx, ctx))));
     if (!chair) throw new AgendaError("chairUnavailable");
   }
   if (input.outsideHoursOverride) return;
   // Within one working-hours interval of that weekday (if the provider has hours configured).
-  const hours = await tx.select().from(workingHours).where(eq(workingHours.providerId, input.providerId));
+  // Hours at this site (a practitioner may work different days at different sites).
+  const hours = await tx.select().from(workingHours).where(and(eq(workingHours.providerId, input.providerId), eq(workingHours.branchId, await currentSiteId(tx, ctx))));
   if (hours.length) {
     const wd = isoWeekday(input.date);
     const start = timeInZone(startsAt, ctx.organization.timezone);
@@ -87,12 +91,13 @@ export async function bookInTx(tx: Tx, ctx: ClinicContext, input: AppointmentInp
   const [patient] = await tx.select({ id: patients.id, status: patients.status }).from(patients).where(eq(patients.id, input.patientId));
   if (!patient || patient.status === "archived" || patient.status === "deceased") throw new AgendaError("patientUnavailable");
   await validateAppointmentSlot(tx, ctx, input, startsAt, endsAt);
-  const [branch] = await tx.select({ id: branches.id }).from(branches).where(eq(branches.isActive, true)).orderBy(asc(branches.createdAt)).limit(1);
+  // Booked at the site the user works at (the clinic's only site for a single-site clinic).
+  const branchId = await currentSiteId(tx, ctx);
   const [a] = await tx
     .insert(appointments)
     .values({
       organizationId: ctx.organizationId,
-      branchId: branch!.id,
+      branchId,
       patientId: input.patientId,
       providerId: input.providerId,
       chairId: input.chairId,
@@ -241,10 +246,12 @@ const listSelect = {
   typeColor: appointmentTypes.color,
 };
 
+/** Appointments of the site the user works at. */
 export async function listAppointments(ctx: ClinicContext, from: Date, to: Date, opts: { providerId?: string | null; includeCancelled?: boolean } = {}) {
   requirePermission(ctx, "appointment.read");
-  return tenantTx(ctx, (tx) =>
-    tx
+  return tenantTx(ctx, async (tx) => {
+    const siteId = await currentSiteId(tx, ctx);
+    return tx
       .select(listSelect)
       .from(appointments)
       .innerJoin(patients, eq(patients.id, appointments.patientId))
@@ -257,10 +264,11 @@ export async function listAppointments(ctx: ClinicContext, from: Date, to: Date,
           gt(appointments.endsAt, from),
           opts.providerId ? eq(appointments.providerId, opts.providerId) : undefined,
           opts.includeCancelled ? undefined : eq(appointments.schedulingStatus, "booked"),
+          eq(appointments.branchId, siteId),
         ),
       )
-      .orderBy(asc(appointments.startsAt)),
-  );
+      .orderBy(asc(appointments.startsAt));
+  });
 }
 
 export type AgendaItem = Awaited<ReturnType<typeof listAppointments>>[number];

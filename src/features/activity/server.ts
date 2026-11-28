@@ -12,12 +12,12 @@ import { addDays, parseDateOnly, zonedToUtc } from "@/lib/dates";
 
 /** Action-code prefixes per area of the app (filter). */
 export const ACTIVITY_CATEGORIES = {
-  patients: ["patient.", "patient_import.", "patient_portal.", "shared_profile."],
+  patients: ["patient.", "patient_import.", "patient_portal.", "patient_journey.", "shared_profile.", "reminders."],
   agenda: ["appointment.", "appointment_type.", "booking_link.", "booking_request.", "chair.", "time_off.", "working_hours."],
   clinical: ["clinical_note.", "clinical_file.", "odontogram.", "performed_procedure.", "treatment_plan.", "health_history.", "questionnaire."],
   billing: ["invoice.", "payment.", "payment_schedule.", "credit_note.", "cash.", "expense.", "honorarium.", "report."],
   stock: ["inventory.", "sterilization."],
-  settings: ["org.", "organization.", "role.", "staff.", "catalog.", "sync.", "platform."],
+  settings: ["org.", "organization.", "role.", "staff.", "catalog.", "sync.", "platform.", "site."],
   security: ["auth."],
 } as const;
 export type ActivityCategory = keyof typeof ACTIVITY_CATEGORIES;

@@ -84,7 +84,8 @@ export async function registerClinic(input: RegisterClinicInput, database: Datab
       defaultCurrency: currency,
       timezone,
       countryCode: input.countryCode ?? "DZ",
-      enabledModules: input.enabledModules ?? [...PRODUCT_MODULES],
+      // WhatsApp reminders cost the platform per message: only the operator turns them on (/platform).
+      enabledModules: input.enabledModules ?? PRODUCT_MODULES.filter((m) => m !== "whatsapp_reminders"),
       settings: { currencyDisplay: currency === "DZD" ? "DA" : currency, dateFormat: "DD/MM/YYYY" },
     });
 

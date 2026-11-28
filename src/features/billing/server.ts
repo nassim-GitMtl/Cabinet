@@ -20,6 +20,7 @@ import type { IssuerSnapshot } from "@/server/db/schema";
 import { nextCounter } from "@/server/db/tenant";
 import { todayInZone } from "@/lib/dates";
 import { assertCashDayOpen } from "@/features/cash/server";
+import { currentSiteId, mainSiteId } from "@/server/sites";
 import { applyBasisPoints } from "@/lib/money";
 import { isValidRule, type FeeRule } from "@/features/honoraria/calculation";
 import { snapshotInvoiceHonoraria } from "@/features/honoraria/server";
@@ -363,7 +364,8 @@ export async function recordPayment(ctx: ClinicContext, input: PaymentInput) {
       if (!row || Number(row.remaining) < input.amountMinor) throw new BillingError("invalidAmount");
       installment = { id: row.id, scheduleId: row.schedule_id, currency: row.currency };
     }
-    await assertCashDayOpen(tx, input.receivedOn, input.method);
+    const siteId = await currentSiteId(tx, ctx);
+    await assertCashDayOpen(tx, input.receivedOn, input.method, siteId);
     const targets = input.allocateTo ? await openInvoices(tx, input.patientId, input.allocateTo === "auto" ? undefined : input.allocateTo) : [];
     if (input.allocateTo && input.allocateTo !== "auto" && targets.length === 0) throw new BillingError("invoiceNotOpen");
 
@@ -375,6 +377,7 @@ export async function recordPayment(ctx: ClinicContext, input: PaymentInput) {
       .values({
         organizationId: ctx.organizationId,
         legalEntityId: le.id,
+        branchId: siteId,
         issuerSnapshot: issuerSnapshotOf(le.id),
         patientId: input.patientId,
         payerName: input.payerName || null,
@@ -505,10 +508,12 @@ export async function refundPayment(
     if (!pay) throw new BillingError("notFound");
     if (pay.status !== "posted") throw new BillingError("paymentReversed");
     if (input.amountMinor > Number(pay.unapplied)) throw new BillingError("refundTooLarge");
-    await assertCashDayOpen(tx, input.refundedOn, input.method);
+    // Cash is handed back from the drawer of the site where the refund is made.
+    const siteId = await currentSiteId(tx, ctx);
+    await assertCashDayOpen(tx, input.refundedOn, input.method, siteId);
     const [r] = await tx
       .insert(refunds)
-      .values({ organizationId: ctx.organizationId, paymentId, amountMinor: input.amountMinor, method: input.method, refundedOn: input.refundedOn, reference: input.reference || null, reason: input.reason.trim(), createdByUserId: ctx.userId })
+      .values({ organizationId: ctx.organizationId, branchId: siteId, paymentId, amountMinor: input.amountMinor, method: input.method, refundedOn: input.refundedOn, reference: input.reference || null, reason: input.reason.trim(), createdByUserId: ctx.userId })
       .returning({ id: refunds.id });
     await audit(tx, { ...staff(ctx), action: "payment.refunded", entityType: "refund", entityId: r!.id, patientId: pay.patientId, metadata: { paymentId, amountMinor: input.amountMinor } });
     return r!.id;
@@ -521,13 +526,15 @@ export async function reversePayment(ctx: ClinicContext, paymentId: string, reas
   if (!reason.trim()) throw new BillingError("reasonRequired");
   return tenantTx(ctx, async (tx) => {
     const [pay] = await tx
-      .select({ id: payments.id, patientId: payments.patientId, status: payments.status, refunded: paymentRefundedSql })
+      .select({ id: payments.id, patientId: payments.patientId, status: payments.status, refunded: paymentRefundedSql, method: payments.method, receivedOn: payments.receivedOn, branchId: payments.branchId })
       .from(payments)
       .where(eq(payments.id, paymentId))
       .for("update", { of: payments });
     if (!pay) throw new BillingError("notFound");
     if (pay.status !== "posted") throw new BillingError("paymentReversed");
     if (Number(pay.refunded) > 0) throw new BillingError("hasRefunds");
+    // Reversing a cash receipt changes that day's drawer: refused once the day is closed (like any cash entry).
+    await assertCashDayOpen(tx, pay.receivedOn, pay.method, pay.branchId ?? (await mainSiteId(tx)));
     const allocs = await tx
       .select({ invoiceId: paymentAllocations.invoiceId, total: sql<number>`sum(${paymentAllocations.amountMinor})::bigint` })
       .from(paymentAllocations)

@@ -34,6 +34,7 @@ import type { OperationalNotification } from "@/features/notifications/types";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "./language-switcher";
 import { NotificationCenter } from "./notification-center";
+import { SiteSwitcher } from "@/features/sites/components/site-switcher";
 import { ToothIcon, ToothNumberGuide } from "./tooth-number-guide";
 
 export type NavKey = "dashboard" | "agenda" | "reception" | "patients" | "followUps" | "invoices" | "honoraria" | "reports" | "cash" | "expenses" | "inventory" | "sterilization" | "catalog" | "settings";
@@ -67,6 +68,9 @@ type Props = {
   hasMultipleClinics: boolean;
   isPlatformOperator: boolean;
   initialNotifications: OperationalNotification[];
+  /** Sites of a multi-site clinic and the one the person works at (switcher hidden for a single site). */
+  sites: Array<{ id: string; name: string }>;
+  siteId: string | null;
   children: ReactNode;
 };
 
@@ -112,7 +116,7 @@ function NavigationCountBadge({
   );
 }
 
-export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient, hasMultipleClinics, isPlatformOperator, initialNotifications, children }: Props) {
+export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient, hasMultipleClinics, isPlatformOperator, initialNotifications, sites, siteId, children }: Props) {
   const t = useTranslations("nav");
   const nt = useTranslations("notifications");
   const pathname = usePathname();
@@ -174,6 +178,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
               {clinicName}
             </p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{roleName}</p>
+            <SiteSwitcher sites={sites} siteId={siteId} />
             {hasMultipleClinics ? (
               <Link href="/select-clinic" className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline">
                 <ArrowLeftRightIcon className="size-3" aria-hidden />
@@ -243,7 +248,7 @@ export function AppShell({ clinicName, userName, roleName, nav, canCreatePatient
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold" dir="auto">{clinicName}</p>
-              <p className="truncate text-[11px] text-muted-foreground">{userName}</p>
+              {sites.length > 1 ? <SiteSwitcher sites={sites} siteId={siteId} compact /> : <p className="truncate text-[11px] text-muted-foreground">{userName}</p>}
             </div>
           </div>
           <div className="flex items-center gap-1">

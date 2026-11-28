@@ -19,6 +19,8 @@ export async function contextFromIds(userId: string, organizationId: string): Pr
       user: { id: userId, fullName: row.m.displayName, email: "", locale: "fr", platformRole: "none" },
       organizationId,
       membershipId: row.m.id,
+      siteId: null,
+      sites: [],
       displayName: row.m.displayName,
       roleKey: row.r.key,
       roleName: row.r.name,

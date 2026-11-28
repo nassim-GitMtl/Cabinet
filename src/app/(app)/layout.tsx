@@ -48,6 +48,8 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       hasMultipleClinics={clinics.length > 1}
       isPlatformOperator={ctx.user.platformRole === "operator"}
       initialNotifications={notifications}
+      sites={ctx.sites}
+      siteId={ctx.siteId}
     >
       <ConnectionBanner />
       <SyncNotice ctx={ctx} />

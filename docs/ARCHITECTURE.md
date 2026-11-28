@@ -527,3 +527,44 @@ context and revocable access").
   `/portal` because the patient session cookie has `path=/portal`): only a shared, not withdrawn item of that patient,
   journey switched on, image files only; `private, no-store`, `nosniff`, `CSP: sandbox`; each view audited
   (`patient_journey.file_viewed`).
+
+## Automatic WhatsApp reminders (`src/features/reminders`, `src/server/whatsapp.ts`, migration 0051)
+
+User decision 2026-11-28: WhatsApp only, through the platform's own Meta WhatsApp Cloud API account, sold per clinic as
+module `whatsapp_reminders` (self-registered clinics do not get it: messages cost the platform money).
+
+- **Sending.** Business-initiated messages must use an approved template (`WHATSAPP_REMINDER_TEMPLATE`, 5 body
+  variables: first name, clinic, date, time, site phone; FR/AR/EN, patient language with French fallback).
+  `sendWhatsAppTemplate` posts to `graph.facebook.com/<version>/<phone-number-id>/messages` with a 15 s timeout and maps
+  errors to retryable (network, 429, 5xx, throttling codes) or final. Configuration only from server env; the token is
+  never logged. Setup steps: `docs/DEPLOYMENT-VERCEL.md` §9.
+- **Daily run.** Vercel Cron → `GET /api/cron/reminders` (`Authorization: Bearer $CRON_SECRET`, cloud node only) →
+  `runAutoReminders`: clinics from `app_private.auto_reminder_clinics()` (module + clinic switch
+  `settings.autoReminders.enabled`), tomorrow's booked, not declined appointments of active patients with a phone who
+  did not opt out (`transactionalAllowed`). One `outbound_messages` row per appointment **time** (unique
+  appointment/kind/starts_at: never twice; a moved appointment gets a new one). Queued rows are re-checked before
+  sending (still booked at the same time, still allowed, more than 2 h away) and retried up to 3 attempts on later runs.
+- **Statuses.** `outbound_messages` is no-delete and guarded: content never changes, status only moves forward
+  (queued → sent → delivered → read; failed and read are final). Delivery receipts arrive on
+  `POST /api/whatsapp/webhook` (HMAC-SHA256 `X-Hub-Signature-256` over the raw body with `WHATSAPP_APP_SECRET`; GET
+  handshake with `WHATSAPP_WEBHOOK_VERIFY_TOKEN`) and are applied by the SECURITY DEFINER
+  `app_private.whatsapp_status_update` (the receipt carries only the provider id). The follow-up reminder cards show the
+  automatic status so reception does not send twice. A message is shown as sent only after WhatsApp accepted it.
+
+## Multi-site (`src/server/sites.ts`, `src/features/sites`, migration 0052)
+
+Module `multi_site` (`branches.manage`, owner) to add sites; editing a site's details only needs `org.settings.manage`.
+
+- **Shared vs per site.** Patients, catalog, team, invoices (one numbering per legal entity) and reports are shared.
+  Per site: chairs, working hours, appointments, the cash drawer (`cash_sessions` unique per org/site/day, NULLS NOT
+  DISTINCT) and cash records (`payments`, `refunds`, `expenses`, `honorarium_payments` carry `branch_id`).
+- **Main site** = the first site created (`mainSiteId`). Rows from before multi-site were assigned to it by 0052 (guard
+  triggers paused for that one deterministic statement); `ofSite()` still counts rows without a site for the main
+  site. `guard_branch_same_org` refuses another clinic's site on insert.
+- **Current site.** `ClinicContext.sites` (active sites the member may use: `memberships.branch_ids`, null = all) and
+  `siteId` (cookie `cdp_site`, set by `chooseSiteAction`, re-validated by `currentSiteId`, else main). The switcher sits
+  under the clinic name (hidden with one site). Agenda, reception, agenda settings, procedure entry defaults and the cash
+  day follow the current site; the report adds a per-site table (production by visit site, net collections by the site
+  that took the money). A closed site, or a site of another clinic, falls back to the main site.
+- **Not yet:** staff restricted to some sites in the team screen (column exists), separate legal entity/numbering per
+  site, per-site public booking links, a clinic computer per site (offline mode assumes one per clinic).

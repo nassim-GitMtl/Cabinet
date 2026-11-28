@@ -106,6 +106,8 @@ export type OrganizationSettings = {
    * Planned appointments never reduce stock.
    */
   consumablesMode?: "suggest" | "auto";
+  /** Automatic WhatsApp appointment reminders (module whatsapp_reminders), switched on by the clinic. */
+  autoReminders?: { enabled: boolean };
   /** Patient follow-ups: recall delay and per-language message templates (empty = built-in default). */
   followUps?: {
     recallMonths?: number;

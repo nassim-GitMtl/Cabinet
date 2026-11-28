@@ -30,6 +30,8 @@ export function contextFor(
     user: { id: base.userId, fullName: "Test", email: "t@example.test", locale: "fr", platformRole: "none" },
     organizationId: base.organizationId,
     membershipId: randomUUID(),
+    siteId: null,
+    sites: [],
     displayName: "Test",
     roleKey: role,
     roleName: ROLE_TEMPLATES[role].name,

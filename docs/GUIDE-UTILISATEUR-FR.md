@@ -573,6 +573,10 @@ Ouvrez **Relances** pour préparer les contacts suivants :
 
 Le logiciel prépare le message mais ne peut pas confirmer que WhatsApp ou le téléphone l’a réellement envoyé. Les messages n’incluent pas automatiquement de diagnostic, d’acte ou de numéro de dent.
 
+## Rappels WhatsApp automatiques
+
+Avec le module « Rappels WhatsApp », le cabinet n’a plus à envoyer les rappels lui-même : chaque jour vers 16 h, chaque patient ayant un rendez-vous le lendemain reçoit un message WhatsApp avec la date, l’heure et le téléphone du site. Le propriétaire l’active dans **Paramètres > Rappels WhatsApp** (le téléphone du cabinet doit être renseigné) et peut s’envoyer un message de test. Les patients qui ont refusé les messages ne reçoivent rien ; un rendez-vous déplacé reçoit un nouveau rappel. L’écran montre les derniers rappels (envoyé, reçu, lu, échec) et la carte de rappel du jour dans **Relances** indique quand le message est déjà parti.
+
 ## Personnaliser les modèles
 
 Dans **Paramètres > Relances**, modifiez les modèles français, anglais et arabe, les conseils après soin et l’adresse de demande d’avis. Vérifiez les variables affichées avant d’enregistrer.
@@ -729,6 +733,10 @@ Créez une version complète du questionnaire, vérifiez les formulations puis f
 
 Les écrans correspondants permettent de personnaliser les modèles de messages, les conseils après soins, le lien d’avis, la présentation publique, les horaires et l’adresse partagée.
 
+## Sites
+
+Avec le module « Multi-sites », **Paramètres > Sites** permet d’ajouter les autres sites du cabinet (nom, adresse, téléphone), de les modifier ou de les fermer. Les patients, le catalogue, l’équipe et les factures sont communs ; chaque site a ses fauteuils, ses horaires, son agenda et sa propre caisse. Choisissez le site où vous travaillez dans le menu, sous le nom du cabinet : l’agenda, l’accueil et la caisse affichent alors ce site, et le rapport d’activité ajoute un tableau par site.
+
 ## Journal d’activité
 
 **Paramètres > Journal d’activité** montre qui a fait quoi et quand : création de patient, facture émise, paiement, prix modifié, etc., avec le nom de la personne. Filtrez par dates, personne ou domaine ; le bouton **Historique** du dossier patient ouvre le journal de ce seul patient. L’onglet « Toutes les modifications » liste chaque changement enregistré dans la base (personne et champs modifiés, jamais leur contenu). Rien dans ce journal ne peut être modifié ni supprimé. Réservé au propriétaire et à l’administrateur technique ; les honoraires n’y apparaissent que pour le propriétaire.
@@ -826,7 +834,7 @@ Les fonctions suivantes ne doivent pas être promises comme disponibles :
 
 - accès complet au serveur du cabinet depuis Internet sans configuration réseau supplémentaire ;
 - paiement en ligne dans le portail ;
-- envoi automatique confirmé par SMS ou WhatsApp Business ;
+- envoi automatique par SMS (les rappels WhatsApp automatiques existent avec leur module) ;
 - signature électronique du consentement de traitement ;
 - dossier parodontal graphique et odontogramme des dents temporaires ;
 - annotations, mesures et visualiseur DICOM spécialisé ;
